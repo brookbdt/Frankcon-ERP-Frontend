@@ -88,7 +88,7 @@ const SideBar = () => {
 					spacing={2}
 					justifyContent="space-between"
 				></Stack>
-				<Image src="/static/Logo.png" width={40} height={41.38} />
+				<Image src="/static/Logo.png" alt="logo" width={40} height={41.38} />
 				<List>
 					<ListItem disablePadding>
 						<ListItemButton component="a" href="#home">
@@ -236,7 +236,7 @@ const SideBar = () => {
 										alignItems="center"
 										paddingRight="8px"
 									>
-										<Image src="/static/online.png" width={8} height={8} />
+										<Image src="/static/online.png" alt="online badge" width={8} height={8} />
 									</Box>
 									<Typography fontSize="12px">Online</Typography>
 								</Box>

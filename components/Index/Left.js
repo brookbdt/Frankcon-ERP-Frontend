@@ -79,7 +79,7 @@ const Left = () => {
 				<Typography variant="span" fontSize="32px" fontWeight="700">
 					Help Center
 				</Typography>
-				<Image src="/static/indexart.png" width={461} height={345} />
+				<Image src="/static/indexart.png" alt="" width={461} height={345} />
 				<Box paddingTop="85px" display="flex" flexDirection="column">
 					<Typography variant="p" fontSize="20px" fontWeight="700">
 						Didn’t find your answer?

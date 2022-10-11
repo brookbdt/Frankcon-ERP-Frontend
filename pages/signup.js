@@ -18,7 +18,7 @@ import {
 import Image from "next/image";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 
-const login = () => {
+const Signup = () => {
 	const [values, setValues] = useState({
 		showPassword: false,
 	});
@@ -181,4 +181,4 @@ const login = () => {
 	);
 };
 
-export default login;
+export default Signup;

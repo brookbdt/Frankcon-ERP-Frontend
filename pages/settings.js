@@ -4,7 +4,7 @@ import Navbar from "../components/Navbar";
 import Settings from "../components/Settings";
 import SideBar from "../components/SideBar";
 
-const settings = () => {
+const SettingsPage = () => {
 	return (
 		<>
 			<Stack
@@ -25,4 +25,4 @@ const settings = () => {
 	);
 };
 
-export default settings;
+export default SettingsPage;

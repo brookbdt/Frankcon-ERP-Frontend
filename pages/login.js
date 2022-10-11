@@ -18,7 +18,7 @@ import {
 import Image from "next/image";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 
-const login = () => {
+const Login = () => {
 	const [values, setValues] = useState({
 		showPassword: false,
 	});
@@ -160,7 +160,7 @@ const login = () => {
 						</Button>
 					</Box>
 					<Box display="flex" justifyContent="center" alignItems="center">
-						<Typography>If you don't have an account, </Typography>
+						<Typography>If you don&apos;t have an account, </Typography>
 						<Button
 							// onClick={handleOpen}
 							color="primary"
@@ -174,4 +174,4 @@ const login = () => {
 	);
 };
 
-export default login;
+export default Login;
