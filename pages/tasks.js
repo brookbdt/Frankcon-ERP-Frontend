@@ -448,35 +448,29 @@ const Tasks = () => {
 														Status
 													</Typography>
 												</Button>
-												<Link
-													href="/tasks/grid"
-												underline="none"
-												>
-												<Button
-													
-													
-													sx={{
-														height: "100%",
-														// backgroundColor: "#F5F5F7",
-														color: "black",
-														borderRadius: "10px",
-														border: "1px solid #F5F5F7",
-														marginLeft: "24px",
-													}}
-												>
-
-													<Box>
-														<Typography
-															fontWeight="600"
-															fontSize="12px"
-															paddingX="28px"
-															paddingY="14px"
+												<Link href="/tasks/grid" underline="none">
+													<Button
+														sx={{
+															height: "100%",
+															// backgroundColor: "#F5F5F7",
+															color: "black",
+															borderRadius: "10px",
+															border: "1px solid #F5F5F7",
+															marginLeft: "24px",
+														}}
+													>
+														<Box>
+															<Typography
+																fontWeight="600"
+																fontSize="12px"
+																paddingX="28px"
+																paddingY="14px"
 															>
-															View: List
-														</Typography>
-													</Box>
-												</Button>
-															</Link>
+																View: List
+															</Typography>
+														</Box>
+													</Button>
+												</Link>
 												<Button
 													sx={{
 														height: "100%",
@@ -516,7 +510,7 @@ const Tasks = () => {
 									<ChevronRightIcon />
 								</Box>
 							</Stack>
-							
+
 							{/* list view */}
 							<Paper sx={{ width: "100%", overflow: "hidden" }}>
 								<Stack direction="row">
