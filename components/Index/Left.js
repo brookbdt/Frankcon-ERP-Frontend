@@ -44,7 +44,7 @@ const Left = () => {
 	const sendData = () => {
 		const newQuestion = {
 			// Title: name,
-			FAQ: faq,
+			data: { faq },
 		};
 		createQuestion(newQuestion);
 	};

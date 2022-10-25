@@ -39,7 +39,7 @@ const Navbar = () => {
 		marginLeft: 0,
 		width: "100%",
 		[theme.breakpoints.up("sm")]: {
-			marginLeft: theme.spacing(1),
+			// marginLeft: theme.spacing(1),
 			width: "auto",
 		},
 	}));
@@ -71,7 +71,7 @@ const Navbar = () => {
 		},
 	}));
 	return (
-		<Box width="100%">
+		<Box  width="100%">
 			<AppBar position="sticky" elevation="0">
 				<StyledToolbar>
 					<Search>

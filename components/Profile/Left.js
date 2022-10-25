@@ -45,7 +45,7 @@ const Left = () => {
 			<ThemeProvider theme={theme}>
 				<Box marginLeft="4px" marginRight="50px">
 					<Typography variant="h4">My Profile</Typography>
-					<Box paddingTop="36px" display="flex">
+					<Box width="464px" paddingTop="36px" display="flex">
 						<Avatar
 							src="/static/Avatar.png"
 							sx={{ width: 56, height: 56 }}
