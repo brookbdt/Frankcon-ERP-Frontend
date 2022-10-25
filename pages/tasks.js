@@ -549,7 +549,7 @@ const Tasks = () => {
 										</TableHead>
 										<TableBody>
 											{response?.data?.map((response, index) => (
-												<TableRow key={response.data.title}>
+												<TableRow key={response.attributes?.title}>
 													<TableCell>
 														<Stack paddingY="24px" direction="row">
 															<Stack direction="row">
