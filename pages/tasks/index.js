@@ -118,7 +118,7 @@ const Tasks = () => {
 	const handleSlide = () => {
 		setChecked((prev) => !prev);
 	};
-	const currentDate = value.toString();
+	const currentDate = value == null ? "" : value.toString();
 	console.log(currentDate);
 
 	// const [question, setQuestions] = useState({});
@@ -376,10 +376,7 @@ const Tasks = () => {
 							height="100vh"
 						>
 							<Box height="24px"></Box>
-							<Stack
-								justifyContent="space-between"
-								direction="row"
-							>
+							<Stack justifyContent="space-between" direction="row">
 								<Typography fontWeight="700" fontSize="32px">
 									My Tasks
 								</Typography>

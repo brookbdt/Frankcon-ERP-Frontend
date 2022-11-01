@@ -23,6 +23,8 @@ const Navbar = () => {
 	const StyledToolbar = styled(Toolbar)({
 		display: "flex",
 		justifyContent: "space-between",
+		paddingRight: "0",
+		marginRight:"0px",
 		background: " #F6F6F6",
 		color: "black",
 		boxShadow: "none",
@@ -39,7 +41,7 @@ const Navbar = () => {
 		marginLeft: 0,
 		width: "100%",
 		[theme.breakpoints.up("sm")]: {
-			// marginLeft: theme.spacing(1),
+			marginLeft: theme.spacing("4px"),
 			width: "auto",
 		},
 	}));
@@ -55,6 +57,7 @@ const Navbar = () => {
 	}));
 
 	const StyledInputBase = styled(InputBase)(({ theme }) => ({
+		// margin:0,
 		color: "inherit",
 		"& .MuiInputBase-input": {
 			padding: theme.spacing(1, 1, 1, 0),
@@ -71,8 +74,8 @@ const Navbar = () => {
 		},
 	}));
 	return (
-		<Box  width="100%">
-			<AppBar position="sticky" elevation="0">
+		<Box width="100%">
+			{/* <AppBar position="sticky" elevation="0"> */}
 				<StyledToolbar>
 					<Search>
 						<SearchIconWrapper>
@@ -93,7 +96,7 @@ const Navbar = () => {
 						<Button>Help</Button>
 					</ButtonGroup>
 				</StyledToolbar>
-			</AppBar>
+			{/* </AppBar> */}
 		</Box>
 	);
 };

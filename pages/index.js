@@ -14,8 +14,11 @@ import SideBar from "../components/SideBar";
 import Layout from "../components/Layout";
 import Left from "../components/Index/Left";
 import Right from "../components/Index/Right";
+import Login from "./login";
+import { useFetchUser, useUser } from "../components/lib/authContext";
 
 export default function Home() {
+	const { user, loading } = useFetchUser();
 	return (
 		<>
 			<Head>
@@ -34,22 +37,24 @@ export default function Home() {
 					</Stack>
 				</Grid>
 			</Grid> */}
-
-			<Stack
-				direction="row"
-				justifyContent="space-between"
-				bgcolor="#F6F6F6"
-				height="100vh"
-			>
-				<SideBar />
-				<Stack direction="column" width="80%" height="100vh">
-					<Navbar />
-					<Stack direction="row" gap="46px">
-						<Left />
-						<Right />
+			{!loading && !user ? (
+				<>
+					<Login />
+				</>
+			) : (
+				<Stack
+					direction="row"
+					justifyContent="space-between"
+					bgcolor="#F6F6F6"
+					height="100vh"
+				>
+					<SideBar />
+					<Stack direction="column" width="80%" height="100vh">
+						<Navbar />
+						Dashboard
 					</Stack>
 				</Stack>
-			</Stack>
+			)}
 		</>
 	);
 }

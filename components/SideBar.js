@@ -31,6 +31,7 @@ import {
 	ThemeProvider,
 } from "@mui/material";
 import Image from "next/image";
+import Login from "../pages/login";
 import React from "react";
 
 const SideBar = () => {
@@ -210,47 +211,55 @@ const SideBar = () => {
 						</ListItemButton>
 					</ListItem>
 				</List>
-				<Box height="56px">
-					<Card height="56px">
-						<CardHeader
-							sx={{ paddingLeft: "8px" }}
-							avatar={
-								<Avatar
-									alt="UserImage"
-									src="/static/Avatar.png"
-									sx={{ paddingLeft: "0px" }}
+				{/* username and online status */}
+				
+						<Box height="56px">
+							<Card height="56px">
+								<CardHeader
+									sx={{ paddingLeft: "8px" }}
+									avatar={
+										<Avatar
+											alt="UserImage"
+											src="/static/Avatar.png"
+											sx={{ paddingLeft: "0px" }}
+										/>
+									}
+									title={
+										<Typography fontWeight="400" fontSize="14px">
+											{" "}
+											Bethel Kebede
+										</Typography>
+									}
+									titleTypographyProps={{ variant: "h6", component: "span" }}
+									subheader={
+										<Box display="flex">
+											<Box
+												display="flex"
+												justifyContent="center"
+												alignItems="center"
+												paddingRight="8px"
+											>
+												<Image
+													src="/static/online.png"
+													alt="online badge"
+													width={8}
+													height={8}
+												/>
+											</Box>
+											<Typography fontSize="12px">Online</Typography>
+										</Box>
+									}
+									action={
+										<Box>
+											<IconButton aria-label="settings">
+												<UnfoldMore onClick={(event) => handleClick()} />
+											</IconButton>
+										</Box>
+									}
 								/>
-							}
-							title={
-								<Typography fontWeight="400" fontSize="14px">
-									{" "}
-									Bethel Kebede
-								</Typography>
-							}
-							titleTypographyProps={{ variant: "h6", component: "span" }}
-							subheader={
-								<Box display="flex">
-									<Box
-										display="flex"
-										justifyContent="center"
-										alignItems="center"
-										paddingRight="8px"
-									>
-										<Image src="/static/online.png" alt="online badge" width={8} height={8} />
-									</Box>
-									<Typography fontSize="12px">Online</Typography>
-								</Box>
-							}
-							action={
-								<Box>
-									<IconButton aria-label="settings">
-										<UnfoldMore onClick={(event) => handleClick()} />
-									</IconButton>
-								</Box>
-							}
-						/>
-					</Card>
-				</Box>
+							</Card>
+						</Box>
+					
 			</SideBox>
 		</ThemeProvider>
 	);

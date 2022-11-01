@@ -16,7 +16,11 @@ import {
 	Typography,
 } from "@mui/material";
 import Image from "next/image";
-import { Visibility, VisibilityOff } from "@mui/icons-material";
+import {
+	SettingsSystemDaydreamTwoTone,
+	Visibility,
+	VisibilityOff,
+} from "@mui/icons-material";
 
 const Signup = () => {
 	const [values, setValues] = useState({
@@ -62,8 +66,34 @@ const Signup = () => {
 		},
 	});
 
-	const handleChange = (prop) => (event) => {
-		setValues({ ...values, [prop]: event.target.value });
+	// const handleChange = (prop) => (event) => {
+	// 	setValues({ ...values, [prop]: event.target.value });
+	// };
+
+	const [data, setData] = useState({
+		identifier: "",
+		password: "",
+	});
+
+	const handleSubmit = async (e) => {
+		e.preventDefault();
+
+		const response = await fetch(
+			`${process.env.NEXT_PUBLIC_STRAPI_URL}/auth/local`,
+			{
+				method: "POST",
+				header: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					identifier: data.identifier,
+					password: data.password,
+				}),
+			}
+		);
+	};
+	const handleChange = (e) => {
+		// SettingsSystemDaydreamTwoTone({ ...data, [e.target.name]: e.target.value });
 	};
 
 	const handleClickShowPassword = () => {
@@ -109,8 +139,15 @@ const Signup = () => {
 						</FormControl>
 					</Box>
 					<FormControl sx={{ m: 1, width: "100%" }} variant="outlined">
-						<InputLabel htmlFor="outlined-adornment-password">Email</InputLabel>
-						<OutlinedInput width="100%" label="Password" />
+						<InputLabel
+							
+							name="identifier"
+							onChange={handleChange}
+							htmlFor="outlined-adornment-password"
+						>
+							Email
+						</InputLabel>
+						<OutlinedInput name="password" width="100%" label="Password" />
 					</FormControl>
 					<FormControl sx={{ m: 1, width: "100%" }}>
 						<TextField

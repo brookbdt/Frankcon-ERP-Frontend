@@ -17,11 +17,38 @@ import {
 } from "@mui/material";
 import Image from "next/image";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
+import { setToken } from "../components/lib/auth";
+import { useUser } from "../components/lib/authContext";
+import Home from ".";
+import { fetcher } from "../components/lib/api";
 
 const Login = () => {
 	const [values, setValues] = useState({
+		identifier: "",
+		password: "",
 		showPassword: false,
 	});
+
+	const { user, loading } = useUser();
+
+	const handleSubmit = async (e) => {
+		e.preventDefault();
+
+		const responseData = await fetcher(
+			`${process.env.NEXT_PUBLIC_STRAPI_API_URL}/auth/local`,
+			{
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					identifier: values.identifier,
+					password: values.password,
+				}),
+			}
+		);
+		setToken(responseData);
+	};
 
 	const theme = createTheme({
 		components: {
@@ -92,83 +119,97 @@ const Login = () => {
 				<Typography fontWeight="400" fontSize="16px">
 					Please signin into your Frankcon account.
 				</Typography>
-				<FormControl sx={{ m: 1, width: "100%" }} variant="outlined">
-					<InputLabel htmlFor="outlined-adornment-password">Email</InputLabel>
-					<OutlinedInput width="100%" label="Email" />
-				</FormControl>
-				<FormControl sx={{ m: 1, width: "100%" }} variant="outlined">
-					<InputLabel htmlFor="outlined-adornment-password">
-						Password
-					</InputLabel>
-					<OutlinedInput
-						id="outlined-adornment-password"
-						type={values.showPassword ? "text" : "password"}
-						value={values.password}
-						width="100%"
-						onChange={handleChange("password")}
-						endAdornment={
-							<InputAdornment position="end">
-								<IconButton
-									aria-label="toggle password visibility"
-									onClick={handleClickShowPassword}
-									onMouseDown={handleMouseDownPassword}
-									edge="end"
-								>
-									{values.showPassword ? <VisibilityOff /> : <Visibility />}
-								</IconButton>
-							</InputAdornment>
-						}
-						label="Password"
-					/>
-				</FormControl>
-				<Box
-					width="100%"
-					display="flex"
-					justifyContent="space-between"
-					alignItems="center"
-				>
-					<FormGroup>
-						<FormControlLabel
-							control={<Checkbox defaultChecked />}
-							label="Remember me"
-						/>
-					</FormGroup>
-					<Typography>Forogt Password?</Typography>
-				</Box>
-				<ThemeProvider theme={theme}>
-					<Box
-						display="flex"
-						justifyContent="flex-end"
-						alignItems="flex-start"
-						bgcolor="#4339F2"
-						width="fit-content"
-						marginTop="36px"
-					>
-						{/* <Button color="main">Mark as Read</Button> */}
-						<Button
-						// onClick={handleOpen}
+				{!loading && (user ? <Home /> : "")}
+				{!loading && !user ? (
+					<>
+						<FormControl sx={{ m: 1, width: "100%" }} variant="outlined">
+							<InputLabel htmlFor="outlined-adornment-password">
+								Email
+							</InputLabel>
+							<OutlinedInput
+								value={values.identifier}
+								onChange={handleChange("identifier")}
+								name="identifier"
+								width="100%"
+								label="Email"
+							/>
+						</FormControl>
+						<FormControl sx={{ m: 1, width: "100%" }} variant="outlined">
+							<InputLabel htmlFor="outlined-adornment-password">
+								Password
+							</InputLabel>
+							<OutlinedInput
+								name="password"
+								id="outlined-adornment-password"
+								type={values.showPassword ? "text" : "password"}
+								value={values.password}
+								width="100%"
+								onChange={handleChange("password")}
+								endAdornment={
+									<InputAdornment position="end">
+										<IconButton
+											aria-label="toggle password visibility"
+											onClick={handleClickShowPassword}
+											onMouseDown={handleMouseDownPassword}
+											edge="end"
+										>
+											{values.showPassword ? <VisibilityOff /> : <Visibility />}
+										</IconButton>
+									</InputAdornment>
+								}
+								label="Password"
+							/>
+						</FormControl>
+						<Box
+							width="100%"
+							display="flex"
+							justifyContent="space-between"
+							alignItems="center"
 						>
-							<Typography
-								paddingY="13.5px"
-								paddingX="44.5px"
-								variant="p"
-								fontSize="14px"
-								color="white"
+							<FormGroup>
+								<FormControlLabel
+									control={<Checkbox defaultChecked />}
+									label="Remember me"
+								/>
+							</FormGroup>
+							<Typography>Forogt Password?</Typography>
+						</Box>
+						<ThemeProvider theme={theme}>
+							<Box
+								display="flex"
+								justifyContent="flex-end"
+								alignItems="flex-start"
+								bgcolor="#4339F2"
+								width="fit-content"
+								marginTop="36px"
 							>
-								Login
-							</Typography>
-						</Button>
-					</Box>
-					<Box display="flex" justifyContent="center" alignItems="center">
-						<Typography>If you don&apos;t have an account, </Typography>
-						<Button
-							// onClick={handleOpen}
-							color="primary"
-						>
-							Register here!
-						</Button>
-					</Box>
-				</ThemeProvider>
+								{/* <Button color="main">Mark as Read</Button> */}
+								<Button onClick={handleSubmit}>
+									<Typography
+										paddingY="13.5px"
+										paddingX="44.5px"
+										variant="p"
+										fontSize="14px"
+										color="white"
+									>
+										Login
+									</Typography>
+								</Button>
+							</Box>
+							<Box display="flex" justifyContent="center" alignItems="center">
+								<Typography>If you don&apos;t have an account, </Typography>
+								<Button
+									// onClick={handleOpen}
+									color="primary"
+								>
+									Register here!
+								</Button>
+							</Box>
+						</ThemeProvider>
+					</>
+				) : (
+					""
+				)}
 			</Box>
 		</Box>
 	);
