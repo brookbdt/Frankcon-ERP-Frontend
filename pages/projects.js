@@ -1,9 +1,15 @@
-import React from 'react'
-
-const Projects = () => {
+import React from "react";
+import { Box } from "@mui/system";
+import Layout from "../components/Layout";
+import Projects from "../components/Projects";
+const ProjectsPage = () => {
   return (
-    <div>projects</div>
-  )
-}
+    <Layout>
+      <Box paddingLeft="48px">
+        <Projects />
+      </Box>
+    </Layout>
+  );
+};
 
-export default Projects
+export default ProjectsPage;

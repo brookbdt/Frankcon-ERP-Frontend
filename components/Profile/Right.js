@@ -17,6 +17,10 @@ const Right = () => {
 		fontSize: "8px",
 		fontWeight: "800",
 	});
+
+	// const 
+
+	
 	return (
 		<Box
 			paddingRight="104px"

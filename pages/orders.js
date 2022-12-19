@@ -23,24 +23,30 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
-import { readInventory } from "./api";
+import { readOrder } from "./api";
 
-const Inventory = () => {
+const Orders = () => {
   const { user, loading } = useFetchUser();
   const { userDepartment } = useFetchUserDepartment();
-  const buttons = ["All", "Instock", "Depleted ", "Out-of-stock"];
+  const buttons = [
+    "All",
+    "Delivered",
+    "On Delivery",
+    "In-Purchase",
+    "Cancelled",
+  ];
 
   const [selectedIndex, setSelectedIndex] = useState(0);
 
   const [response, setResponse] = useState([]);
-  // useEffect(() => {
-  //   const fetchData = async () => {
-  //     const result = await readInventory();
-  //     setResponse(result.data);
-  //   };
-  //   fetchData();
-  //   console.log(response);
-  // }, []);
+  useEffect(() => {
+    const fetchData = async () => {
+      const result = await readOrder();
+      setResponse(result.data);
+    };
+    fetchData();
+    console.log(response);
+  }, []);
 
   const monthNames = [
     "January",
@@ -58,6 +64,7 @@ const Inventory = () => {
   ];
   let monthIndex = new Date().getMonth();
   let monthName = monthNames[monthIndex];
+
   return (
     <Layout user={user} userDepartment={userDepartment}>
       <Stack paddingX="48px">
@@ -69,7 +76,7 @@ const Inventory = () => {
         >
           <Stack>
             <Typography fontWeight="700" fontSize="32px">
-              Inventory Item List
+              Ordered Item List
             </Typography>
             <Typography fontWeight="500" color="#6F7082" fontSize="16px">
               {new Date().getFullYear()} Fiscal Year
@@ -125,6 +132,7 @@ const Inventory = () => {
             setSelectedIndex(i);
           }}
         />
+        {/* {buttonGroups.map((buttonGroup, index) => ({ buttonGroup }))} */}
         <Box height="10px" />
         <Divider />
         <Box height="10px" />
@@ -132,14 +140,85 @@ const Inventory = () => {
           <Table sx={{ minWidth: 650 }} aria-label="simple table">
             <TableHead>
               <TableRow>
-                <TableCell>Workshop Task Title</TableCell>
-                <TableCell align="right">Item Location</TableCell>
+                <TableCell>Purchase Order List</TableCell>
+                <TableCell align="right">Order Location</TableCell>
                 <TableCell align="right">Last Purchase Date</TableCell>
-                <TableCell align="right">Depletion Status</TableCell>
+                <TableCell align="right">Item Status</TableCell>
                 <TableCell align="right">Item Quantity</TableCell>
                 <TableCell align="right">Additional Info</TableCell>
               </TableRow>
             </TableHead>
+            <TableBody>
+              {response?.data?.map((response, index) => (
+                <TableRow key={response.attributes?.PurchaseOrderList}>
+                  <TableCell>
+                    <Stack paddingY="24px" direction="row">
+                      <Stack direction="row">
+                        <>
+                          <Avatar src={response.attributes?.avatar} />
+                          <Box width="24px" />
+                          <Box display="flex" flexDirection="column">
+                            {/* <pre>
+																			{JSON.stringify(
+																				{
+																					response,
+																				},
+																				null,
+																				2
+																			)}
+																		</pre> */}
+                            <Typography>
+                              {response.attributes?.PurchaseOrderList}{" "}
+                              {/* {response.attributes?.LastName} */}
+                            </Typography>
+                            <Typography
+                              sx={{
+                                color: "#CFCFD5",
+                                fontWeight: "400",
+                                fontSize: "12px",
+                              }}
+                            >
+                              {response.attributes?.Department} -{" "}
+                              {response.attributes?.Position}
+                            </Typography>
+                          </Box>
+                        </>
+                      </Stack>
+                    </Stack>
+                  </TableCell>
+                  <TableCell>
+                    <Stack>
+                      <Typography>
+                        {" "}
+                        {response.attributes?.OrderLocation}
+                      </Typography>
+                      <Typography
+                        sx={{
+                          fontWeight: "400",
+                          fontSize: "12px",
+                          color: "#CFCFD5",
+                        }}
+                      >
+                        {" "}
+                        Joined on
+                        {/* {response.attributes?.EmploymentDate} */}
+                      </Typography>
+                    </Stack>
+                  </TableCell>
+                  <TableCell>
+                    <Typography>
+                      +2519{response.attributes?.LastPurchaseDate}
+                    </Typography>
+                  </TableCell>
+                  <TableCell>
+                    <Typography>{response.attributes?.ItemStatus}</Typography>
+                  </TableCell>
+                  <TableCell>
+                    <Typography>{response.attributes?.ItemQuantity}</Typography>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
           </Table>
         </TableContainer>
       </Stack>
@@ -147,4 +226,4 @@ const Inventory = () => {
   );
 };
 
-export default Inventory;
+export default Orders;

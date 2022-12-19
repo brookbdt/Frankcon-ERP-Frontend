@@ -1,45 +1,86 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { getUserFromLocalCookie } from "./auth";
+import {
+  getUserDepartmentFromLocalCookie,
+  getUserFromLocalCookie,
+} from "./auth";
 
 let userState;
 
-const User = createContext({ user: null, loading: false });
+// const User = createContext({ user: null,  loading: false });
 
+// this part is new. above was original
+
+const User = createContext({
+  user: null,
+  userDepartment: null,
+  loading: false,
+});
+//end of new
 export const UserProvider = ({ value, children }) => {
-	const { user } = value;
+  const { user, userDepartment } = value;
 
-	useEffect(() => {
-		if (!userState && user) {
-			userState = user;
-		}
-	}, []);
+  useEffect(() => {
+    if (!userState && user) {
+      userState = { user, userDepartment };
+    }
+  }, []);
 
-	return <User.Provider value={value}>{children}</User.Provider>;
+  return <User.Provider value={value}>{children}</User.Provider>;
 };
 
 export const useUser = () => useContext(User);
 
 export const useFetchUser = () => {
-	const [data, setUser] = useState({
-		user: userState || null,
-		loading: userState === undefined,
-	});
+  const [data, setUser] = useState({
+    user: userState || null,
+    loading: userState === undefined,
+    userDepartment: userState || null,
+  });
 
-	useEffect(() => {
-		if (userState != undefined) {
-			return;
-		}
+  useEffect(() => {
+    if (userState != undefined) {
+      return;
+    }
 
-		let isMounted = true;
+    let isMounted = true;
 
-		const user = getUserFromLocalCookie();
-		if (isMounted) {
-			setUser({ user, loading: false });
-		}
+    const user = getUserFromLocalCookie();
+    // this part is new
+    const userDepartment = getUserDepartmentFromLocalCookie();
+    if (isMounted) {
+      setUser({ user, userDepartment, loading: false });
+    }
 
-		return () => {
-			isMounted = false;
-		};
-	}, []);
-	return data;
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+  return data;
+};
+export const useFetchUserDepartment = () => {
+  const [data, setUser] = useState({
+    // user: userState || null,
+    // loading: userState === undefined,
+    userDepartment: userState || null,
+  });
+
+  useEffect(() => {
+    if (userState != undefined) {
+      return;
+    }
+
+    let isMounted = true;
+
+    // const user = getUserFromLocalCookie();
+    // this part is new
+    const userDepartment = getUserDepartmentFromLocalCookie();
+    if (isMounted) {
+      setUser({ userDepartment });
+    }
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+  return data;
 };
