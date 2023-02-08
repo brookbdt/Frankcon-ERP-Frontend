@@ -547,7 +547,7 @@ export async function getServerSideProps({ req, params }) {
       ? getTokenFromLocalCookie
       : getTokenFromServerCookie(req);
   console.log(1, { jwt });
-  const taskResponse = await fetcher(
+  const taskResponse = await fetch(
     `https://frankconerp.herokuapp.com/api/tasks`,
     jwt
       ? {
@@ -555,7 +555,7 @@ export async function getServerSideProps({ req, params }) {
             Authorization: `Bearer ${jwt}`,
           },
         }
-      : ""
+      : {}
   );
   console.log(2, { taskResponse });
   if (taskResponse.data) {
