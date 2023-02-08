@@ -546,6 +546,7 @@ export async function getServerSideProps({ req, params }) {
     typeof window !== "undefined"
       ? getTokenFromLocalCookie
       : getTokenFromServerCookie(req);
+  console.log(1, { jwt });
   const taskResponse = await fetcher(
     `https://frankconerp.herokuapp.com/api/tasks`,
     jwt
@@ -556,6 +557,7 @@ export async function getServerSideProps({ req, params }) {
         }
       : ""
   );
+  console.log(2, { taskResponse });
   if (taskResponse.data) {
     // const plot = await markdownToHtml(filmResponse.data.attributes.plot);
     return {
