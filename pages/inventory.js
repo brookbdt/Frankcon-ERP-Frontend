@@ -56,7 +56,7 @@ export async function getServerSideProps({ req, params }) {
       ? getTokenFromLocalCookie
       : getTokenFromServerCookie(req);
   const inventoryResponse = await fetcher(
-    `https://frankcon.herokuapp.com/api/inventories`,
+    `https://frankconerp.herokuapp.com/api/inventories`,
     jwt
       ? {
           headers: {

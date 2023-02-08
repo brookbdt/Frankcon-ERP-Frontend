@@ -57,7 +57,7 @@ export async function getServerSideProps({ req, params }) {
       ? getTokenFromLocalCookie
       : getTokenFromServerCookie(req);
   const employeeResponse = await fetcher(
-    `https://frankcon.herokuapp.com/api/employees`,
+    `https://frankconerp.herokuapp.com/api/employees`,
     jwt
       ? {
           headers: {

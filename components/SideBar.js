@@ -1651,7 +1651,7 @@ export async function getServerSideProps({ req, params }) {
       ? getTokenFromLocalCookie
       : getTokenFromServerCookie(req);
   const newPurchaseRequestResponse = await fetcher(
-    `https://frankcon.herokuapp.com/api/purchaserequests`,
+    `https://frankconerp.herokuapp.com/api/purchaserequests`,
     jwt
       ? {
           headers: {

@@ -547,7 +547,7 @@ export async function getServerSideProps({ req, params }) {
       ? getTokenFromLocalCookie
       : getTokenFromServerCookie(req);
   const taskResponse = await fetcher(
-    `https://frankcon.herokuapp.com/api/tasks`,
+    `https://frankconerp.herokuapp.com/api/tasks`,
     jwt
       ? {
           headers: {
