@@ -18,10 +18,10 @@ import {
 } from "@mui/material";
 import Image from "next/image";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
-import { setToken } from "../components/lib/auth";
-import { useUser } from "../components/lib/authContext";
+import { setToken } from "../lib/auth";
+import { useUser } from "../lib/authContext";
 import Home from ".";
-import { fetcher } from "../components/lib/api";
+import { fetcher } from "../lib/api";
 import { Router, useRouter } from "next/router";
 
 const Login = () => {
@@ -37,7 +37,7 @@ const Login = () => {
     e.preventDefault();
 
     const responseData = await fetcher(
-      `${process.env.NEXT_PUBLIC_STRAPI_API_URL}/api/auth/local`,
+      `${process.env.NEXT_PUBLIC_STRAPI_API_URL}/auth/local`,
       {
         method: "POST",
         headers: {

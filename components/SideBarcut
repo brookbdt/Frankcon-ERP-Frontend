@@ -1,0 +1,125 @@
+<ListItem disablePadding>
+            <ListItemButton component="a" href="#simple-list">
+              <ListItemIcon>
+                {userDepartment === "admin" && (
+                  <DomainIcon sx={{ color: "white" }} />
+                )}
+                {/* ("architecture" && <DomainIcon sx={{ color: "white" }} />)} */}
+                {userDepartment === "architecture" && (
+                  <DomainIcon sx={{ color: "white" }} />
+                )}
+                {userDepartment === "human resource" && (
+                  <DomainIcon sx={{ color: "white" }} />
+                )}
+                {userDepartment === "finance" && (
+                  <AttachMoneyIcon sx={{ color: "white" }} />
+                )}
+              </ListItemIcon>
+
+              {userDepartment === "admin" && (
+                <ListItemText
+                  primaryTypographyProps={{ fontSize: "14px" }}
+                  primary="Architecture"
+                />
+              )}
+              {userDepartment == "architecture" && (
+                <ListItemText
+                  primaryTypographyProps={{ fontSize: "14px" }}
+                  primary="Architecture"
+                />
+              )}
+              {userDepartment === "human resource" && (
+                <ListItemText
+                  primaryTypographyProps={{ fontSize: "14px" }}
+                  primary="Architecture"
+                />
+              )}
+              {userDepartment === "finance" && (
+                <ListItemText
+                  primaryTypographyProps={{ fontSize: "14px" }}
+                  primary="Finance"
+                />
+              )}
+            </ListItemButton>
+            <Collapse in={open} timeout="auto" unmountOnExit>
+              <List component="div" disablePadding>
+                <ListItemButton sx={{ pl: 4 }}>
+                  <ListItemIcon>{/* <StarBorder /> */}</ListItemIcon>
+                  {/* <ListItemText primary="Starred" /> */}
+                </ListItemButton>
+              </List>
+            </Collapse>
+          </ListItem>
+
+          <ListItem disablePadding>
+            <ListItemButton component="a" href="/projects">
+              <ListItemIcon>
+                <Person sx={{ color: "white" }} />
+              </ListItemIcon>
+
+              <ListItemText
+                primaryTypographyProps={{ fontSize: "14px" }}
+                primary="Projects"
+              />
+            </ListItemButton>
+          </ListItem>
+          <ListItem disablePadding>
+            <ListItemButton component="a" href="#simple-list">
+              <ListItemIcon>
+                <Settings sx={{ color: "white" }} />
+              </ListItemIcon>
+
+              <ListItemText
+                primaryTypographyProps={{ fontSize: "14px" }}
+                primary="Human Resource"
+              />
+            </ListItemButton>
+          </ListItem>
+          <ListItem disablePadding>
+            <ListItemButton component="a" href="/inventory">
+              <ListItemIcon>
+                <AccountBox sx={{ color: "white" }} />
+              </ListItemIcon>
+
+              <ListItemText
+                primaryTypographyProps={{ fontSize: "14px" }}
+                primary="Inventory"
+              />
+            </ListItemButton>
+          </ListItem>
+          <ListItem disablePadding>
+            <ListItemButton component="a" href="/workshop">
+              <ListItemIcon>
+                <AccountBox sx={{ color: "white" }} />
+              </ListItemIcon>
+
+              <ListItemText
+                primaryTypographyProps={{ fontSize: "14px" }}
+                primary="Workshop"
+              />
+            </ListItemButton>
+          </ListItem>
+          <ListItem disablePadding>
+            <ListItemButton component="a" href="/settings">
+              <ListItemIcon>
+                <AccountBox sx={{ color: "white" }} />
+              </ListItemIcon>
+
+              <ListItemText
+                primaryTypographyProps={{ fontSize: "14px" }}
+                primary="Settings"
+              />
+            </ListItemButton>
+          </ListItem>
+          <ListItem disablePadding>
+            <ListItemButton component="a" href="/profile">
+              <ListItemIcon>
+                <AccountBox sx={{ color: "white" }} />
+              </ListItemIcon>
+
+              <ListItemText
+                primaryTypographyProps={{ fontSize: "14px" }}
+                primary="Profiles"
+              />
+            </ListItemButton>
+          </ListItem>

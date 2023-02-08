@@ -1,0 +1,49 @@
+{response?.data?.map((response, index) => (
+                    <>
+                      <Stack direction="row" alignItems="center">
+                        <>
+                          <Avatar />
+                          <Box width="16px" />
+                          <Typography fontSize="14px" fontWeight="700">
+                            {response?.attributes?.requesterName}
+                          </Typography>
+                          <Box width="5px" />
+                          <Typography> requested payment on</Typography>
+                          <Box width="5px" />
+
+                          <Typography fontSize="14px" fontWeight="700">
+                            {response?.attributes?.itemName}
+                          </Typography>
+                        </>
+                      </Stack>
+                      <Box height="8px" />
+                      <Stack direction="row">
+                        <Box width="55px" />
+                        <Button
+                          id="accept"
+                          variant="contained"
+                          onClick={acceptRequest}
+                          sx={{
+                            width: "64px",
+                            height: "28px",
+                            backgroundColor: "#F44336",
+                          }}
+                        >
+                          <Typography fontSize="10px">Accept</Typography>
+                        </Button>
+                        <Box width="8px" />
+                        <Button
+                          id="reject"
+                          variant="outlined"
+                          onClick={rejectRequest}
+
+                          // color="white"
+                          // sx={{ backgroundColor: "white" }}
+                        >
+                          <Typography fontSize="10px" color="#404158">
+                            Reject
+                          </Typography>
+                        </Button>
+                      </Stack>
+                    </>
+                  ))}

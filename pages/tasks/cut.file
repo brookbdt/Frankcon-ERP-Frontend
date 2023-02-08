@@ -1,0 +1,105 @@
+<TableContainer sx={{ marginLeft: "31px", marginRight: "127px" }}>
+                <Table stickyHeader aria-label="tasks list">
+                  <TableHead>
+                    <TableRow>
+                      {columns.map((column) => (
+                        <TableCell
+                          key={column.id}
+                          align={column.align}
+                          style={{ minWidth: column.minWidth }}
+                        >
+                          {column.label}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {response?.data?.map((employee, index) => (
+                      <TableRow key={employee.data?.id}>
+                        <TableCell>
+                          <Stack paddingY="24px" direction="row">
+                            <Stack direction="row">
+                              <>
+                                <Avatar src={employee.attributes?.avatar} />
+                                <Box width="24px" />
+                                <Box display="flex" flexDirection="column">
+                                  {/* <pre>
+																			{JSON.stringify(
+																				{
+																					response,
+																				},
+																				null,
+																				2
+																			)}
+																		</pre> */}
+                                  <Typography>
+                                    {employee.attributes?.title}
+                                  </Typography>
+                                  <Typography>
+                                    task - Updated 1 day ago
+                                  </Typography>
+                                </Box>
+                              </>
+                            </Stack>
+                          </Stack>
+                        </TableCell>
+                        <TableCell>
+                          <Typography>
+                            {" "}
+                            {employee.attributes?.status}
+                          </Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Typography>
+                            {" "}
+                            {dayjs(employee?.attributes?.date).format(
+                              "MMMM DD, YYYY"
+                            )}
+                          </Typography>
+                        </TableCell>
+                        <TableCell>
+                          {employee.attributes?.priority === "HIGH" ? (
+                            <Button
+                              sx={{
+                                backgroundColor: "#F44336",
+                                borderRadius: "20px",
+                                color: "#F6F6F6",
+                              }}
+                            >
+                              HIGH
+                            </Button>
+                          ) : (
+                            ""
+                          )}
+                          {employee.attributes?.priority === "MEDIUM" ? (
+                            <Button
+                              sx={{
+                                backgroundColor: "#24B07D",
+                                borderRadius: "20px",
+                                color: "#F6F6F6",
+                              }}
+                            >
+                              MEDIUM
+                            </Button>
+                          ) : (
+                            ""
+                          )}
+                          {employee.attributes?.priority === "LOW" ? (
+                            <Button
+                              sx={{
+                                backgroundColor: "#FFBA2E",
+                                borderRadius: "20px",
+                                color: "#F6F6F6",
+                              }}
+                            >
+                              LOW
+                            </Button>
+                          ) : (
+                            ""
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>

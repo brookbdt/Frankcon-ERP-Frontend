@@ -1,4 +1,5 @@
 import { InsertPhotoOutlined } from "@mui/icons-material";
+import Link from "next/link";
 import AddIcon from "@mui/icons-material/Add";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
 import CloseIcon from "@mui/icons-material/Close";
@@ -15,79 +16,106 @@ import {
   Stack,
   TextField,
   Typography,
+  Card,
+  Avatar,
 } from "@mui/material";
+import dayjs from "dayjs";
+
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import MenuItem from "@mui/material/MenuItem";
 import React, { useEffect, useState } from "react";
 import EmployeesLayout from "../layout/employees";
-import { createNewProject, readProject } from "../pages/api";
+import { createNewProject, getProjectId, readProject } from "../pages/api";
 import Dropdown from "./Projects/dropdown";
 import DateSelector from "./shared/datePicker";
+import { useFetchUser, useFetchUserDepartment } from "../lib/authContext";
+import { DatePicker } from "@mui/x-date-pickers";
+import Image from "next/image";
 
-const Projects = ({ onMenuClick }) => {
+const Projects = ({ jwt }) => {
   const handleSlide = () => {
     setChecked((prev) => !prev);
   };
-  const sendProject = () => {
-    const newProject = {
-      // Title: name,
-      // data: { faq },
-      // title: title,
-      // description: description,
-      // comment: comment,
-      // title: data.title,
-      data: {
-        // tasks: {
-
-        projectImage,
-        projectTitle,
-        projectId,
-        projectPriority,
-        projectStatus,
-        projectTeam,
-        projectDepartment,
-        projectLead,
-        projectStartDate,
-        projectEndDate,
-        projectDocument,
-        projectDescription,
-
-        // },
-      },
-    };
-    createNewProject(newProject);
-    console.log(newProject);
-  };
-
-  const [response, setResponse] = useState([]);
-  //   useEffect(() => {
-  //     const fetchData = async () => {
-  //       const result = await readProject();
-  //       setResponse(result.data);
-  //     };
-  //     fetchData();
-  //   }, []);
-  const [monthName, setMonthName] = useState("");
-  const [year, setYear] = useState("");
   const [prioritySelectedIndex, setPrioritySelectedIndex] = useState(0);
   const [departmentSelectedIndex, setDepartmentSelectedIndex] = useState(0);
   const [statusSelectedIndex, setStatusSelectedIndex] = useState(0);
   const [projectLeadSelectedIndex, setProjectLeadSelectedIndex] = useState(0);
   const projectRandomNumber = Math.floor(Math.random() * (1000 - 0 + 1)) + 0;
 
-  const [projectDetail, setProjectDetail] = useState({
-    projectImage: "",
-    projectTitle: "",
-    projectId: projectRandomNumber,
-    projectPriority: "",
-    projectStatus: "",
-    projectTeam: "",
-    projectDepartment: "",
-    projectLead: "",
-    projectStartDate: "",
-    projectEndDate: "",
-    projectDocument: "",
-    projectDescription: "",
-  });
+  const [projectImage, setProjectImage] = useState();
+  const [previewImage, setPreviewImage] = useState();
+
+  const [projectTitle, setProjectTitle] = useState("");
+  // const [projectId, setProjectId] = useState("");
+  const [projectPriority, setProjectPriority] = useState("");
+  const [projectStatus, setProjectStatus] = useState("");
+  const [projectResponsibleDepartment, setProjectResponsibleDepartment] =
+    useState("");
+  const [projectLead, setProjectLead] = useState("");
+  const [projectTeam, setProjectTeam] = useState();
+  const [projectStartDate, setProjectStartDate] = useState(dayjs());
+  const [projectEndDate, setProjectEndDate] = useState(dayjs());
+  const [projectCreatedBy, setProjectCreatedBy] = useState("");
+  const [projectTask, setProjectTask] = useState("");
+  const [projectDocuments, setProjectDocuments] = useState([]);
+  const [projectDescription, setProjectDescription] = useState();
+
+  const sendProject = () => {
+    const formData = new FormData();
+    formData.append("files.projectImage", projectImage);
+    for (const doc of projectDocuments) {
+      formData.append("files.projectDocument", doc);
+    }
+    formData.append(
+      "data",
+      JSON.stringify({
+        projectTitle,
+        projectId,
+        projectPriority,
+        projectStatus,
+        // projectTeam,
+        projectResponsibleDepartment,
+        projectLead,
+        projectStartDate: projectStartDate?.toISOString(),
+        projectEndDate: projectEndDate?.toISOString(),
+        // projectDocument: projectDocuments,
+        projectDescription,
+      })
+    );
+
+    createNewProject(formData, jwt);
+    console.log("the project is", formData);
+  };
+
+  const { user, loading } = useFetchUser();
+  const { userDepartment } = useFetchUserDepartment();
+
+  const [response, setResponse] = useState([]);
+  const [projectId, setProjectId] = useState("");
+
+  useEffect(() => {
+    const fetchData = async () => {
+      // const employeeResult = await readEmployee(jwt);
+      // setEmployeeResponse(employeeResult.data);
+      if (!user) {
+        return;
+      }
+
+      const lastProject = await getProjectId(jwt);
+      const lastProjectId = lastProject?.data?.data?.[0]?.id || 1;
+      setProjectId(`FC - ${new Date().getFullYear()} - ${lastProjectId + 1}`);
+      console.log({ lastProject });
+
+      const result = await readProject(jwt, user);
+      setResponse(result.data);
+      console.log("relation is:", response);
+    };
+    // randomId;
+    fetchData();
+  }, [user]);
+  const [monthName, setMonthName] = useState("");
+  const [year, setYear] = useState("");
 
   const [checked, setChecked] = React.useState(false);
   const handleFileUploadError = (error) => {
@@ -96,6 +124,11 @@ const Projects = ({ onMenuClick }) => {
 
   const handleFilesChange = (files) => {
     // Do something...
+  };
+
+  const handleImage = (e) => {
+    setProjectImage(e.target.files[0]);
+    setPreviewImage(URL.createObjectURL(e.target.files[0]));
   };
 
   const [showButtonBorder, setShowButtonBorder] = useState(false);
@@ -140,7 +173,7 @@ const Projects = ({ onMenuClick }) => {
       <Box
         sx={{
           width: "566px",
-          height: "680px",
+          height: "750px",
           paddingX: "22px",
           paddingTop: "16px",
           //   bgcolor: "white",
@@ -189,36 +222,46 @@ const Projects = ({ onMenuClick }) => {
             justifyContent="center"
             alignItems="center"
           >
+            {/* <input
+              id="file"
+              value={projectImage}
+              hidden
+              accept="image/*"
+              type="file"
+              onChange={(e) => setProjectImage(e.target.files[0])} */}
+
             <IconButton
               component="label"
               width="52px"
               height="52px"
-              sx={{ backgroundColor: "#E8E7FD" }}
+              sx={previewImage ? "" : { backgroundColor: "#E8E7FD" }}
             >
-              <InsertPhotoOutlined sx={{ color: "#4339F2" }} />
               <input
-                value={projectDetail.projectImage}
+                id="file"
+                // value={projectImage}
                 hidden
                 accept="image/*"
                 type="file"
-                onChange={(e) =>
-                  setProjectDetail({
-                    ...projectDetail,
-                    projectImage: e.target.value,
-                  })
-                }
+                onChange={handleImage}
               />
+              {previewImage ? (
+                <Avatar
+                  width="52px"
+                  height="52px"
+                  sx={{ padding: 0, margin: 0 }}
+                  // borderRadius="50%"
+                  src={previewImage}
+                />
+              ) : (
+                <InsertPhotoOutlined sx={{ color: "#4339F2" }} />
+              )}
             </IconButton>
+            {/* </input> */}
             <TextField
               //   variant="filled"
               defaultValue="Enter Project Title"
-              value={projectDetail.projectTitle}
-              onChange={(e) =>
-                setProjectDetail({
-                  ...projectDetail,
-                  projectTitle: e.target.value,
-                })
-              }
+              value={projectTitle}
+              onChange={(e) => setProjectTitle(e.target.value)}
               sx={{
                 width: "480.15px",
                 "& .MuiInputBase-root": {
@@ -240,9 +283,7 @@ const Projects = ({ onMenuClick }) => {
                 <Typography fontSize="12px" fontWeight="400" color="#6F7082">
                   Project Id:
                 </Typography>
-                <Typography>
-                  FC- {new Date().getFullYear()}- {projectRandomNumber}
-                </Typography>
+                <Typography> {projectId}</Typography>
               </Stack>
               <Stack>
                 <Typography fontSize="12px" fontWeight="400" color="#6F7082">
@@ -267,10 +308,13 @@ const Projects = ({ onMenuClick }) => {
                       selected={index === prioritySelectedIndex}
                       onClick={() => {
                         setPrioritySelectedIndex(index);
-                        setProjectDetail({
-                          ...projectDetail,
-                          projectPriority: index,
-                        });
+                        prioritySelectedIndex === 0
+                          ? setProjectPriority("Low")
+                          : prioritySelectedIndex === 1
+                          ? setProjectPriority("Medium")
+                          : prioritySelectedIndex === 2
+                          ? setProjectPriority("High")
+                          : "";
                       }}
                     >
                       {priorityOption}
@@ -296,15 +340,20 @@ const Projects = ({ onMenuClick }) => {
                     <MenuItem
                       id={statusOption}
                       key={statusOption}
-                      value={projectDetail.projectStatus}
+                      value={projectStatus}
                       //   disabled={index === 2}
                       selected={index === statusSelectedIndex}
                       onClick={() => {
                         setStatusSelectedIndex(index);
-                        setProjectDetail({
-                          ...projectDetail,
-                          projectStatus: index,
-                        });
+                        statusSelectedIndex === 0
+                          ? setProjectStatus("Ongoing")
+                          : prioritySelectedIndex === 1
+                          ? setProjectStatus("Paused")
+                          : prioritySelectedIndex === 2
+                          ? setProjectStatus("Delayed")
+                          : prioritySelectedIndex === 3
+                          ? setProjectStatus("Completed")
+                          : "";
                       }}
                     >
                       {statusOption}
@@ -327,13 +376,8 @@ const Projects = ({ onMenuClick }) => {
                   sx={{ color: "#FFFFFF", width: "13.09px", height: "13.09px" }}
                 />
                 <input
-                  value={projectDetail.projectTeam}
-                  onChange={(e) =>
-                    setprojectDetail({
-                      ...projectDetail,
-                      projectTeam: e.target.value,
-                    })
-                  }
+                  // value={projectTeam}
+                  onChange={(e) => setProjectTeam(e.target.files[0])}
                   hidden
                   accept="image/*"
                   type="file"
@@ -370,15 +414,22 @@ const Projects = ({ onMenuClick }) => {
                   <MenuItem
                     id={departmentOption}
                     key={departmentOption}
-                    value={projectDetail.projectDepartment}
+                    value={projectResponsibleDepartment}
                     //   disabled={index === 2}
                     selected={index === departmentSelectedIndex}
                     onClick={() => {
                       setDepartmentSelectedIndex(index);
-                      setProjectDetail({
-                        ...projectDetail,
-                        projectDepartment: index,
-                      });
+                      departmentSelectedIndex === 0
+                        ? setProjectResponsibleDepartment("Inventory")
+                        : departmentSelectedIndex === 1
+                        ? setProjectResponsibleDepartment("Finance")
+                        : departmentSelectedIndex === 2
+                        ? setProjectResponsibleDepartment("Human Resource")
+                        : departmentSelectedIndex === 3
+                        ? setProjectResponsibleDepartment("Project")
+                        : departmentSelectedIndex === 4
+                        ? setProjectResponsibleDepartment("Workshop")
+                        : "";
                     }}
                   >
                     {departmentOption}
@@ -404,16 +455,17 @@ const Projects = ({ onMenuClick }) => {
                   <MenuItem
                     id={projectLeadOption}
                     key={projectLeadOption}
-                    value={projectDetail.projectLead}
+                    value={projectLead}
                     //   value={selectedIndex.priority}
                     //   disabled={index === 2}
                     selected={index === projectLeadSelectedIndex}
                     onClick={() => {
                       setProjectLeadSelectedIndex(index);
-                      setProjectDetail({
-                        ...projectDetail,
-                        projectLead: index,
-                      });
+                      projectLeadSelectedIndex === 0
+                        ? setProjectLead("Abebe")
+                        : projectLeadSelectedIndex === 1
+                        ? setProjectLead("Kebede")
+                        : "";
                     }}
                   >
                     {projectLeadOption}
@@ -422,30 +474,30 @@ const Projects = ({ onMenuClick }) => {
               </Dropdown>
             </Grid>
             <Grid item xs={6}>
-              <DateSelector
-                datePickerColor="#F6F6F6"
-                datePickerLabel="Project Start Date"
-                value={projectDetail.projectStartDate}
-                onChange={(e) =>
-                  setProjectDetail({
-                    ...projectDetail,
-                    projectStartDate: e.target.value,
-                  })
-                }
-              />
+              <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <DatePicker
+                  datePickerColor="#F6F6F6"
+                  datePickerLabel="Project Start Date"
+                  renderInput={(params) => <TextField {...params} />}
+                  value={projectStartDate}
+                  onChange={(newValue) => {
+                    setProjectStartDate(newValue);
+                  }}
+                />
+              </LocalizationProvider>
             </Grid>
             <Grid item xs={6}>
-              <DateSelector
-                datePickerColor="#F6F6F6"
-                datePickerLabel="Project End Date"
-                value={projectDetail.projectEndDate}
-                onChange={(e) =>
-                  setProjectDetail({
-                    ...projectDetail,
-                    projectEndDate: e.target.value,
-                  })
-                }
-              />
+              <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <DatePicker
+                  datePickerColor="#F6F6F6"
+                  datePickerLabel="Project End Date"
+                  renderInput={(params) => <TextField {...params} />}
+                  value={projectEndDate}
+                  onChange={(newValue) => {
+                    setProjectEndDate(newValue);
+                  }}
+                />
+              </LocalizationProvider>
             </Grid>
           </Grid>
           <Box height="24px" />
@@ -457,49 +509,42 @@ const Projects = ({ onMenuClick }) => {
             <Divider sx={{ width: "384px", alignSelf: "center" }} />
           </Stack>
           <Box height="20px" />
-          <Box>
-            <input
-              style={{ display: "none" }}
-              id="contained-button-file"
-              type="file"
-              value={projectDetail.projectDocument}
-              onChange={(e) =>
-                setProjectDetail({
-                  ...projectDetail,
-                  projectDocument: e.target.value,
-                })
-              }
-            />
-            <Button
-              variant="filled"
-              sx={{
-                backgroundColor: "#F6F6F6",
-                width: "248px",
-                height: "46px",
+          <Button
+            variant="filled"
+            sx={{
+              backgroundColor: "#F6F6F6",
+              padding: 0,
+              width: "248px",
+              height: "46px",
+            }}
+          >
+            <label
+              style={{
+                // backgroundColor: "red",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                padding: "12px",
+                width: "100%",
+                height: "100%",
               }}
             >
-              <Stack
-                direction="row"
-                justifyContent="space-between"
-                width="100%"
-              >
-                <Typography color="#6F7082" fontWeight="600px" fontSize="12px">
-                  Attach Project Documents
-                </Typography>
-                {/* <IconButton
-                component="label"
-                width="16px"
-                height="16px"
-                sx={{ backgroundColor: "#E8E7FD" }}
-              > */}
-                <NoteAddOutlinedIcon
-                  sx={{ width: "16px", height: "16px", color: "#6F7082" }}
-                />
-                {/* </IconButton> */}
-              </Stack>
-              {/* <input hidden accept="image/*" width="100%" type="file" /> */}
-            </Button>
-          </Box>
+              <input
+                id="file"
+                hidden
+                multiple
+                type="file"
+                onChange={(e) => setProjectDocuments(e.target.files)}
+              />
+              <Typography color="#6F7082" fontWeight="600px" fontSize="12px">
+                Attach Project Documents
+              </Typography>
+
+              <NoteAddOutlinedIcon
+                sx={{ width: "16px", height: "16px", color: "#6F7082" }}
+              />
+            </label>
+          </Button>
           <Box height="24px" />
           {/* <Stack direction="row"> */}
           <ButtonGroup>
@@ -557,13 +602,8 @@ const Projects = ({ onMenuClick }) => {
         </Stack>
         <Box height="12px" />
         <TextField
-          value={projectDetail.projectDescription}
-          onChange={(e) =>
-            setProjectDetail({
-              ...projectDetail,
-              projectDescription: e.target.value,
-            })
-          }
+          value={projectDescription}
+          onChange={(e) => setProjectDescription(e.target.value)}
           sx={{
             width: "520px",
             "& .MuiInputBase-root": {
@@ -674,16 +714,168 @@ const Projects = ({ onMenuClick }) => {
         </Stack>
       </Stack>
       <Box height="24px" />
-      <EmployeesLayout metric={`Filter`} list="Grid" sortBy="Years" />
+      <EmployeesLayout jwt={jwt} metric={`Filter`} list="Grid" sortBy="Years" />
       <Box height="24px" />
       <Stack direction="row">
         <Slide direction="right" in={checked} mountOnEnter unmountOnExit>
           {addProject}
         </Slide>
-        <Typography>Ongoing Projects - 2022</Typography>
+        <Typography fontWeight="700" fontSize="20px">
+          Ongoing Projects - 2022
+        </Typography>
+      </Stack>
+      <Box height="16px" />
+      <Stack direction="row">
+        <Grid container gap="32px">
+          {response?.data?.map((project, index) => (
+            <Grid item>
+              <Card sx={{ paddingX: "24px", paddingY: "19px", width: "345px" }}>
+                <Stack justifyContent="flex-start" alignItems="flex-start">
+                  <Stack direction="row">
+                    <Avatar
+                      src={`${process.env.NEXT_PUBLIC_STRAPI_BASE_URL}${project?.attributes?.projectImage.data?.[0].attributes?.url}`}
+                      alt="project image"
+                      sx={{
+                        width: "40px",
+                        height: "40px",
+                      }}
+                    />
+                    <Box width="8px" />
+                    <Stack>
+                      <Typography fontWeight="700" fontSize="16px">
+                        {project.attributes?.projectTitle}
+                      </Typography>
+                      <Typography fontWeight="400" fontSize="12px">
+                        Created by:
+                        {/* <pre>{JSON.stringify(project, null, 2)}</pre> */}
+                      </Typography>
+                      <Box height="12px" />
+                    </Stack>
+                  </Stack>
+                  <Stack direction="row" justifyContent="space-between">
+                    <Stack>
+                      {project.attributes?.projectStatus === "Delayed" ? (
+                        <Typography
+                          fontWeight="700"
+                          fontSize="16px"
+                          color="#F44336"
+                        >
+                          {project.attributes?.projectStatus}
+                        </Typography>
+                      ) : (
+                        <Typography
+                          fontWeight="700"
+                          fontSize="16px"
+                          color="#24B07D"
+                        >
+                          {project.attributes?.projectStatus}
+                        </Typography>
+                      )}
+                      <Typography fontWeight="400" fontSize="12px">
+                        Status
+                      </Typography>
+                    </Stack>
+                    <Box width="20px" />
+                    <Divider orientation="vertical" flexItem variant="middle" />
+                    <Box width="20px" />
+                    <Stack>
+                      {project.attributes?.projectStatus === "Delayed" ? (
+                        <Typography
+                          fontWeight="700"
+                          fontSize="16px"
+                          color="#F44336"
+                        >
+                          {dayjs(project?.attributes?.projectStartDate).format(
+                            "DD MMM"
+                          )}
+                        </Typography>
+                      ) : (
+                        <Typography
+                          fontWeight="700"
+                          fontSize="16px"
+                          color="#24B07D"
+                        >
+                          {dayjs(project?.attributes?.projectStartDate).format(
+                            "DD MMM"
+                          )}
+                        </Typography>
+                      )}
+                      <Typography fontWeight="400" fontSize="12px">
+                        Date Created
+                      </Typography>
+                    </Stack>
+                  </Stack>
+                  <Box height="10px" />
+                  <Link href="/projects/[id]" as={`/projects/${project.id}`}>
+                    <Button
+                      sx={{
+                        color: "#6F7082",
+                        fontSize: "12px",
+                        fontWeight: "400",
+                        paddingX: 0,
+                        paddingBottom: 0,
+                      }}
+                    >
+                      View Details
+                    </Button>
+                  </Link>
+                </Stack>
+              </Card>
+            </Grid>
+          ))}
+          <Divider sx={{ width: "100%" }} />
+        </Grid>
+      </Stack>
+      <Box height="24px" />
+      <Typography fontWeight="700" fontSize="20px">
+        Archived Projects
+      </Typography>
+      <Box height="24px" />
+      <Stack direction="row">
+        <Grid container gap="32px">
+          {response?.data?.map((project) => (
+            // archived projects
+            <></>
+          ))}
+          <Divider sx={{ width: "100%" }} />
+        </Grid>
       </Stack>
     </Stack>
   );
 };
+
+export async function getServerSideProps({ req, params }) {
+  // const { slug } = params;
+  const jwt =
+    typeof window !== "undefined"
+      ? getTokenFromLocalCookie
+      : getTokenFromServerCookie(req);
+  const projectResponse = await fetcher(
+    `http://localhost:1337/api/projects`,
+    jwt
+      ? {
+          headers: {
+            Authorization: `Bearer ${jwt}`,
+          },
+        }
+      : ""
+  );
+  if (projectResponse.data) {
+    // const plot = await markdownToHtml(filmResponse.data.attributes.plot);
+    return {
+      props: {
+        projectResponse: projectResponse.data,
+        // plot,
+        jwt: jwt ? jwt : "",
+      },
+    };
+  } else {
+    return {
+      props: {
+        error: projectResponse.error.message,
+      },
+    };
+  }
+}
 
 export default Projects;

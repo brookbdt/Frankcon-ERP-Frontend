@@ -44,33 +44,37 @@ import dayjs from "dayjs";
 import Slide from "@mui/material/Slide";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import { DatePicker } from "@mui/x-date-pickers";
-import { createTask, readTask } from "../api";
+import { createTask, editTaskStatus, readEmployeeTask, readTask } from "../api";
 import TasksLayout from "../../layout/tasks";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
-import { AttachFile, WatchLater } from "@mui/icons-material";
+import {
+  AttachFile,
+  CloudUpload,
+  InsertPhotoOutlined,
+  WatchLater,
+} from "@mui/icons-material";
 import FlagIcon from "@mui/icons-material/Flag";
 // import { DragDropContext, Draggable, Droppable } from "react-beautiful-dnd";
-import { Draggable } from "../../components/Draggable";
-import { Droppable } from "../../components/Droppable";
+import Draggable from "../../components/Draggable";
+import Droppable from "../../components/Droppable";
 import { DndContext, closestCenter } from "@dnd-kit/core";
 import {
   arrayMove,
   SortableContext,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
+import {
+  getTokenFromLocalCookie,
+  getTokenFromServerCookie,
+} from "../../lib/auth";
+import { fetcher } from "../../lib/api";
+import { useFetchUser, useFetchUserDepartment } from "../../lib/authContext";
+import Layout from "../../components/Layout";
+import ButtonGroups from "../../components/ButtonGroups";
 
-// import { convertToLocalTime } from "date-fns-timezone";
-// import { format } from "date-fns";
-
-const high = require("../../public/static/high.png");
-const low = require("../../public/static/low.png");
-const normal = require("../../public/static/normal.png");
-const inprogress = require("../../public/static/normal.png");
-
-const priority = [high, low, normal];
-
-const StatusView = () => {
+const StatusView = ({ jwt }) => {
   const [selected, setSelected] = useState([]);
+  // const priority = [high, low, normal];
 
   const changeImage = (value) => {
     setSelected(priority[value] + 1);
@@ -117,6 +121,9 @@ const StatusView = () => {
   };
 
   const [open, setOpen] = React.useState(false);
+  const [taskFile, setTaskFile] = React.useState([]);
+  const [previewTask, setPreviewTask] = React.useState();
+
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
@@ -124,6 +131,10 @@ const StatusView = () => {
 
   const handleChange = (newValue) => {
     setValue(newValue);
+  };
+  const handleImage = (e) => {
+    setTaskFile(e.target.files);
+    setPreviewTask(URL.createObjectURL(e.target.files[0]));
   };
 
   const [checked, setChecked] = React.useState(false);
@@ -149,11 +160,13 @@ const StatusView = () => {
         // },
       },
     };
-    createTask(newTask);
+    createTask(newTask, jwt);
     console.log(newTask);
   };
 
   const [response, setResponse] = useState([]);
+  const buttons = ["Description", "Files"];
+  const [selectedIndex, setSelectedIndex] = useState(0);
 
   const [task, setTask] = useState({
     title: "",
@@ -163,17 +176,29 @@ const StatusView = () => {
     status: "in progress",
     description: "",
   });
-  useEffect(() => {
-    const fetchData = async () => {
-      const result = await readTask();
-      setResponse(result.data);
-    };
-    fetchData();
-  }, []);
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //     const result = await readTask(jwt);
+  //     setResponse(result.data);
+  //   };
+  //   fetchData();
+  // }, []);
 
-  const handleSlide = () => {
-    setChecked((prev) => !prev);
+  // const handleSlide = () => {
+  //   setChecked((prev) => !prev);
+  // };
+  const { user, loading } = useFetchUser();
+  const { userDepartment } = useFetchUserDepartment();
+  const fetchData = async () => {
+    if (!user) {
+      return;
+    }
+    const result = await readEmployeeTask(jwt, user);
+    setResponse(result.data);
   };
+  useEffect(() => {
+    fetchData();
+  }, [user]);
   const currentDate = value.toString();
   console.log(currentDate);
 
@@ -183,9 +208,32 @@ const StatusView = () => {
     if(high) {},
   };
 
-  function handleDragEnd({ over }) {
-    setParent(over ? over.id : null);
+  async function handleDragEnd(args) {
+    const taskId = Number(args.active.id);
+    const newStatus = args.over.id;
+
+    setResponse({
+      ...response,
+      data: response.data.map((r) => {
+        if (r.id === taskId) {
+          r.attributes.status = newStatus;
+        }
+        return r;
+      }),
+    });
+
+    await editTaskStatus(
+      {
+        data: { status: newStatus },
+      },
+      taskId,
+      jwt
+    );
+    await fetchData();
   }
+  const handleSlide = () => {
+    setChecked((prev) => !prev);
+  };
 
   console.log("response", response);
   const addTask = (
@@ -319,34 +367,69 @@ const StatusView = () => {
           </Stack>
           <Box height="25px"></Box>
           <Stack>
-            <ButtonGroup>
-              <Box sx={{ borderBottom: "2px", borderColor: "black" }}>
-                <Button variant="text">
-                  <Typography>Description</Typography>
-                </Button>
-              </Box>
-              <Box sx={{ borderBottom: "2px", borderColor: "black" }}>
-                <Button variant="text">
-                  <Typography>Files</Typography>
-                </Button>
-              </Box>
-              <Box sx={{ borderBottom: "2px", borderColor: "black" }}>
-                <Button variant="text">
-                  <Typography>Comments</Typography>
-                </Button>
-              </Box>
-            </ButtonGroup>
+            <ButtonGroups
+              buttons={buttons}
+              selectedIndex={selectedIndex}
+              clickedButtonColor="#4339F1"
+              unClickedButtonColor="#9FA0AB"
+              onClick={(i) => {
+                setSelectedIndex(i);
+              }}
+            />
           </Stack>
           <Box height="15px" width="100%"></Box>
           <Box>
-            <TextField
-              value={description}
-              onChange={(e) =>
-                setTask({ ...task, description: e.target.value })
-              }
-              bgcolor="yellow"
-              sx={{ width: "100%", height: "100%" }}
-            />
+            {selectedIndex === 0 ? (
+              <TextField
+                value={description}
+                onChange={(e) =>
+                  setTask({ ...task, description: e.target.value })
+                }
+                bgcolor="yellow"
+                sx={{ width: "100%", height: "100%" }}
+              />
+            ) : (
+              ""
+            )}
+            {selectedIndex === 1 ? (
+              <Box
+                display="flex"
+                width="100%"
+                alignItems="center"
+                justifyContent="center"
+              >
+                <IconButton
+                  sx={{
+                    width: "100%",
+                    height: "100px",
+                    alignSelf: "center",
+                    justifySelf: "center",
+                  }}
+                >
+                  <input
+                    id="file"
+                    // hidden
+                    multiple
+                    accept="*"
+                    type="file"
+                    onChange={handleImage}
+                  />
+                  {previewTask ? (
+                    <Avatar
+                      width="52px"
+                      height="52px"
+                      sx={{ padding: 0, margin: 0 }}
+                      // borderRadius="50%"
+                      src={previewTask}
+                    />
+                  ) : (
+                    <InsertPhotoOutlined sx={{ color: "#4339F2" }} />
+                  )}
+                </IconButton>
+              </Box>
+            ) : (
+              ""
+            )}
           </Box>
           <Box height="6px"></Box>
           <Typography>Comments(0)</Typography>
@@ -396,76 +479,71 @@ const StatusView = () => {
   );
 
   return (
-    <>
-      <Stack direction="row">
-        <SideBar />
+    <Layout jwt={jwt} user={user} userDepartment={userDepartment}>
+      {/* <Stack direction="row"> */}
+      {/* <SideBar />
         <Stack
           // paddingRight="104px"
           direction="column"
           width="80%"
           height="100vh"
+        > */}
+      <>
+        {/* <Navbar /> */}
+        <Stack
+          direction="column"
+          paddingLeft="48px"
+          paddingRight="60px"
+          width="100%"
+          height="100vh"
         >
-          <>
-            <Navbar />
-            <Stack
-              direction="column"
-              paddingLeft="48px"
-              paddingRight="60px"
-              width="100%"
-              height="100vh"
+          <Box height="24px"></Box>
+          <Stack justifyContent="space-between" direction="row">
+            <Typography fontWeight="700" fontSize="32px">
+              My Tasks
+            </Typography>
+            <Button
+              onClick={handleSlide}
+              sx={{
+                marginTop: "3px",
+                backgroundColor: "#E1E0F6",
+                color: "#4339F2",
+                borderRadius: "10px",
+                paddingX: "16px",
+                paddingY: "12px",
+              }}
             >
-              <Box height="24px"></Box>
-              <Stack justifyContent="space-between" direction="row">
-                <Typography fontWeight="700" fontSize="32px">
-                  My Tasks
-                </Typography>
-                <Button
-                  onClick={handleSlide}
-                  sx={{
-                    marginTop: "3px",
-                    backgroundColor: "#E1E0F6",
-                    color: "#4339F2",
-                    borderRadius: "10px",
-                    paddingX: "16px",
-                    paddingY: "12px",
-                  }}
-                >
-                  <AddIcon />
-                  <Typography variant="p" fontSize="12px" fontWeight="600">
-                    Add Task
-                  </Typography>
-                </Button>
-              </Stack>
-              <TasksLayout />
-              <Stack
-                marginTop="11px"
-                marginBottom="8px"
-                direction="row"
-                justifyContent="space-between"
-              >
-                <Typography fontWeight="700" fontSize="20px">
-                  All Tasks(48)
-                </Typography>
-                <Box display="flex" flexDirection="row">
-                  <ChevronLeftIcon />
-                  <ChevronRightIcon />
-                </Box>
-              </Stack>
+              <AddIcon />
+              <Typography variant="p" fontSize="12px" fontWeight="600">
+                Add Task
+              </Typography>
+            </Button>
+          </Stack>
+          <TasksLayout />
+          <Stack
+            marginTop="11px"
+            marginBottom="8px"
+            direction="row"
+            justifyContent="space-between"
+          >
+            <Typography fontWeight="700" fontSize="20px">
+              All Tasks(48)
+            </Typography>
+            <Box display="flex" flexDirection="row">
+              <ChevronLeftIcon />
+              <ChevronRightIcon />
+            </Box>
+          </Stack>
 
-              {/* grid view */}
-              <Box height="8px" />
-              <Box width="1326px" overflowX="auto">
-                <Stack direction="row">
-                  <Slide
-                    direction="right"
-                    in={checked}
-                    mountOnEnter
-                    unmountOnExit
-                  >
-                    {addTask}
-                  </Slide>
+          {/* grid view */}
+          <Box height="8px" />
+          <Box width="1326px" overflowX="auto">
+            <Stack direction="row">
+              <Slide direction="right" in={checked} mountOnEnter unmountOnExit>
+                {addTask}
+              </Slide>
 
-                  {/* <Stack gap="12px">
+              {/* <Stack gap="12px">
 
                           <DndContext onDragEnd={handleDragEnd}>
                             {!parent ? draggable : null}
@@ -476,817 +554,492 @@ const StatusView = () => {
 
                         </Stack> */}
 
-                  <DndContext onDragEnd={handleDragEnd}>
-                    <Droppable id="droppable">
-                      <Grid container spacing="18px">
-                        <Grid item xs={6} md={3}>
-                          <Paper
-                            sx={{
-                              paddingX: "16px",
-                              borderRadius: "5px",
-                            }}
-                            width="318px"
-                            height="816px"
+              <DndContext onDragEnd={handleDragEnd}>
+                <Grid container spacing="18px" gap="18px">
+                  <Droppable id="TO DO">
+                    <Grid item>
+                      <Paper
+                        sx={{
+                          paddingX: "16px",
+                          borderRadius: "5px",
+                        }}
+                        width="318px"
+                        height="816px"
+                      >
+                        <Stack
+                          paddingY="13px"
+                          direction="row"
+                          justifyContent="space-between"
+                        >
+                          <Stack
+                            direction="row"
+                            justifyContent="center"
+                            alignItems="center"
                           >
-                            <Stack
-                              paddingY="13px"
-                              direction="row"
-                              justifyContent="space-between"
+                            <Typography
+                              sx={{ fontSize: "15px", fontWeight: "700" }}
                             >
-                              <Stack
-                                direction="row"
-                                justifyContent="center"
-                                alignItems="center"
-                              >
-                                <Typography
-                                  sx={{ fontSize: "15px", fontWeight: "700" }}
-                                >
-                                  To do
-                                </Typography>
-                                <Box width="21px" />
-                                <Box
-                                  bgcolor="#F7F7F7"
-                                  width="30px"
-                                  height="30px"
-                                  borderRadius="50%"
-                                  display="flex"
-                                  justifyContent="center"
-                                  alignItems="center"
-                                >
-                                  <Typography>3</Typography>
-                                </Box>
-                              </Stack>
-                              <Stack direction="row">
-                                <IconButton
-                                  sx={{
-                                    bgcolor: "#F7F7F7",
-                                    width: "30px",
-                                    height: "30px",
-                                    borderRadius: "50%",
-                                    display: "flex",
-                                    justifyContent: "center",
-                                    alignItems: "center",
-                                  }}
-                                >
-                                  {/* <Button> */}
+                              To do
+                            </Typography>
+                            <Box width="21px" />
+                            <Box
+                              bgcolor="#F7F7F7"
+                              width="30px"
+                              height="30px"
+                              borderRadius="50%"
+                              display="flex"
+                              justifyContent="center"
+                              alignItems="center"
+                            >
+                              <Typography>3</Typography>
+                            </Box>
+                          </Stack>
+                          <Stack direction="row">
+                            <IconButton
+                              sx={{
+                                bgcolor: "#F7F7F7",
+                                width: "30px",
+                                height: "30px",
+                                borderRadius: "50%",
+                                display: "flex",
+                                justifyContent: "center",
+                                alignItems: "center",
+                              }}
+                            >
+                              {/* <Button> */}
 
-                                  <Typography fontWeight="700">+</Typography>
-                                  {/* </Button> */}
-                                </IconButton>
-                                <Box width="6px" />
-                                <IconButton
-                                  sx={{
-                                    bgcolor: "#F7F7F7",
-                                    width: "30px",
-                                    height: "30px",
-                                    borderRadius: "50%",
-                                    display: "flex",
-                                    justifyContent: "center",
-                                    alignItems: "center",
-                                  }}
-                                >
-                                  {/* <Button> */}
+                              <Typography fontWeight="700">+</Typography>
+                              {/* </Button> */}
+                            </IconButton>
+                            <Box width="6px" />
+                            <IconButton
+                              sx={{
+                                bgcolor: "#F7F7F7",
+                                width: "30px",
+                                height: "30px",
+                                borderRadius: "50%",
+                                display: "flex",
+                                justifyContent: "center",
+                                alignItems: "center",
+                              }}
+                            >
+                              {/* <Button> */}
 
-                                  <MoreHorizIcon />
-                                  {/* </Button> */}
-                                </IconButton>
-                              </Stack>
-                            </Stack>
-                            <Box height="2.5px" />
-                            <Stack gap="12px">
-                              {/* {response} */}
-                              <DndContext onDragEnd={handleDragEnd}>
-                                {!parent ? (
-                                  <>
-                                    <SortableContext
-                                      items={[response]}
-                                      strategy={verticalListSortingStrategy}
+                              <MoreHorizIcon />
+                              {/* </Button> */}
+                            </IconButton>
+                          </Stack>
+                        </Stack>
+                        <Box height="2.5px" />
+                        <Stack gap="12px">
+                          {/* <DndContext onDragEnd={handleDragEnd}> */}
+                          <>
+                            {/* <SortableContext
+                                  items={[response]}
+                                  strategy={verticalListSortingStrategy}
+                                > */}
+                            {/* <pre>{JSON.stringify(response, null, 2)}</pre> */}
+
+                            {response?.data
+                              ?.filter(
+                                (task) => task.attributes.status === "TO DO"
+                              )
+                              .map((task) => (
+                                <Paper sx={{ padding: 0, borderRadius: "5px" }}>
+                                  {/* <Box height="12px" /> */}
+                                  <Draggable id={task?.id}>
+                                    <Stack
+                                      justifyContent="flex-start"
+                                      gap="16px"
                                     >
-                                      {response?.data
-                                        ?.filter(
-                                          (response) =>
-                                            response?.attributes?.status ===
-                                            "Todo"
-                                        )
-                                        .map((response, index) => (
-                                          <Draggable
-                                            key={response?.attributes?.title}
-                                            id={response?.attributes?.title}
-                                          >
-                                            <Card>
-                                              <CardContent>
-                                                <Stack gap="16px">
-                                                  <Typography
-                                                    sx={{
-                                                      fontWeight: "500",
-                                                      fontSize: "15px",
-                                                      color: "#3F4158",
-                                                    }}
-                                                  >
-                                                    {response.attributes?.title}
-                                                  </Typography>
-                                                  <Box
-                                                    sx={{
-                                                      bgcolor: "#4339F2",
-                                                      width: "109px",
-                                                      height: "26px",
-                                                      borderRadius: "5px",
-                                                      display: "flex",
-                                                      justifyContent: "center",
-                                                      alignItems: "center",
-                                                    }}
-                                                  >
-                                                    <Typography
-                                                      sx={{
-                                                        fontSize: "14px",
-                                                        color: "white",
-                                                      }}
-                                                    >
-                                                      {/* {response.attributes?.} */}
-                                                      User name
-                                                    </Typography>
-                                                  </Box>
-                                                  <Stack
-                                                    direction="row"
-                                                    justifyContent="space-between"
-                                                  >
-                                                    <Stack
-                                                      direction="row"
-                                                      gap="12px"
-                                                      justifyContent="center"
-                                                      alignItems="center"
-                                                    >
-                                                      <Stack
-                                                        direction="row"
-                                                        alignItems="center"
-                                                        justifyContent="center"
-                                                      >
-                                                        <Box>
-                                                          <IconButton>
-                                                            <AttachFile />
-                                                          </IconButton>
-                                                        </Box>
-                                                        {/* <Box width="8px"/> */}
-                                                        <Typography
-                                                          sx={{
-                                                            fontWeight: "700",
-                                                            fontSize: "15px",
-                                                            color: "#6F7082",
-                                                          }}
-                                                        >
-                                                          3
-                                                        </Typography>
-                                                      </Stack>
-                                                      <FlagIcon
-                                                        sx={{
-                                                          color: "#F44336",
-                                                        }}
-                                                      />
-                                                      <Stack
-                                                        direction="row"
-                                                        justifyContent="center"
-                                                        alignItems="center"
-                                                        color="#6F7082"
-                                                      >
-                                                        <WatchLater />
-                                                        <Box width="4px" />
-                                                        <Typography>
-                                                          {
-                                                            response.attributes
-                                                              ?.date
-                                                          }
-                                                        </Typography>
-                                                      </Stack>
-                                                    </Stack>
-                                                    <Box
-                                                      bgcolor="white"
-                                                      display="flex"
-                                                      justifyContent="center"
-                                                      alignItems="center"
-                                                    >
-                                                      <Avatar
-                                                        sx={{
-                                                          width: "30px",
-                                                          height: "30px",
-                                                        }}
-                                                      />
-                                                    </Box>
-                                                  </Stack>
-                                                </Stack>
-                                              </CardContent>
-                                            </Card>
-                                          </Draggable>
-                                        ))}
-                                    </SortableContext>
-                                  </>
-                                ) : null}
-                              </DndContext>
-                            </Stack>
-                          </Paper>
-                        </Grid>
-
-                        <Grid item xs={6} md={3}>
-                          <Paper
-                            sx={{
-                              paddingY: "13px",
-                              paddingX: "16px",
-                              borderRadius: "5px",
-                            }}
-                            width="318px"
-                            height="816px"
+                                      <Typography
+                                        fontWeight="500"
+                                        fontSize="15px"
+                                        color="#3F4158"
+                                      >
+                                        {task?.attributes?.title}
+                                      </Typography>
+                                      <Box
+                                        sx={{
+                                          backgroundColor: "#4339F2",
+                                          borderRadius: "5px",
+                                          width: "109px",
+                                          height: "26px",
+                                          display: "flex",
+                                          alignItems: "center",
+                                          justifyContent: "center",
+                                          fontWeight: "500",
+                                          fontSize: "14px",
+                                          // width: "fill",
+                                        }}
+                                      >
+                                        Task Creator
+                                      </Box>
+                                      <Stack direction="row" paddingTop="12px">
+                                        <AttachFile />
+                                      </Stack>
+                                    </Stack>
+                                  </Draggable>
+                                </Paper>
+                              ))}
+                            {/* </SortableContext> */}
+                          </>
+                          {/* </DndContext> */}
+                        </Stack>
+                      </Paper>
+                    </Grid>
+                  </Droppable>
+                  <Droppable id="IN PROGRESS">
+                    <Grid item>
+                      <Paper
+                        sx={{
+                          paddingX: "16px",
+                          borderRadius: "5px",
+                        }}
+                        width="318px"
+                        height="816px"
+                      >
+                        <Stack
+                          paddingY="13px"
+                          direction="row"
+                          justifyContent="space-between"
+                        >
+                          <Stack
+                            direction="row"
+                            justifyContent="center"
+                            alignItems="center"
                           >
-                            <Stack
-                              direction="row"
-                              justifyContent="space-between"
+                            <Typography
+                              sx={{ fontSize: "15px", fontWeight: "700" }}
                             >
-                              <Stack direction="row">
-                                <Typography
-                                  sx={{ fontSize: "15px", fontWeight: "700" }}
-                                >
-                                  In Progress
-                                </Typography>
-                                <Box width="21px" />
-                                <Box
-                                  bgcolor="#F7F7F7"
-                                  width="30px"
-                                  height="30px"
-                                  borderRadius="50%"
-                                  display="flex"
-                                  justifyContent="center"
-                                  alignItems="center"
-                                >
-                                  <Typography>3</Typography>
-                                </Box>
-                              </Stack>
-                              <Stack direction="row">
-                                <IconButton
-                                  sx={{
-                                    bgcolor: "#F7F7F7",
-                                    width: "30px",
-                                    height: "30px",
-                                    borderRadius: "50%",
-                                    display: "flex",
-                                    justifyContent: "center",
-                                    alignItems: "center",
-                                  }}
-                                >
-                                  {/* <Button> */}
+                              In Progress
+                            </Typography>
+                            <Box width="21px" />
+                            <Box
+                              bgcolor="#F7F7F7"
+                              width="30px"
+                              height="30px"
+                              borderRadius="50%"
+                              display="flex"
+                              justifyContent="center"
+                              alignItems="center"
+                            >
+                              <Typography>3</Typography>
+                            </Box>
+                          </Stack>
+                          <Stack direction="row">
+                            <IconButton
+                              sx={{
+                                bgcolor: "#F7F7F7",
+                                width: "30px",
+                                height: "30px",
+                                borderRadius: "50%",
+                                display: "flex",
+                                justifyContent: "center",
+                                alignItems: "center",
+                              }}
+                            >
+                              {/* <Button> */}
 
-                                  <Typography fontWeight="700">+</Typography>
-                                  {/* </Button> */}
-                                </IconButton>
-                                <Box width="6px" />
-                                <IconButton
-                                  sx={{
-                                    bgcolor: "#F7F7F7",
-                                    width: "30px",
-                                    height: "30px",
-                                    borderRadius: "50%",
-                                    display: "flex",
-                                    justifyContent: "center",
-                                    alignItems: "center",
-                                  }}
-                                >
-                                  {/* <Button> */}
+                              <Typography fontWeight="700">+</Typography>
+                              {/* </Button> */}
+                            </IconButton>
+                            <Box width="6px" />
+                            <IconButton
+                              sx={{
+                                bgcolor: "#F7F7F7",
+                                width: "30px",
+                                height: "30px",
+                                borderRadius: "50%",
+                                display: "flex",
+                                justifyContent: "center",
+                                alignItems: "center",
+                              }}
+                            >
+                              {/* <Button> */}
 
-                                  <MoreHorizIcon />
-                                  {/* </Button> */}
-                                </IconButton>
-                              </Stack>
-                            </Stack>
-                            <Box height="2.5px" />
-                            <Stack gap="12px">
-                              {/* {response} */}
-                              <DndContext onDragEnd={handleDragEnd}>
-                                {!parent ? (
-                                  <>
-                                    <SortableContext
-                                      items={[response]}
-                                      strategy={verticalListSortingStrategy}
-                                    >
-                                      {response?.data
-                                        ?.filter(
-                                          (response) =>
-                                            response?.attributes?.status ===
-                                            "Inprogress"
-                                        )
-                                        .map((response, index) => (
-                                          <Draggable
-                                            key={response?.attributes?.title}
-                                            id={response?.attributes?.title}
-                                          >
-                                            <Card>
-                                              <CardContent>
-                                                <Stack gap="16px">
-                                                  <Typography
-                                                    sx={{
-                                                      fontWeight: "500",
-                                                      fontSize: "15px",
-                                                      color: "#3F4158",
-                                                    }}
-                                                  >
-                                                    {response.attributes?.title}
-                                                  </Typography>
-                                                  <Box
-                                                    sx={{
-                                                      bgcolor: "#4339F2",
-                                                      width: "109px",
-                                                      height: "26px",
-                                                      borderRadius: "5px",
-                                                      display: "flex",
-                                                      justifyContent: "center",
-                                                      alignItems: "center",
-                                                    }}
-                                                  >
-                                                    <Typography
-                                                      sx={{
-                                                        fontSize: "14px",
-                                                        color: "white",
-                                                      }}
-                                                    >
-                                                      {/* {response.attributes?.} */}
-                                                      User name
-                                                    </Typography>
-                                                  </Box>
-                                                  <Stack
-                                                    direction="row"
-                                                    justifyContent="space-between"
-                                                  >
-                                                    <Stack
-                                                      direction="row"
-                                                      gap="12px"
-                                                      justifyContent="center"
-                                                      alignItems="center"
-                                                    >
-                                                      <Stack
-                                                        direction="row"
-                                                        alignItems="center"
-                                                        justifyContent="center"
-                                                      >
-                                                        <Box>
-                                                          <IconButton>
-                                                            <AttachFile />
-                                                          </IconButton>
-                                                        </Box>
-                                                        {/* <Box width="8px"/> */}
-                                                        <Typography
-                                                          sx={{
-                                                            fontWeight: "700",
-                                                            fontSize: "15px",
-                                                            color: "#6F7082",
-                                                          }}
-                                                        >
-                                                          3
-                                                        </Typography>
-                                                      </Stack>
-                                                      <FlagIcon
-                                                        sx={{
-                                                          color: "#F44336",
-                                                        }}
-                                                      />
-                                                      <Stack
-                                                        direction="row"
-                                                        justifyContent="center"
-                                                        alignItems="center"
-                                                        color="#6F7082"
-                                                      >
-                                                        <WatchLater />
-                                                        <Box width="4px" />
-                                                        <Typography>
-                                                          {
-                                                            response.attributes
-                                                              ?.date
-                                                          }
-                                                        </Typography>
-                                                      </Stack>
-                                                    </Stack>
-                                                    <Box
-                                                      bgcolor="white"
-                                                      display="flex"
-                                                      justifyContent="center"
-                                                      alignItems="center"
-                                                    >
-                                                      <Avatar
-                                                        sx={{
-                                                          width: "30px",
-                                                          height: "30px",
-                                                        }}
-                                                      />
-                                                    </Box>
-                                                  </Stack>
-                                                </Stack>
-                                              </CardContent>
-                                            </Card>
-                                          </Draggable>
-                                        ))}
-                                    </SortableContext>
-                                  </>
-                                ) : null}
-                              </DndContext>
-                            </Stack>
-                          </Paper>
-                        </Grid>
-                        <Grid item xs={6} md={3}>
-                          <Paper
-                            sx={{ paddingY: "13px", paddingX: "16px" }}
-                            width="318px"
-                            height="816px"
+                              <MoreHorizIcon />
+                              {/* </Button> */}
+                            </IconButton>
+                          </Stack>
+                        </Stack>
+                        <Box height="2.5px" />
+                        <Stack gap="12px">
+                          {/* <DndContext onDragEnd={handleDragEnd}> */}
+                          <>
+                            {/* <SortableContext
+                                    items={[response]}
+                                    strategy={verticalListSortingStrategy}
+                                  > */}
+                            {response?.data
+                              ?.filter(
+                                (task) =>
+                                  task.attributes.status === "IN PROGRESS"
+                              )
+                              .map((task) => (
+                                <Draggable id={task?.id}>
+                                  <Card>
+                                    <Typography>
+                                      {task?.attributes?.title}
+                                    </Typography>
+                                  </Card>
+                                </Draggable>
+                              ))}
+                            {/* </SortableContext> */}
+                          </>
+                          {/* </DndContext> */}
+                        </Stack>
+                      </Paper>
+                    </Grid>
+                  </Droppable>
+                  <Droppable id="IN REVIEW">
+                    <Grid item>
+                      <Paper
+                        sx={{
+                          paddingX: "16px",
+                          borderRadius: "5px",
+                        }}
+                        width="318px"
+                        height="816px"
+                      >
+                        <Stack
+                          paddingY="13px"
+                          direction="row"
+                          justifyContent="space-between"
+                        >
+                          <Stack
+                            direction="row"
+                            justifyContent="center"
+                            alignItems="center"
                           >
-                            <Stack
-                              direction="row"
-                              justifyContent="space-between"
+                            <Typography
+                              sx={{ fontSize: "15px", fontWeight: "700" }}
                             >
-                              <Stack direction="row">
-                                <Typography
-                                  sx={{ fontSize: "15px", fontWeight: "700" }}
-                                >
-                                  In Review
-                                </Typography>
-                                <Box width="21px" />
-                                <Box
-                                  bgcolor="#F7F7F7"
-                                  width="30px"
-                                  height="30px"
-                                  borderRadius="50%"
-                                  display="flex"
-                                  justifyContent="center"
-                                  alignItems="center"
-                                >
-                                  <Typography>3</Typography>
-                                </Box>
-                              </Stack>
-                              <Stack direction="row">
-                                <IconButton
-                                  sx={{
-                                    bgcolor: "#F7F7F7",
-                                    width: "30px",
-                                    height: "30px",
-                                    borderRadius: "50%",
-                                    display: "flex",
-                                    justifyContent: "center",
-                                    alignItems: "center",
-                                  }}
-                                >
-                                  {/* <Button> */}
+                              In Review
+                            </Typography>
+                            <Box width="21px" />
+                            <Box
+                              bgcolor="#F7F7F7"
+                              width="30px"
+                              height="30px"
+                              borderRadius="50%"
+                              display="flex"
+                              justifyContent="center"
+                              alignItems="center"
+                            >
+                              <Typography>3</Typography>
+                            </Box>
+                          </Stack>
+                          <Stack direction="row">
+                            <IconButton
+                              sx={{
+                                bgcolor: "#F7F7F7",
+                                width: "30px",
+                                height: "30px",
+                                borderRadius: "50%",
+                                display: "flex",
+                                justifyContent: "center",
+                                alignItems: "center",
+                              }}
+                            >
+                              {/* <Button> */}
 
-                                  <Typography fontWeight="700">+</Typography>
-                                  {/* </Button> */}
-                                </IconButton>
-                                <Box width="6px" />
-                                <IconButton
-                                  sx={{
-                                    bgcolor: "#F7F7F7",
-                                    width: "30px",
-                                    height: "30px",
-                                    borderRadius: "50%",
-                                    display: "flex",
-                                    justifyContent: "center",
-                                    alignItems: "center",
-                                  }}
-                                >
-                                  {/* <Button> */}
+                              <Typography fontWeight="700">+</Typography>
+                              {/* </Button> */}
+                            </IconButton>
+                            <Box width="6px" />
+                            <IconButton
+                              sx={{
+                                bgcolor: "#F7F7F7",
+                                width: "30px",
+                                height: "30px",
+                                borderRadius: "50%",
+                                display: "flex",
+                                justifyContent: "center",
+                                alignItems: "center",
+                              }}
+                            >
+                              {/* <Button> */}
 
-                                  <MoreHorizIcon />
-                                  {/* </Button> */}
-                                </IconButton>
-                              </Stack>
-                            </Stack>
-                            <Box height="2.5px" />
-                            <Stack gap="12px">
-                              {/* {response} */}
-                              <DndContext onDragEnd={handleDragEnd}>
-                                {!parent ? (
-                                  <>
-                                    <SortableContext
-                                      items={[response]}
-                                      strategy={verticalListSortingStrategy}
-                                    >
-                                      {response?.data
-                                        ?.filter(
-                                          (response) =>
-                                            response?.attributes?.status ===
-                                            "InReview"
-                                        )
-                                        .map((response, index) => (
-                                          <Draggable
-                                            key={response?.attributes?.title}
-                                            id={response?.attributes?.title}
-                                          >
-                                            <Card>
-                                              <CardContent>
-                                                <Stack gap="16px">
-                                                  <Typography
-                                                    sx={{
-                                                      fontWeight: "500",
-                                                      fontSize: "15px",
-                                                      color: "#3F4158",
-                                                    }}
-                                                  >
-                                                    {response.attributes?.title}
-                                                  </Typography>
-                                                  <Box
-                                                    sx={{
-                                                      bgcolor: "#4339F2",
-                                                      width: "109px",
-                                                      height: "26px",
-                                                      borderRadius: "5px",
-                                                      display: "flex",
-                                                      justifyContent: "center",
-                                                      alignItems: "center",
-                                                    }}
-                                                  >
-                                                    <Typography
-                                                      sx={{
-                                                        fontSize: "14px",
-                                                        color: "white",
-                                                      }}
-                                                    >
-                                                      {/* {response.attributes?.} */}
-                                                      User name
-                                                    </Typography>
-                                                  </Box>
-                                                  <Stack
-                                                    direction="row"
-                                                    justifyContent="space-between"
-                                                  >
-                                                    <Stack
-                                                      direction="row"
-                                                      gap="12px"
-                                                      justifyContent="center"
-                                                      alignItems="center"
-                                                    >
-                                                      <Stack
-                                                        direction="row"
-                                                        alignItems="center"
-                                                        justifyContent="center"
-                                                      >
-                                                        <Box>
-                                                          <IconButton>
-                                                            <AttachFile />
-                                                          </IconButton>
-                                                        </Box>
-                                                        {/* <Box width="8px"/> */}
-                                                        <Typography
-                                                          sx={{
-                                                            fontWeight: "700",
-                                                            fontSize: "15px",
-                                                            color: "#6F7082",
-                                                          }}
-                                                        >
-                                                          3
-                                                        </Typography>
-                                                      </Stack>
-                                                      <FlagIcon
-                                                        sx={{
-                                                          color: "#F44336",
-                                                        }}
-                                                      />
-                                                      <Stack
-                                                        direction="row"
-                                                        justifyContent="center"
-                                                        alignItems="center"
-                                                        color="#6F7082"
-                                                      >
-                                                        <WatchLater />
-                                                        <Box width="4px" />
-                                                        <Typography>
-                                                          {
-                                                            response.attributes
-                                                              ?.date
-                                                          }
-                                                        </Typography>
-                                                      </Stack>
-                                                    </Stack>
-                                                    <Box
-                                                      bgcolor="white"
-                                                      display="flex"
-                                                      justifyContent="center"
-                                                      alignItems="center"
-                                                    >
-                                                      <Avatar
-                                                        sx={{
-                                                          width: "30px",
-                                                          height: "30px",
-                                                        }}
-                                                      />
-                                                    </Box>
-                                                  </Stack>
-                                                </Stack>
-                                              </CardContent>
-                                            </Card>
-                                          </Draggable>
-                                        ))}
-                                    </SortableContext>
-                                  </>
-                                ) : null}
-                              </DndContext>
-                            </Stack>
-                          </Paper>
-                        </Grid>
-                        <Grid item xs={6} md={3}>
-                          <Paper
-                            sx={{ paddingY: "13px", paddingX: "16px" }}
-                            width="318px"
-                            height="816px"
+                              <MoreHorizIcon />
+                              {/* </Button> */}
+                            </IconButton>
+                          </Stack>
+                        </Stack>
+                        <Box height="2.5px" />
+                        <Stack gap="12px">
+                          {/* <DndContext onDragEnd={handleDragEnd}> */}
+                          <>
+                            {/* <SortableContext
+                                    items={[response]}
+                                    strategy={verticalListSortingStrategy}
+                                  > */}
+                            {response?.data
+                              ?.filter(
+                                (task) => task.attributes.status === "IN REVIEW"
+                              )
+                              .map((task) => (
+                                <Draggable id={task?.id}>
+                                  <Card>
+                                    <Typography>
+                                      {task?.attributes?.title}
+                                    </Typography>
+                                  </Card>
+                                </Draggable>
+                              ))}
+                            {/* 
+                                </SortableContext> */}
+                          </>
+                          {/* </DndContext> */}
+                        </Stack>
+                      </Paper>
+                    </Grid>
+                  </Droppable>
+                  <Droppable id="DONE">
+                    <Grid item>
+                      <Paper
+                        sx={{
+                          paddingX: "16px",
+                          borderRadius: "5px",
+                        }}
+                        width="318px"
+                        height="816px"
+                      >
+                        <Stack
+                          paddingY="13px"
+                          direction="row"
+                          justifyContent="space-between"
+                        >
+                          <Stack
+                            direction="row"
+                            justifyContent="center"
+                            alignItems="center"
                           >
-                            <Stack
-                              direction="row"
-                              justifyContent="space-between"
+                            <Typography
+                              sx={{ fontSize: "15px", fontWeight: "700" }}
                             >
-                              <Stack direction="row">
-                                <Typography>Done</Typography>
-                                <Box width="21px" />
-                                <Box
-                                  bgcolor="#F7F7F7"
-                                  width="30px"
-                                  height="30px"
-                                  borderRadius="50%"
-                                  display="flex"
-                                  justifyContent="center"
-                                  alignItems="center"
-                                >
-                                  <Typography>3</Typography>
-                                </Box>
-                              </Stack>
-                              <Stack direction="row">
-                                <IconButton
-                                  sx={{
-                                    bgcolor: "#F7F7F7",
-                                    width: "30px",
-                                    height: "30px",
-                                    borderRadius: "50%",
-                                    display: "flex",
-                                    justifyContent: "center",
-                                    alignItems: "center",
-                                  }}
-                                >
-                                  {/* <Button> */}
+                              Done
+                            </Typography>
+                            <Box width="21px" />
+                            <Box
+                              bgcolor="#F7F7F7"
+                              width="30px"
+                              height="30px"
+                              borderRadius="50%"
+                              display="flex"
+                              justifyContent="center"
+                              alignItems="center"
+                            >
+                              <Typography>3</Typography>
+                            </Box>
+                          </Stack>
+                          <Stack direction="row">
+                            <IconButton
+                              sx={{
+                                bgcolor: "#F7F7F7",
+                                width: "30px",
+                                height: "30px",
+                                borderRadius: "50%",
+                                display: "flex",
+                                justifyContent: "center",
+                                alignItems: "center",
+                              }}
+                            >
+                              {/* <Button> */}
 
-                                  <Typography fontWeight="700">+</Typography>
-                                  {/* </Button> */}
-                                </IconButton>
-                                <Box width="6px" />
-                                <IconButton
-                                  sx={{
-                                    bgcolor: "#F7F7F7",
-                                    width: "30px",
-                                    height: "30px",
-                                    borderRadius: "50%",
-                                    display: "flex",
-                                    justifyContent: "center",
-                                    alignItems: "center",
-                                  }}
-                                >
-                                  {/* <Button> */}
+                              <Typography fontWeight="700">+</Typography>
+                              {/* </Button> */}
+                            </IconButton>
+                            <Box width="6px" />
+                            <IconButton
+                              sx={{
+                                bgcolor: "#F7F7F7",
+                                width: "30px",
+                                height: "30px",
+                                borderRadius: "50%",
+                                display: "flex",
+                                justifyContent: "center",
+                                alignItems: "center",
+                              }}
+                            >
+                              {/* <Button> */}
 
-                                  <MoreHorizIcon />
-                                  {/* </Button> */}
-                                </IconButton>
-                              </Stack>
-                            </Stack>
-                            <Box height="2.5px" />
-                            <Stack gap="12px">
-                              {/* {response} */}
-                              <DndContext onDragEnd={handleDragEnd}>
-                                {!parent ? (
-                                  <>
-                                    <SortableContext
-                                      items={[response]}
-                                      strategy={verticalListSortingStrategy}
-                                    >
-                                      {response?.data
-                                        ?.filter(
-                                          (response) =>
-                                            response?.attributes?.status ===
-                                            "Done"
-                                        )
-                                        .map((response, index) => (
-                                          <Draggable
-                                            key={response?.attributes?.title}
-                                            id={response?.attributes?.title}
-                                          >
-                                            <Card>
-                                              <CardContent>
-                                                <Stack gap="16px">
-                                                  <Typography
-                                                    sx={{
-                                                      fontWeight: "500",
-                                                      fontSize: "15px",
-                                                      color: "#3F4158",
-                                                    }}
-                                                  >
-                                                    {response.attributes?.title}
-                                                  </Typography>
-                                                  <Box
-                                                    sx={{
-                                                      bgcolor: "#4339F2",
-                                                      width: "109px",
-                                                      height: "26px",
-                                                      borderRadius: "5px",
-                                                      display: "flex",
-                                                      justifyContent: "center",
-                                                      alignItems: "center",
-                                                    }}
-                                                  >
-                                                    <Typography
-                                                      sx={{
-                                                        fontSize: "14px",
-                                                        color: "white",
-                                                      }}
-                                                    >
-                                                      {/* {response.attributes?.} */}
-                                                      User name
-                                                    </Typography>
-                                                  </Box>
-                                                  <Stack
-                                                    direction="row"
-                                                    justifyContent="space-between"
-                                                  >
-                                                    <Stack
-                                                      direction="row"
-                                                      gap="12px"
-                                                      justifyContent="center"
-                                                      alignItems="center"
-                                                    >
-                                                      <Stack
-                                                        direction="row"
-                                                        alignItems="center"
-                                                        justifyContent="center"
-                                                      >
-                                                        <Box>
-                                                          <IconButton>
-                                                            <AttachFile />
-                                                          </IconButton>
-                                                        </Box>
-                                                        {/* <Box width="8px"/> */}
-                                                        <Typography
-                                                          sx={{
-                                                            fontWeight: "700",
-                                                            fontSize: "15px",
-                                                            color: "#6F7082",
-                                                          }}
-                                                        >
-                                                          3
-                                                        </Typography>
-                                                      </Stack>
-                                                      <FlagIcon
-                                                        sx={{
-                                                          color: "#F44336",
-                                                        }}
-                                                      />
-                                                      <Stack
-                                                        direction="row"
-                                                        justifyContent="center"
-                                                        alignItems="center"
-                                                        color="#6F7082"
-                                                      >
-                                                        <WatchLater />
-                                                        <Box width="4px" />
-                                                        <Typography>
-                                                          {
-                                                            response.attributes
-                                                              ?.date
-                                                          }
-                                                        </Typography>
-                                                      </Stack>
-                                                    </Stack>
-                                                    <Box
-                                                      bgcolor="white"
-                                                      display="flex"
-                                                      justifyContent="center"
-                                                      alignItems="center"
-                                                    >
-                                                      <Avatar
-                                                        sx={{
-                                                          width: "30px",
-                                                          height: "30px",
-                                                        }}
-                                                      />
-                                                    </Box>
-                                                  </Stack>
-                                                </Stack>
-                                              </CardContent>
-                                            </Card>
-                                          </Draggable>
-                                        ))}
-                                    </SortableContext>
-                                  </>
-                                ) : null}
-                              </DndContext>
-                            </Stack>
-                          </Paper>
-                        </Grid>
-                      </Grid>
-                    </Droppable>
-                  </DndContext>
-                </Stack>
-              </Box>
+                              <MoreHorizIcon />
+                              {/* </Button> */}
+                            </IconButton>
+                          </Stack>
+                        </Stack>
+                        <Box height="2.5px" />
+                        <Stack gap="12px">
+                          {/* <DndContext onDragEnd={handleDragEnd}> */}
+                          <>
+                            {/* <SortableContext
+                                    items={[response]}
+                                    strategy={verticalListSortingStrategy}
+                                  > */}
+                            {response?.data
+                              ?.filter(
+                                (task) => task.attributes.status === "DONE"
+                              )
+                              .map((task) => (
+                                <Draggable id={task?.id}>
+                                  <Card>
+                                    <Typography>
+                                      {task?.attributes?.title}
+                                    </Typography>
+                                  </Card>
+                                </Draggable>
+                              ))}
+                            {/* </SortableContext> */}
+                          </>
+                          {/* </DndContext> */}
+                        </Stack>
+                      </Paper>
+                    </Grid>
+                  </Droppable>
+                </Grid>
+              </DndContext>
             </Stack>
-          </>
+          </Box>
         </Stack>
-      </Stack>
-    </>
+      </>
+      {/* </Stack> */}
+      {/* </Stack> */}
+    </Layout>
   );
 };
+export async function getServerSideProps({ req, params }) {
+  // const { slug } = params;
+  const jwt =
+    typeof window !== "undefined"
+      ? getTokenFromLocalCookie
+      : getTokenFromServerCookie(req);
+  const taskResponse = await fetcher(
+    `http://localhost:1337/api/tasks`,
+    jwt
+      ? {
+          headers: {
+            Authorization: `Bearer ${jwt}`,
+          },
+        }
+      : ""
+  );
+  if (taskResponse.data) {
+    // const plot = await markdownToHtml(filmResponse.data.attributes.plot);
+    return {
+      props: {
+        taskResponse: taskResponse.data,
+        // plot,
+        jwt: jwt ? jwt : "",
+      },
+    };
+  } else {
+    return {
+      props: {
+        error: taskResponse.error.message,
+      },
+    };
+  }
+}
 
 export default StatusView;

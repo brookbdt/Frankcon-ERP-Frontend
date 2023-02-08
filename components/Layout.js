@@ -2,10 +2,17 @@ import React from "react";
 import Navbar from "./Navbar";
 import SideBar from "./SideBar";
 import { Box, createTheme, Stack, ThemeProvider } from "@mui/material";
-import { UserProvider } from "./lib/authContext";
+import { UserProvider } from "../lib/authContext";
 import Head from "next/head";
 
-const Layout = ({ user, userDepartment, loading = false, children }) => (
+const Layout = ({
+  jwt,
+  purchaseRequestResponse,
+  user,
+  userDepartment,
+  loading = false,
+  children,
+}) => (
   <UserProvider value={{ user, userDepartment, loading }}>
     <Head>
       <title>Frankcon ERP Design System</title>
@@ -13,20 +20,28 @@ const Layout = ({ user, userDepartment, loading = false, children }) => (
     </Head>
     {/* console.log('') */}
     <Stack direction="row" spacing={0}>
-      <SideBar userDepartment={userDepartment} />
-      <Stack
-        direction="column"
-        width="1200px"
-        // paddingLeft="48px"
-        paddingRight="48px"
-        spacing={2}
-      >
-        <Navbar />
-
-        {children}
-      </Stack>
+      {!loading && !user ? (
+        <>{children}</>
+      ) : (
+        <>
+          <SideBar
+            purchaseRequestResponse={purchaseRequestResponse}
+            jwt={jwt}
+            userDepartment={userDepartment}
+          />
+          <Stack
+            direction="column"
+            width="1200px"
+            // paddingLeft="48px"
+            paddingRight="48px"
+            spacing={2}
+          >
+            <Navbar jwt={jwt} />
+            {children}
+          </Stack>
+        </>
+      )}
     </Stack>
   </UserProvider>
 );
-
 export default Layout;

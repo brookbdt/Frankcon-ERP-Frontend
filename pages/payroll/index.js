@@ -4,65 +4,67 @@ import Navbar from "../../components/Navbar";
 import SideBar from "../../components/SideBar";
 import AddIcon from "@mui/icons-material/Add";
 import EmployeesLayout from "../../layout/employees";
+import {
+  getTokenFromLocalCookie,
+  getTokenFromServerCookie,
+} from "../../lib/auth";
+import { fetcher } from "../../lib/api";
+import Layout from "../../components/Layout";
+import { useFetchUser, useFetchUserDepartment } from "../../lib/authContext";
+import Payroll from "../../components/Payroll";
+import PayrollTable from "../../components/Payroll/PayrollTable";
 
-const Payroll = () => {
+const PayrollPage = ({ jwt }) => {
   const handleSlide = () => {
     setChecked((prev) => !prev);
   };
 
   const [checked, setChecked] = React.useState(false);
-
+  const { user, loading } = useFetchUser();
+  const { userDepartment } = useFetchUserDepartment();
   return (
     <>
-      <Stack
-        direction="row"
-        justifyContent="space-between"
-        bgcolor="#F6F6F6"
-        height="100vh"
-      >
-        <SideBar />
-        <Stack
-          paddingRight="55px"
-          direction="column"
-          width="80%"
-          height="100vh"
-        >
-          <>
-            <Navbar />
-            <Box height="28px" />
-            <Stack direction="row" justifyContent="space-between">
-              <Typography fontWeight="700" fontSize="32px" color="#141522">
-                Employee Payroll 2022
-              </Typography>
-              <Button
-                onClick={handleSlide}
-                sx={{
-                  marginTop: "3px",
-                  backgroundColor: "#E1E0F6",
-                  color: "#4339F2",
-                  borderRadius: "10px",
-                  paddingX: "16px",
-                  paddingY: "12px",
-                }}
-              >
-                <AddIcon />
-                <Typography variant="p" fontSize="12px" fontWeight="600">
-                  Add Pay Month
-                </Typography>
-              </Button>
-            </Stack>
-            <EmployeesLayout metric="Status" list="list" sortBy="Decline" />
-            <Box height="11px" />
-            <Typography fontWeight={700} fontSize={20}>
-              {" "}
-              Payroll List
-            </Typography>
-            <Box height="18px" />
-          </>
-        </Stack>
-      </Stack>
+      <Layout jwt={jwt} user={user} userDepartment={userDepartment}>
+        <Box paddingLeft="48px">
+          {/* <Payroll jwt={jwt} /> */}
+          <PayrollTable jwt={jwt} />
+        </Box>
+      </Layout>
     </>
   );
 };
+export async function getServerSideProps({ req, params }) {
+  // const { slug } = params;
+  const jwt =
+    typeof window !== "undefined"
+      ? getTokenFromLocalCookie
+      : getTokenFromServerCookie(req);
+  const employeeResponse = await fetcher(
+    `http://localhost:1337/api/employees`,
+    jwt
+      ? {
+          headers: {
+            Authorization: `Bearer ${jwt}`,
+          },
+        }
+      : ""
+  );
+  if (employeeResponse.data) {
+    // const plot = await markdownToHtml(filmResponse.data.attributes.plot);
+    return {
+      props: {
+        employeeResponse: employeeResponse.data,
+        // plot,
+        jwt: jwt ? jwt : "",
+      },
+    };
+  } else {
+    return {
+      props: {
+        error: employeeResponse.error.message,
+      },
+    };
+  }
+}
 
-export default Payroll;
+export default PayrollPage;

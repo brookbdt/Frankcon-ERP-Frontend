@@ -2,19 +2,25 @@ import AddIcon from "@mui/icons-material/Add";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import {
+  Alert,
   Avatar,
   Box,
   Button,
+  ClickAwayListener,
+  Collapse,
   Divider,
   FormControl,
+  IconButton,
   InputAdornment,
   InputLabel,
   MenuItem,
   Paper,
+  Popover,
   Select,
   TextField,
   Typography,
 } from "@mui/material";
+import relativeTime from "dayjs/plugin/relativeTime";
 import Slide from "@mui/material/Slide";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -29,27 +35,50 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import dayjs from "dayjs";
 import React, { useEffect, useState } from "react";
 import EmployeesLayout from "../layout/employees";
-import { createEmployee, readEmployee } from "../pages/api";
+import {
+  createEmployee,
+  createPayroll,
+  getEmployeeId,
+  readEmployee,
+  readEmployeeByDepartment,
+} from "../pages/api";
 import {
   useFetchUser,
   useFetchUserDepartment,
   useUser,
-} from "../components/lib/authContext";
+} from "../lib/authContext";
+import {
+  CloseOutlined,
+  Edit,
+  MenuOutlined,
+  MoreHoriz,
+  ViewAgenda,
+  ViewAgendaOutlined,
+} from "@mui/icons-material";
+import ChangingButton from "./ChangingButton";
+import Link from "next/link";
+import EmployeesTable from "./Employees/EmployeesTable";
 
-const Employees = () => {
+const Employees = ({ jwt }) => {
+  dayjs.extend(relativeTime);
   const handleSlide = () => {
     setChecked((prev) => !prev);
   };
+
+  const [activity, setActivity] = useState("ONLINE");
+
   const [checked, setChecked] = React.useState(false);
 
   const [value, setValue] = React.useState(dayjs(new Date()));
   const [selected, setSelected] = useState([]);
 
-  const [firstname, setFirstname] = useState("");
-  const [lastname, setLastname] = useState("");
+  const [firstName, setFirstname] = useState("");
+  const [alertOpen, setAlertOpen] = useState(false);
+
+  const [lastName, setLastname] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [dateofbirth, setDateOfBirth] = useState("");
+  const [dateOfBirth, setDateOfBirth] = useState("");
   const [address, setAddress] = useState("");
   const [employmentDate, setEmploymentDate] = useState("");
   const [department, setDepartment] = useState("");
@@ -57,52 +86,112 @@ const Employees = () => {
   const [employmentType, setEmploymentType] = useState("");
   const [employeeGrossSalary, setEmployeeGrossSalary] = useState("");
   const [employeeNetSalary, setEmployeeNetSalary] = useState("");
+  const [employeeImage, setEmployeeImage] = useState();
+  const [employeeId, setEmployeeId] = useState();
+  const [previewImage, setPreviewImage] = useState();
+  // const [vendorImage, setVendorImage] = useState([]);
 
   const { user, loading } = useFetchUser();
   const { userDepartment } = useFetchUserDepartment();
   console.log("the user is", user);
   console.log("the user department is", userDepartment);
 
-  const currentDate = value == null ? "" : value.toString();
-
   const sendEmployee = () => {
-    const newEmployee = {
-      // Title: name,
-      // data: { faq },
-      // title: title,
-      // description: description,
-      // comment: comment,
-      // title: data.title,
-      data: {
-        // tasks: {
-        FirstName: firstname,
-        LastName: lastname,
-        Email: email,
-        Phone: phone,
-        DateOfBirth: dateofbirth,
-        Address: address,
-        EmploymentDate: employmentDate,
-        Department: department,
-        Position: position,
-        EmploymentType: employmentType,
-        EmployeeGrossSalary: employeeGrossSalary,
-        EmployeeNetSalary: employeeNetSalary,
+    const formData = new FormData();
+    setChecked((prev) => !prev);
+    formData.append("files.employeeImage", employeeImage);
+    formData.append(
+      "data",
+      JSON.stringify({
+        firstName,
+        lastName,
+        employeeId,
+        email,
+        phone,
+        dateOfBirth,
+        address,
+        employmentDate,
+        department,
+        position,
+        employmentType,
+        employeeGrossSalary,
+        employeeNetSalary,
+      })
+    );
+    setAlertOpen(true);
 
-        // },
-      },
-    };
-    createEmployee(newEmployee);
-    console.log(newEmployee);
+    createEmployee(formData, jwt);
+    createPayroll(formData, jwt);
+    console.log("the jwt is", jwt);
   };
+  const handleImage = (e) => {
+    setEmployeeImage(e.target.files[0]);
+    setPreviewImage(URL.createObjectURL(e.target.files[0]));
+  };
+  const [anchorEl, setAnchorEl] = React.useState(null);
+
+  const handleClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
+  const sortByDepartment = async () => {};
+  const openOptions = Boolean(anchorEl);
+  const id = openOptions ? "simple-popover" : undefined;
 
   const [response, setResponse] = useState([]);
   useEffect(() => {
     const fetchData = async () => {
-      const result = await readEmployee();
+      const result = await readEmployee(jwt);
+      const financeDepartment = await readEmployeeByDepartment(
+        jwt,
+        user,
+        "Finance"
+      );
+      const architectureDepartment = await readEmployeeByDepartment(
+        jwt,
+        user,
+        "Architecture"
+      );
+      const humanResourceDepartment = await readEmployeeByDepartment(
+        jwt,
+        user,
+        "Human Resource"
+      );
+      const InventoryDepartment = await readEmployeeByDepartment(
+        jwt,
+        user,
+        "Inventory"
+      );
+      const engineeringDepartment = await readEmployeeByDepartment(
+        jwt,
+        user,
+        "Engineering"
+      );
+      const purchaserDepartment = await readEmployeeByDepartment(
+        jwt,
+        user,
+        "Purchaser"
+      );
+      const workshopDepartment = await readEmployeeByDepartment(
+        jwt,
+        user,
+        "Workshop"
+      );
+
       setResponse(result.data);
+      console.log(response);
+
+      const lastEmployee = await getEmployeeId(jwt);
+      const lastEmployeeId = lastEmployee?.data?.data?.[0]?.id || 1;
+      setEmployeeId(`EM - ${new Date().getFullYear()} - ${lastEmployeeId + 1}`);
+      console.log({ lastEmployee });
     };
     fetchData();
-  }, []);
+  }, [user]);
+
   const columns = [
     { id: "employee name", label: "Employee Name", minWidth: 170 },
     {
@@ -129,7 +218,7 @@ const Employees = () => {
   ];
 
   const addEmployee = (
-    <Paper sx={{ m: 1, zIndex: 1 }} elevation={4}>
+    <Paper sx={{ m: 1, zIndex: 1, height: "670px" }} elevation={4}>
       <Box
         sx={{
           width: "568px",
@@ -139,14 +228,56 @@ const Employees = () => {
         }}
       >
         <Stack direction="column">
-          <Typography fontWeight="700" fontSize="20px" marginBottom="11px">
-            Add New Employee
-          </Typography>
+          <Box
+            display="flex"
+            justifyContent="space-between"
+            alignItems="center"
+          >
+            <Typography fontWeight="700" fontSize="20px" marginBottom="11px">
+              Add New Employee
+            </Typography>
+            <IconButton onClick={handleSlide}>
+              <CloseOutlined />
+            </IconButton>
+          </Box>
+
           <Stack direction="row" justifyContent="space-between">
             <Stack direction="row" gap="24px" alignItems="center">
-              <Button sx={{ width: 0, height: 0, padding: 0, margin: 0 }}>
-                <Avatar sx={{ width: "52px", height: "52px" }} />
-              </Button>
+              <IconButton
+                // sx={{ width: 0, height: 0, padding: 0, margin: 0 }}
+                component="label"
+                width="56px"
+                height="56px"
+                // sx={previewImage ? "" : { backgroundColor: "#E8E7FD" }}
+                // style={{
+                //   // backgroundColor: "red",
+                //   display: "flex",
+                //   justifyContent: "center",
+                //   alignItems: "center",
+                //   // padding: "12px",
+                //   width: "100%",
+                //   height: "100%",
+                // }}
+              >
+                <input
+                  id="file"
+                  hidden
+                  accept="image/*"
+                  type="file"
+                  onChange={handleImage}
+                />
+                {previewImage ? (
+                  <Avatar
+                    width="52px"
+                    height="52px"
+                    sx={{ padding: 0, margin: 0 }}
+                    // borderRadius="50%"
+                    src={previewImage}
+                  />
+                ) : (
+                  <Avatar sx={{ width: "52px", height: "52px" }} />
+                )}
+              </IconButton>
               <Stack>
                 <Typography sx={{ color: "#4339F2" }}>
                   Image Upload - 98%
@@ -163,7 +294,7 @@ const Employees = () => {
                 Employee ID
               </Typography>
               <Typography sx={{ color: "#6F7082", fontSize: "14px" }}>
-                #EM145 - 248
+                {employeeId}
               </Typography>
             </Stack>
           </Stack>
@@ -181,7 +312,7 @@ const Employees = () => {
             <Stack direction="row" gap="24px">
               <FormControl variant="filled">
                 <TextField
-                  value={firstname}
+                  value={firstName}
                   htmlFor="component-filled"
                   label="First Name"
                   size="small"
@@ -198,7 +329,7 @@ const Employees = () => {
               </FormControl>
               <FormControl variant="filled">
                 <TextField
-                  value={lastname}
+                  value={lastName}
                   htmlFor="component-filled"
                   label="Last Name"
                   sx={{
@@ -261,7 +392,7 @@ const Employees = () => {
                   <DatePicker
                     inputFormat="MM/DD/YYYY"
                     label="Date of Birth"
-                    value={dateofbirth}
+                    value={dateOfBirth}
                     // value={parseISO(salesPage.dateAt)}
                     onChange={(newValue) => {
                       setDateOfBirth(newValue);
@@ -497,153 +628,80 @@ const Employees = () => {
     </Paper>
   );
   return (
-    <Stack
-      paddingRight="55px"
-      direction="column"
-      width="100%"
-      height="100%"
-      overflowY="auto"
-    >
-      <Box height="24px"></Box>
-      <Stack justifyContent="space-between" direction="row">
-        <Typography fontWeight="700" fontSize="32px">
-          Employees
-        </Typography>
-        <Button
-          onClick={handleSlide}
-          sx={{
-            marginTop: "3px",
-            backgroundColor: "#E1E0F6",
-            color: "#4339F2",
-            borderRadius: "10px",
-            paddingX: "16px",
-            paddingY: "12px",
-          }}
+    <>
+      <Collapse in={alertOpen}>
+        <Alert
+          action={
+            <IconButton
+              aria-label="close"
+              color="inherit"
+              size="small"
+              onClick={() => {
+                setAlertOpen(false);
+              }}
+            >
+              <CloseOutlined fontSize="inherit" />
+            </IconButton>
+          }
+          sx={{ mb: 2 }}
         >
-          <AddIcon />
-          <Typography variant="p" fontSize="12px" fontWeight="600">
-            Add Employee
-          </Typography>
-        </Button>
-      </Stack>
-      <EmployeesLayout />
+          Request Created Successfully
+        </Alert>
+      </Collapse>
       <Stack
-        marginTop="11px"
-        marginBottom="8px"
-        direction="row"
-        justifyContent="space-between"
+        paddingRight="55px"
+        direction="column"
+        width="100%"
+        height="100%"
+        overflowY="auto"
       >
-        <Typography fontWeight="700" fontSize="20px">
-          All Employees(48)
-        </Typography>
-        <Box display="flex" flexDirection="row">
-          <ChevronLeftIcon />
-          <ChevronRightIcon />
-        </Box>
-      </Stack>
-      <Paper sx={{ width: "100%", overflow: "hidden", height: "100vh" }}>
-        <Stack direction="row">
+        <Box height="24px"></Box>
+        <Stack justifyContent="space-between" direction="row">
+          <Typography fontWeight="700" fontSize="32px">
+            Employees
+          </Typography>
+          <Button
+            onClick={handleSlide}
+            sx={{
+              marginTop: "3px",
+              backgroundColor: "#E1E0F6",
+              color: "#4339F2",
+              borderRadius: "10px",
+              paddingX: "16px",
+              paddingY: "12px",
+            }}
+          >
+            <AddIcon />
+            <Typography variant="p" fontSize="12px" fontWeight="600">
+              Add Employee
+            </Typography>
+          </Button>
+        </Stack>
+        <EmployeesLayout />
+        <Stack
+          marginTop="11px"
+          marginBottom="8px"
+          direction="row"
+          justifyContent="space-between"
+        >
+          <Typography fontWeight="700" fontSize="20px">
+            All Employees ({response?.data?.length})
+          </Typography>
+
+          <Button component="a" href="/employees/sortbydepartment">
+            {" "}
+            Sort By Department
+          </Button>
+        </Stack>
+
+        {open ? (
           <Slide direction="right" in={checked} mountOnEnter unmountOnExit>
             {addEmployee}
           </Slide>
-        </Stack>
-        {/* {response.map((response, index) => ( */}
-        {/* <Box sx={{borderRadius:"10px"}}> */}
-
-        <TableContainer>
-          <Table stickyHeader aria-label="employees list">
-            <TableHead>
-              <TableRow>
-                {columns.map((column) => (
-                  <TableCell
-                    key={column.id}
-                    align={column.align}
-                    style={{ minWidth: column.minWidth }}
-                  >
-                    <Typography
-                      sx={{
-                        color: "#9FA0AB",
-                        fontWeight: "700",
-                        fontSize: "14px",
-                      }}
-                    >
-                      {column.label}
-                    </Typography>
-                  </TableCell>
-                ))}
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {response?.data?.map((response, index) => (
-                <TableRow key={response.attributes?.FirstName}>
-                  <TableCell>
-                    <Stack paddingY="24px" direction="row">
-                      <Stack direction="row">
-                        <>
-                          <Avatar src={response.attributes?.avatar} />
-                          <Box width="24px" />
-                          <Box display="flex" flexDirection="column">
-                            {/* <pre>
-																			{JSON.stringify(
-																				{
-																					response,
-																				},
-																				null,
-																				2
-																			)}
-																		</pre> */}
-                            <Typography>
-                              {response.attributes?.FirstName}{" "}
-                              {response.attributes?.LastName}
-                            </Typography>
-                            <Typography
-                              sx={{
-                                color: "#CFCFD5",
-                                fontWeight: "400",
-                                fontSize: "12px",
-                              }}
-                            >
-                              {response.attributes?.Department} -{" "}
-                              {response.attributes?.Position}
-                            </Typography>
-                          </Box>
-                        </>
-                      </Stack>
-                    </Stack>
-                  </TableCell>
-                  <TableCell>
-                    <Stack>
-                      <Typography>
-                        {" "}
-                        {response.attributes?.Department}
-                      </Typography>
-                      <Typography
-                        sx={{
-                          fontWeight: "400",
-                          fontSize: "12px",
-                          color: "#CFCFD5",
-                        }}
-                      >
-                        {" "}
-                        Joined on {response.attributes?.EmploymentDate}
-                      </Typography>
-                    </Stack>
-                  </TableCell>
-                  <TableCell>
-                    <Typography>+2519{response.attributes?.Phone}</Typography>
-                  </TableCell>
-                  <TableCell>
-                    <Typography>{response.attributes?.priority}</Typography>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-        {/* </Box> */}
-        {/* ))} */}
-      </Paper>
-    </Stack>
+        ) : null}
+        <EmployeesTable jwt={jwt} />
+      </Stack>
+    </>
   );
 };
 

@@ -1,0 +1,178 @@
+  <TableContainer>
+              <Table stickyHeader aria-label="employees list">
+                <TableHead>
+                  <TableRow>
+                    {columns.map((column) => (
+                      <TableCell
+                        key={column.id}
+                        align={column.align}
+                        style={{ minWidth: column.minWidth }}
+                      >
+                        <Typography
+                          sx={{
+                            color: "#9FA0AB",
+                            fontWeight: "700",
+                            fontSize: "14px",
+                          }}
+                        >
+                          {column.label}
+                        </Typography>
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                </TableHead>
+
+                <TableBody>
+                  {response?.data?.map((response, index) => (
+                    <TableRow key={response.attributes?.firstName}>
+                      <TableCell>
+                        <Stack paddingY="24px" direction="row">
+                          <Stack direction="row">
+                            <>
+                              <Avatar
+                                sx={{ width: "44px", height: "44px" }}
+                                src={`${process.env.NEXT_PUBLIC_STRAPI_BASE_URL}${response?.attributes?.employeeImage?.data?.attributes?.url}`}
+                              />
+                              <Box width="24px" />
+                              <Box display="flex" flexDirection="column">
+                                {/* <pre>
+                              {JSON.stringify(
+                                {
+                                  response,
+                                },
+                                null,
+                                2
+                              )}
+                            </pre> */}
+                                <Typography
+                                  fontSize="14px"
+                                  fontWeight="500"
+                                  color="#101010"
+                                >
+                                  {response.attributes?.firstName}{" "}
+                                  {response.attributes?.lastName}
+                                </Typography>
+                                <Typography
+                                  sx={{
+                                    color: "#CFCFD5",
+                                    fontWeight: "400",
+                                    fontSize: "12px",
+                                  }}
+                                >
+                                  {response.attributes?.department} -{" "}
+                                  {response.attributes?.position}
+                                </Typography>
+                              </Box>
+                            </>
+                          </Stack>
+                        </Stack>
+                      </TableCell>
+                      <TableCell>
+                        <Stack>
+                          <Typography
+                            fontSize="14px"
+                            fontWeight="500"
+                            color="#101010"
+                          >
+                            {" "}
+                            {response.attributes?.department}
+                          </Typography>
+                          <Box display="flex">
+                            <Typography
+                              sx={{
+                                fontWeight: "400",
+                                fontSize: "12px",
+                                color: "#CFCFD5",
+                              }}
+                            >
+                              {" "}
+                              Joined on{" "}
+                              {
+                                dayjs(
+                                  response.attributes?.employmentDate
+                                ).format("DD MM YYYY")
+                                // .fromNow(true)
+                              }
+                            </Typography>
+                            <Box width="5px" />
+                            <Typography
+                              sx={{
+                                fontWeight: "400",
+                                fontSize: "12px",
+                                color: "#CFCFD5",
+                              }}
+                            >
+                              -
+                            </Typography>
+                            <Box width="5px" />
+                            <Typography
+                              sx={{
+                                fontWeight: "400",
+                                fontSize: "12px",
+                                color: "#CFCFD5",
+                              }}
+                            >
+                              {" "}
+                              {dayjs(
+                                response.attributes?.employmentDate
+                              ).fromNow(true)}
+                            </Typography>
+                          </Box>
+                        </Stack>
+                      </TableCell>
+                      <TableCell>
+                        <Stack>
+                          <Typography
+                            fontSize="14px"
+                            fontWeight="500"
+                            color="#101010"
+                          >
+                            +2519{response?.attributes?.phone}
+                          </Typography>
+                          <Typography
+                            sx={{
+                              fontWeight: "400",
+                              fontSize: "12px",
+                              color: "#CFCFD5",
+                            }}
+                          >
+                            {response?.attributes?.email}
+                          </Typography>
+                        </Stack>
+                      </TableCell>
+                      <TableCell>
+                        {/* <ChangingButton
+                          color={
+                            activity === "ONLINE"
+                              ? "#24B07D"
+                              : activity === "OFFLINE"
+                              ? "#CFCFD6"
+                              : activity === "ACTIVE"
+                              ? "#FFBA2E"
+                              : "gray"
+                          }
+                          values={["ONLINE", "OFFLINE", "ACTIVE"]}
+                          selectedValue={activity}
+                          onChange={setActivity}
+                        /> */}
+                        <Link
+                          component="a"
+                          href="/employees/[id]"
+                          as={`/employees/${response?.id}`}
+                        >
+                          <Button>View</Button>
+                        </Link>
+
+                        {/* <Button
+                            component="a"
+                            href="/employees/[id]"
+                            as={`/employees/${response.id}`}
+                          >
+                            View
+                          </Button> */}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>

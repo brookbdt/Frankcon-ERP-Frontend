@@ -22,32 +22,30 @@ import {
   useFetchUser,
   useFetchUserDepartment,
   useUser,
-} from "../components/lib/authContext";
+} from "../lib/authContext";
+import { Dashboard } from "@mui/icons-material";
+import DashboardComponent from "../components/Dashboard/DashboardComponent";
+import { getTokenFromLocalCookie, getTokenFromServerCookie } from "../lib/auth";
+import { fetcher } from "../lib/api";
 
-export default function Home() {
+export default function Home({ jwt, purchaseRequestResponse }) {
   // const { user, userDepartment, loading } = useFetchUser();
   const { user, loading } = useFetchUser();
   const { userDepartment } = useFetchUserDepartment();
   console.log("the user is", user);
   console.log("the user department is", userDepartment);
   return (
-    <Layout user={user} userDepartment={userDepartment}>
+    <Layout
+      jwt={jwt}
+      purchaseRequestResponse={purchaseRequestResponse}
+      user={user}
+      userDepartment={userDepartment}
+    >
       <Head>
         <title>Frankcon ERP Design System</title>
         <meta name="description" content="Frankcon ERP" />
       </Head>
-      {/* <Grid container>
-				<Grid item md={3}>
-					<SideBar />
-				</Grid> 
-				<Grid item md={9}>
-					<Navbar />
-					<Stack direction="row" gap="46px">
-						<Left />
-						<Right />
-					</Stack>
-				</Grid>
-			</Grid> */}
+
       {!loading && !user ? (
         <>
           <Login />
@@ -55,14 +53,14 @@ export default function Home() {
       ) : (
         <Stack direction="row">
           {/* <SideBar />  */}
-          <Stack direction="column" width="80%" height="100vh">
+          <Stack direction="column" width="80%" height="100%">
             {/* <Navbar /> */}
             <Box height="24px" />
             <Stack
               paddingLeft="48px"
               // paddingRight="60px"
               width="100%"
-              height="100vh"
+              height="100%"
             >
               <Stack direction="row" gap="4px">
                 <Typography fontSize="32px" fontWeight="700" color="#0F112E">
@@ -80,7 +78,7 @@ export default function Home() {
               <Stack direction="row" gap="12px">
                 <Card
                   sx={{
-                    width: "352px",
+                    width: "427px",
                     height: "170px",
                     p: 0,
                     borderRadius: "10px",
@@ -116,7 +114,8 @@ export default function Home() {
                 </Card>
                 <Card
                   sx={{
-                    width: "352px",
+                    width: "427px",
+
                     height: "170px",
                     p: 0,
                     borderRadius: "10px",
@@ -152,7 +151,8 @@ export default function Home() {
                 </Card>
                 <Card
                   sx={{
-                    width: "352px",
+                    width: "427px",
+
                     height: "170px",
                     p: 0,
                     borderRadius: "10px",
@@ -187,10 +187,58 @@ export default function Home() {
                   </CardContent>
                 </Card>
               </Stack>
+              <Box height="46px" />
+              <DashboardComponent jwt={jwt} />
             </Stack>
           </Stack>
         </Stack>
       )}
     </Layout>
   );
+}
+
+export async function getServerSideProps({ req, params }) {
+  // const { slug } = params;
+  const jwt =
+    typeof window !== "undefined"
+      ? getTokenFromLocalCookie
+      : getTokenFromServerCookie(req);
+  const taskResponse = await fetcher(
+    `http://localhost:1337/api/tasks`,
+    jwt
+      ? {
+          headers: {
+            Authorization: `Bearer ${jwt}`,
+          },
+        }
+      : ""
+  );
+  const purchaseRequestResponse = await fetcher(
+    `http://localhost:1337/api/purchaseRequests`,
+    jwt
+      ? {
+          headers: {
+            Authorization: `Bearer ${jwt}`,
+          },
+        }
+      : ""
+  );
+  if (taskResponse.data || purchaseRequestResponse.data) {
+    // const plot = await markdownToHtml(filmResponse.data.attributes.plot);
+    return {
+      props: {
+        taskResponse: taskResponse.data,
+        purchaseRequestResponse: purchaseRequestResponse.data,
+        // data,
+        // plot,
+        jwt: jwt ? jwt : "",
+      },
+    };
+  } else {
+    return {
+      props: {
+        error: taskResponse.error.message,
+      },
+    };
+  }
 }
