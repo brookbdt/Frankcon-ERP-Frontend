@@ -1,28 +1,10 @@
-import { AttachFile } from "@mui/icons-material";
-import {
-  Avatar,
-  Box,
-  Button,
-  ButtonGroup,
-  Divider,
-  Stack,
-  Typography,
-} from "@mui/material";
-import React, { useEffect, useState } from "react";
+import { Box, Stack } from "@mui/material";
+import React, { useState } from "react";
 import Inventory from "../components/Inventory/Inventory";
 
-import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableCell from "@mui/material/TableCell";
-import TableContainer from "@mui/material/TableContainer";
-import TableHead from "@mui/material/TableHead";
-import TableRow from "@mui/material/TableRow";
-import Paper from "@mui/material/Paper";
 import Layout from "../components/Layout";
-import EmployeesLayout from "../layout/employees";
-import ButtonGroups from "../components/ButtonGroups";
-import { getTokenFromLocalCookie, getTokenFromServerCookie } from "../lib/auth";
 import { fetcher } from "../lib/api";
+import { getTokenFromLocalCookie, getTokenFromServerCookie } from "../lib/auth";
 import { useFetchUser, useFetchUserDepartment } from "../lib/authContext";
 
 const InventoryScreen = ({ jwt }) => {
@@ -74,7 +56,7 @@ export async function getServerSideProps({ req, params }) {
       ? getTokenFromLocalCookie
       : getTokenFromServerCookie(req);
   const inventoryResponse = await fetcher(
-    `http://localhost:1337/api/inventories`,
+    `https://frankcon.herokuapp.com/api/inventories`,
     jwt
       ? {
           headers: {

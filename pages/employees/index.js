@@ -1,14 +1,10 @@
 import { Box } from "@mui/system";
 import React from "react";
-import Layout from "../components/Layout";
-import Employees from "../components/Employees";
-import {
-  useFetchUser,
-  useFetchUserDepartment,
-  useUser,
-} from "../lib/authContext";
-import { getTokenFromServerCookie } from "../lib/auth";
-import { fetcher } from "../lib/api";
+import Employees from "../../components/Employees";
+import Layout from "../../components/Layout";
+import { fetcher } from "../../lib/api";
+import { getTokenFromServerCookie } from "../../lib/auth";
+import { useFetchUser, useFetchUserDepartment } from "../../lib/authContext";
 
 const EmployeesPage = ({ jwt }) => {
   const { user, loading } = useFetchUser();
@@ -50,7 +46,7 @@ export async function getServerSideProps({ req, params }) {
       ? getTokenFromLocalCookie
       : getTokenFromServerCookie(req);
   const employeeResponse = await fetcher(
-    `http://localhost:1337/api/employees`,
+    `https://frankcon.herokuapp.com/api/employees`,
     jwt
       ? {
           headers: {

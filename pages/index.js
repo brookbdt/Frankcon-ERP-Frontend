@@ -204,7 +204,7 @@ export async function getServerSideProps({ req, params }) {
       ? getTokenFromLocalCookie
       : getTokenFromServerCookie(req);
   const taskResponse = await fetcher(
-    `http://localhost:1337/api/tasks`,
+    `https://frankcon.herokuapp.com/api/tasks`,
     jwt
       ? {
           headers: {
@@ -214,7 +214,7 @@ export async function getServerSideProps({ req, params }) {
       : ""
   );
   const purchaseRequestResponse = await fetcher(
-    `http://localhost:1337/api/purchaseRequests`,
+    `https://frankcon.herokuapp.com/api/purchaseRequests`,
     jwt
       ? {
           headers: {

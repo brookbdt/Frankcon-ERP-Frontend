@@ -193,9 +193,9 @@ const Tasks = ({ jwt }) => {
       },
     };
     createTask(newTask, jwt);
-    {
-      userDepartment === "workshop" ? createWorkshopTask(newTask, jwt) : "";
-    }
+    // {
+    //   userDepartment === "workshop" ? createWorkshopTask(newTask, jwt) : "";
+    // }
     console.log("The task is:", newTask);
   };
   const [buttonName, setButtonName] = useState("");
@@ -547,7 +547,7 @@ export async function getServerSideProps({ req, params }) {
       ? getTokenFromLocalCookie
       : getTokenFromServerCookie(req);
   const taskResponse = await fetcher(
-    `http://localhost:1337/api/tasks`,
+    `https://frankcon.herokuapp.com/api/tasks`,
     jwt
       ? {
           headers: {
