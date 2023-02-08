@@ -26,7 +26,12 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import MenuItem from "@mui/material/MenuItem";
 import React, { useEffect, useState } from "react";
 import EmployeesLayout from "../layout/employees";
-import { createNewProject, getProjectId, readProject } from "../pages/api";
+import {
+  createNewProject,
+  getProjectId,
+  readProject,
+  readTaskEmployee,
+} from "../pages/api";
 import Dropdown from "./Projects/dropdown";
 import DateSelector from "./shared/datePicker";
 import { useFetchUser, useFetchUserDepartment } from "../lib/authContext";
@@ -61,7 +66,10 @@ const Projects = ({ jwt }) => {
   const [projectDocuments, setProjectDocuments] = useState([]);
   const [projectDescription, setProjectDescription] = useState();
 
-  const sendProject = () => {
+  const sendProject = async () => {
+    const employee = await readTaskEmployee(jwt, user);
+    console.log({ employee });
+
     const formData = new FormData();
     formData.append("files.projectImage", projectImage);
     for (const doc of projectDocuments) {
@@ -79,6 +87,8 @@ const Projects = ({ jwt }) => {
         projectLead,
         projectStartDate: projectStartDate?.toISOString(),
         projectEndDate: projectEndDate?.toISOString(),
+        employees: employee?.data?.data?.[0]?.id,
+
         // projectDocument: projectDocuments,
         projectDescription,
       })

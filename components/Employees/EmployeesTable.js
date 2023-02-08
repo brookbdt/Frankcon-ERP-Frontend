@@ -95,7 +95,11 @@ const EmployeesTable = ({ jwt }) => {
       width: 400,
       renderCell: (cellValues) => {
         // console.log({ cellValues });
-        return <Button>VIEW</Button>;
+        return (
+          <Button component="a" href={`/employees/${cellValues.row.id}`}>
+            VIEW
+          </Button>
+        );
       },
     },
   ];

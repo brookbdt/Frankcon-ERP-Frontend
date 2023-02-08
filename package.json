@@ -21,6 +21,7 @@
     "@mui/material": "^5.10.8",
     "@mui/x-data-grid": "^5.17.13",
     "@mui/x-date-pickers": "^5.0.4",
+    "@strapi/provider-upload-cloudinary": "^4.6.1",
     "axios": "^1.1.2",
     "dayjs": "^1.11.5",
     "js-cookie": "^3.0.1",

@@ -32,6 +32,7 @@ const Login = () => {
   });
 
   const { user, loading } = useUser();
+  const router = useRouter();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -50,6 +51,7 @@ const Login = () => {
       }
     );
     setToken(responseData);
+    router.push("/");
   };
 
   const theme = createTheme({
@@ -100,7 +102,6 @@ const Login = () => {
     }
   }, []);
 
-  const router = useRouter();
   const handleChange = (prop) => (event) => {
     setValues({ ...values, [prop]: event.target.value });
     // {
