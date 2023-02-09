@@ -1,39 +1,58 @@
+import { Box, Card, CardContent, Stack, Typography } from "@mui/material";
 import Head from "next/head";
-import Image from "next/image";
-import styles from "../styles/Home.module.css";
-import {
-  Box,
-  Card,
-  CardContent,
-  createTheme,
-  Grid,
-  Paper,
-  Stack,
-  ThemeProvider,
-  Typography,
-} from "@mui/material";
-import Navbar from "../components/Navbar";
-import SideBar from "../components/SideBar";
-import Layout from "../components/Layout";
-import Left from "../components/Index/Left";
-import Right from "../components/Index/Right";
-import Login from "./login";
-import {
-  useFetchUser,
-  useFetchUserDepartment,
-  useUser,
-} from "../lib/authContext";
-import { Dashboard } from "@mui/icons-material";
+import { useEffect, useState } from "react";
 import DashboardComponent from "../components/Dashboard/DashboardComponent";
-import { getTokenFromLocalCookie, getTokenFromServerCookie } from "../lib/auth";
+import Layout from "../components/Layout";
 import { fetcher } from "../lib/api";
+import { getTokenFromLocalCookie, getTokenFromServerCookie } from "../lib/auth";
+import { useFetchUser, useFetchUserDepartment } from "../lib/authContext";
+import { readNotification } from "./api";
+import Login from "./login";
 
 export default function Home({ jwt, purchaseRequestResponse }) {
+  const [response, setResponse] = useState([]);
+
+  useEffect(() => {
+    readNotification(jwt).then((r) => {
+      console.log("r is", r.data?.data);
+      setResponse(r.data?.data);
+    });
+
+    console.log("index response is", { response });
+  }, []);
   // const { user, userDepartment, loading } = useFetchUser();
   const { user, loading } = useFetchUser();
   const { userDepartment } = useFetchUserDepartment();
   console.log("the user is", user);
   console.log("the user department is", userDepartment);
+
+  const pendingMaterialRequest = response?.filter(
+    (res) =>
+      res.attributes?.materialtransferrequest &&
+      res.attributes?.materialtransferrequest?.data?.attributes &&
+      res.attributes?.materialtransferrequest?.data?.attributes?.isApproved ===
+        "pending"
+  );
+  const pendingLeaveRequest = response?.filter(
+    (res) =>
+      res.attributes?.leaverequest &&
+      res.attributes?.leaverequest?.data?.attributes &&
+      res.attributes?.leaverequest?.data?.attributes?.isApproved === "pending"
+  );
+  const pendingPurchaseRequest = response?.filter(
+    (res) =>
+      res.attributes?.purchaseRequest &&
+      res.attributes?.purchaseRequest?.data?.attributes &&
+      res.attributes?.purchaseRequest?.data?.attributes?.isApproved ===
+        "pending"
+  );
+  const pendingPaymentRequest = response?.filter(
+    (res) =>
+      res.attributes?.paymentRequest &&
+      res.attributes?.paymentRequest?.data?.attributes &&
+      res.attributes?.paymentRequest?.data?.attributes?.isApproved === "pending"
+  );
+
   return (
     <Layout
       jwt={jwt}
@@ -76,42 +95,56 @@ export default function Home({ jwt, purchaseRequestResponse }) {
               </Typography>
               <Box height="32px" />
               <Stack direction="row" gap="12px">
-                <Card
-                  sx={{
-                    width: "427px",
-                    height: "170px",
-                    p: 0,
-                    borderRadius: "10px",
-                  }}
-                >
-                  <CardContent sx={{ px: "24px" }}>
-                    {/* <Box> */}
-                    <Typography
-                      fontWeight="700px"
-                      fontSize="48px"
-                      color="#F35B05"
-                      // sx={{ p: 0 }}
+                {userDepartment === "admin" ||
+                "Finance" ||
+                "Architect" ||
+                "Human Resource" ||
+                "Engineering" ||
+                "Purchaser" ||
+                "Workshop" ? (
+                  <>
+                    <Card
+                      sx={{
+                        width: "427px",
+                        height: "170px",
+                        p: 0,
+                        borderRadius: "10px",
+                      }}
                     >
-                      32
-                    </Typography>
-                    {/* </Box> */}
-                    {/* <Box height="12px" /> */}
-                    <Typography fontWeight="500px" fontSize="20px">
-                      Pending Approvals
-                    </Typography>
-                    {/* <Box height="8px" /> */}
+                      <CardContent sx={{ px: "24px" }}>
+                        <Typography
+                          fontWeight="700px"
+                          fontSize="48px"
+                          color="#F35B05"
+                          // sx={{ p: 0 }}
+                        >
+                          {pendingMaterialRequest.length +
+                            pendingPaymentRequest.length +
+                            pendingPurchaseRequest.length +
+                            pendingLeaveRequest.length}
+                        </Typography>
+                        {/* </Box> */}
+                        {/* <Box height="12px" /> */}
+                        <Typography fontWeight="500px" fontSize="20px">
+                          Pending Approvals
+                        </Typography>
+                        {/* <Box height="8px" /> */}
 
-                    <Typography
-                      // sx={{ p: 0 }}
-                      fontWeight="400px"
-                      fontSize="12px"
-                      lineHeight="14px"
-                    >
-                      This number is for pending approval on purchase orders,
-                      leave requests, and more.
-                    </Typography>
-                  </CardContent>
-                </Card>
+                        <Typography
+                          // sx={{ p: 0 }}
+                          fontWeight="400px"
+                          fontSize="12px"
+                          lineHeight="14px"
+                        >
+                          This number is for pending approval on purchase
+                          orders, leave requests, and more.
+                        </Typography>
+                      </CardContent>
+                    </Card>
+                  </>
+                ) : (
+                  "h"
+                )}
                 <Card
                   sx={{
                     width: "427px",

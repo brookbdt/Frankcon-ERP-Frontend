@@ -1,12 +1,10 @@
+import { CloseOutlined } from "@mui/icons-material";
 import AddIcon from "@mui/icons-material/Add";
-import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
-import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import {
   Alert,
   Avatar,
   Box,
   Button,
-  ClickAwayListener,
   Collapse,
   Divider,
   FormControl,
@@ -15,26 +13,20 @@ import {
   InputLabel,
   MenuItem,
   Paper,
-  Popover,
   Select,
   TextField,
   Typography,
 } from "@mui/material";
-import relativeTime from "dayjs/plugin/relativeTime";
 import Slide from "@mui/material/Slide";
-import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableCell from "@mui/material/TableCell";
-import TableContainer from "@mui/material/TableContainer";
-import TableHead from "@mui/material/TableHead";
-import TableRow from "@mui/material/TableRow";
 import { Stack } from "@mui/system";
 import { DatePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
 import React, { useEffect, useState } from "react";
 import EmployeesLayout from "../layout/employees";
+import { useFetchUser, useFetchUserDepartment } from "../lib/authContext";
 import {
   createEmployee,
   createPayroll,
@@ -42,21 +34,6 @@ import {
   readEmployee,
   readEmployeeByDepartment,
 } from "../pages/api";
-import {
-  useFetchUser,
-  useFetchUserDepartment,
-  useUser,
-} from "../lib/authContext";
-import {
-  CloseOutlined,
-  Edit,
-  MenuOutlined,
-  MoreHoriz,
-  ViewAgenda,
-  ViewAgendaOutlined,
-} from "@mui/icons-material";
-import ChangingButton from "./ChangingButton";
-import Link from "next/link";
 import EmployeesTable from "./Employees/EmployeesTable";
 
 const Employees = ({ jwt }) => {
@@ -462,7 +439,9 @@ const Employees = ({ jwt }) => {
                 <MenuItem value={"Finance"}>Finance</MenuItem>
                 <MenuItem value={"Human Resource"}>Human Resource</MenuItem>
                 <MenuItem value={"Workshop"}>Workshop</MenuItem>
-                <MenuItem value={"Project"}>Project</MenuItem>
+                <MenuItem value={"Architect"}>Architect</MenuItem>
+                <MenuItem value={"Purchaser"}>Purchaser</MenuItem>
+                <MenuItem value={"Engineering"}>Engineering</MenuItem>
               </Select>
             </FormControl>
             <FormControl

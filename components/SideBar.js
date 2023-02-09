@@ -335,7 +335,11 @@ const SideBar = ({
         height="1032px"
         // flex={1}
         paddingX="24px"
-        sx={{ display: { xs: "none", sm: "block" } }}
+        sx={{
+          display: { xs: "none", sm: "block" },
+          // overflow: "auto",
+          // position: "sticky",
+        }}
       >
         {/* <Stack
           direction="column"
@@ -1639,6 +1643,7 @@ const SideBar = ({
             />
           </Card>
         </Box>
+        <Box height="25px" />
       </SideBox>
     </ThemeProvider>
   );

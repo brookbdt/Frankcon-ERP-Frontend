@@ -48,7 +48,7 @@ const Payment = ({ jwt }) => {
       <Stack direction="row" justifyContent="space-between" alignItems="center">
         <Stack>
           <Typography fontWeight="700" fontSize="32px">
-            Payment  List
+            Payment List
           </Typography>
           <Typography fontWeight="500" color="#6F7082" fontSize="16px">
             {new Date().getFullYear()} Fiscal Year
@@ -60,7 +60,16 @@ const Payment = ({ jwt }) => {
               Total Payments
             </Typography>
             <Typography fontWeight="700" fontSize="24px">
-              TODO
+              {new Intl.NumberFormat("en", {
+                style: "currency",
+                currency: "ETB",
+              }).format(
+                response?.data
+                  ?.map((payment) =>
+                    Number(payment.attributes?.paymentAmount?.replace(/,/g, ""))
+                  )
+                  .reduce((acc, curr) => acc + curr, 0)
+              )}
             </Typography>
           </Stack>
           <Button

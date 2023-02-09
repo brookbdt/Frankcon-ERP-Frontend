@@ -1,40 +1,11 @@
+import { CallMade, CallReceived, ErrorOutline } from "@mui/icons-material";
+import { Box, Button, Stack, Typography } from "@mui/material";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
 import React, { useEffect, useState } from "react";
 import { useFetchUser, useFetchUserDepartment } from "../../lib/authContext";
 import { readPaymentsRequests } from "../../pages/api";
-import dayjs from "dayjs";
-import relativeTime from "dayjs/plugin/relativeTime";
-import {
-  AttachFile,
-  CallMade,
-  CallReceived,
-  CheckCircleOutline,
-  CloseOutlined,
-  ErrorOutline,
-  HelpOutline,
-  LocationOnOutlined,
-  MoreHoriz,
-  ShoppingCart,
-  ShoppingCartOutlined,
-  WorkOutlineOutlined,
-} from "@mui/icons-material";
-import {
-  Avatar,
-  Box,
-  Button,
-  Divider,
-  Fade,
-  IconButton,
-  Stack,
-  Typography,
-} from "@mui/material";
-import Paper from "@mui/material/Paper";
-import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableCell from "@mui/material/TableCell";
-import TableContainer from "@mui/material/TableContainer";
-import TableHead from "@mui/material/TableHead";
-import TableRow from "@mui/material/TableRow";
-import ChangingButton from "../ChangingButton";
+import DataTable from "../DataTable";
 
 const All = ({ jwt }) => {
   const [purchaseId, setPurchaseId] = useState("");
@@ -44,7 +15,7 @@ const All = ({ jwt }) => {
     {
       field: "paymentName",
       headerName: "Payment Name",
-      width: 300,
+      width: 250,
       renderCell: (cellValues) => {
         console.log({ cellValues });
         return (
@@ -98,7 +69,7 @@ const All = ({ jwt }) => {
                 )}
                 <Box width="24px" />
                 <Box display="flex" flexDirection="column">
-                  <Typography>
+                  <Typography color="#101010" fontWeight="500">
                     {cellValues.row?.projectTitle}{" "}
                     {/* {response.attributes?.LastName} */}
                   </Typography>
@@ -109,7 +80,7 @@ const All = ({ jwt }) => {
                       fontSize: "12px",
                     }}
                   >
-                    {cellValues.row?.vendorId}
+                    {cellValues.row?.paymentRequestId}
                   </Typography>
                 </Box>
               </>
@@ -121,11 +92,16 @@ const All = ({ jwt }) => {
     {
       field: "department",
       headerName: "Department",
-      width: 200,
+      width: 150,
       renderCell: (cellValues) => {
         return (
           <Stack justifyContent="center">
-            <Typography fontWeight="500">{cellValues.row.status}</Typography>
+            <Typography color="#101010" fontWeight="500">
+              {cellValues.row.department}
+            </Typography>
+            <Typography fontWeight="400" color="#3F4158">
+              By {cellValues.row.paidTo}
+            </Typography>
 
             {/* <Typography fontSize="12px" color="#3F4158">
               Joined on{" "}
@@ -137,15 +113,15 @@ const All = ({ jwt }) => {
     },
     {
       field: "date",
-      headerName: "Date",
-      width: 300,
+      headerName: "Payment Date",
+      width: 150,
       renderCell: (cellValues) => {
         console.log({ cellValues });
         return (
           <Stack justifyContent="center">
-            <Typography fontWeight="500">
+            <Typography color="#101010" fontWeight="500">
               {" "}
-              {dayjs(cellValues.row?.date).format("MMMM, DD, YYYY")}
+              {dayjs(cellValues.row?.date).format("DD MMM, YYYY")}
               {/* {cellValues.attributes?.date} */}
             </Typography>
           </Stack>
@@ -153,24 +129,58 @@ const All = ({ jwt }) => {
       },
     },
     {
-      field: "priority",
-      headerName: "Priority",
-      width: 400,
+      field: "paymentAmount",
+      headerName: "Payment Amount",
+      width: 150,
+      renderCell: (cellValues) => {
+        console.log({ cellValues });
+        return (
+          <Stack justifyContent="center">
+            <Typography fontWeight="500">
+              {" "}
+              {cellValues.row?.paymentAmount}
+              {/* {cellValues.attributes?.date} */}
+            </Typography>
+          </Stack>
+        );
+      },
+    },
+    {
+      field: "approvals",
+      headerName: "Approval",
+      width: 150,
+      renderCell: (cellValues) => {
+        console.log({ cellValues });
+        return (
+          <Stack justifyContent="center">
+            <Typography fontWeight="500">
+              {" "}
+              Head of Finance
+              {/* {cellValues.attributes?.date} */}
+            </Typography>
+          </Stack>
+        );
+      },
+    },
+    {
+      field: "paymentStatus",
+      headerName: "Payment Status",
+      width: 200,
       renderCell: (cellValues) => {
         // console.log({ cellValues });
         return (
           <>
-            {cellValues.row?.priority === "HIGH" ? (
+            {cellValues.row?.paymentStatus === "pending" ? (
               <Button
                 sx={{
-                  backgroundColor: "#F44336",
+                  backgroundColor: "#FFBA2E",
                   borderRadius: "20px",
                   color: "#F6F6F6",
                 }}
               >
-                HIGH
+                PENDING
               </Button>
-            ) : cellValues.row?.priority === "MEDIUM" ? (
+            ) : cellValues.row?.paymentStatus === "approved" ? (
               <Button
                 sx={{
                   backgroundColor: "#24B07D",
@@ -178,7 +188,7 @@ const All = ({ jwt }) => {
                   color: "#F6F6F6",
                 }}
               >
-                MEDIUM
+                COMPLETED
               </Button>
             ) : cellValues.row?.priority === "LOW" ? (
               <Button
@@ -264,14 +274,18 @@ const All = ({ jwt }) => {
                     e?.attributes?.projectTitle +
                     e?.attributes?.vendorId,
                   title: e?.attributes?.title,
+                  projectTitle: e?.attributes?.projectTitle,
                   status: e.attributes?.status,
-                  date: e?.attributes?.date,
+                  date: e?.attributes?.requestDat8e,
                   //   date: dayjs(e?.attributes?.date).format("DD MMM YYYY"),
-                  priority: e.attributes?.priority,
+                  paymentStatus: e.attributes?.isApproved,
+                  paymentRequestId: e.attributes?.paymentRequestId,
                   employeeImage: `${process.env.NEXT_PUBLIC_STRAPI_BASE_URL}${e?.attributes?.employeeImage?.data?.attributes?.url}`,
+                  paymentAmount: e?.attributes?.paymentAmount,
 
                   department:
-                    e?.attributes?.employee?.data[0]?.attributes?.department,
+                    e?.attributes?.employee?.data?.attributes?.department,
+                  paidTo: e?.attributes?.paidTo,
                 };
               }) ?? []
             }

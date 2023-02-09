@@ -540,40 +540,39 @@ const Tasks = ({ jwt }) => {
   );
 };
 
-export async function getServerSideProps({ req, params }) {
-  // const { slug } = params;
-  const jwt =
-    typeof window !== "undefined"
-      ? getTokenFromLocalCookie
-      : getTokenFromServerCookie(req);
-  await fetch("https://google.com");
-  console.log(1, { jwt });
-  const taskResponse = await fetch(
-    `https://frankconerp.herokuapp.com/api/tasks`,
-    jwt
-      ? {
-          headers: {
-            Authorization: `Bearer ${jwt}`,
-          },
-        }
-      : {}
-  );
-  console.log(2, { taskResponse });
-  if (taskResponse.data) {
-    // const plot = await markdownToHtml(filmResponse.data.attributes.plot);
-    return {
-      props: {
-        taskResponse: taskResponse.data,
-        // plot,
-        jwt: jwt ? jwt : "",
-      },
-    };
-  } else {
-    return {
-      props: {
-        error: taskResponse.error.message,
-      },
-    };
-  }
-}
+// export async function getServerSideProps({ req, params }) {
+//   // const { slug } = params;
+//   const jwt =
+//     typeof window !== "undefined"
+//       ? getTokenFromLocalCookie
+//       : getTokenFromServerCookie(req);
+
+//   const taskResponse = await fetcher(
+//     `https://frankconerp.herokuapp.com/api/tasks`,
+//     jwt
+//       ? {
+//           headers: {
+//             Authorization: `Bearer ${jwt}`,
+//           },
+//         }
+//       : ""
+//   );
+//   console.log(2, { taskResponse });
+//   if (taskResponse.data) {
+//     // const plot = await markdownToHtml(filmResponse.data.attributes.plot);
+//     return {
+//       props: {
+//         taskResponse: taskResponse.data,
+//         // plot,
+//         jwt: jwt ? jwt : "",
+//       },
+//     };
+//   } else {
+//     return {
+//       props: {
+//         error: taskResponse.error.message,
+//       },
+//     };
+//   }
+// }
 export default Tasks;
