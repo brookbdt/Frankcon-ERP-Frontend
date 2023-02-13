@@ -19,26 +19,6 @@ export default function Home({ jwt, purchaseRequestResponse }) {
     });
 
     console.log("index response is", { response });
-    const taskResponse = fetcher(
-      `https://frankconerp.herokuapp.com/api/tasks`,
-      jwt
-        ? {
-            headers: {
-              Authorization: `Bearer ${jwt}`,
-            },
-          }
-        : ""
-    );
-    const purchaseRequestResponse = fetcher(
-      `https://frankconerp.herokuapp.com/api/purchaseRequests`,
-      jwt
-        ? {
-            headers: {
-              Authorization: `Bearer ${jwt}`,
-            },
-          }
-        : ""
-    );
   }, []);
   // const { user, userDepartment, loading } = useFetchUser();
   const { user, loading } = useFetchUser();
@@ -256,26 +236,26 @@ export async function getServerSideProps({ req, params }) {
     typeof window !== "undefined"
       ? getTokenFromLocalCookie
       : getTokenFromServerCookie(req);
-  // const taskResponse = await fetcher(
-  //   `https://frankconerp.herokuapp.com/api/tasks`,
-  //   jwt
-  //     ? {
-  //         headers: {
-  //           Authorization: `Bearer ${jwt}`,
-  //         },
-  //       }
-  //     : ""
-  // );
-  // const purchaseRequestResponse = await fetcher(
-  //   `https://frankconerp.herokuapp.com/api/purchaseRequests`,
-  //   jwt
-  //     ? {
-  //         headers: {
-  //           Authorization: `Bearer ${jwt}`,
-  //         },
-  //       }
-  //     : ""
-  // );
+  const taskResponse = await fetcher(
+    `https://frankconerp.herokuapp.com/api/tasks`,
+    jwt
+      ? {
+          headers: {
+            Authorization: `Bearer ${jwt}`,
+          },
+        }
+      : ""
+  );
+  const purchaseRequestResponse = await fetcher(
+    `https://frankconerp.herokuapp.com/api/purchaseRequests`,
+    jwt
+      ? {
+          headers: {
+            Authorization: `Bearer ${jwt}`,
+          },
+        }
+      : ""
+  );
   if (taskResponse.data || purchaseRequestResponse.data) {
     // const plot = await markdownToHtml(filmResponse.data.attributes.plot);
     return {
