@@ -236,6 +236,9 @@ export async function getServerSideProps({ req, params }) {
     typeof window !== "undefined"
       ? getTokenFromLocalCookie
       : getTokenFromServerCookie(req);
+}
+
+export async function getStaticProps() {
   const taskResponse = await fetcher(
     `https://frankconerp.herokuapp.com/api/tasks`,
     jwt
