@@ -232,13 +232,62 @@ export default function Home({ jwt, purchaseRequestResponse }) {
 
 export async function getServerSideProps({ req, params }) {
   // const { slug } = params;
-  const jwt =
-    typeof window !== "undefined"
-      ? getTokenFromLocalCookie
-      : getTokenFromServerCookie(req);
-  return {
-    props: {
-      jwt: jwt ? jwt : "",
-    },
-  };
+  try {
+    const jwt =
+      typeof window !== "undefined"
+        ? getTokenFromLocalCookie
+        : getTokenFromServerCookie(req);
+
+    return {
+      props: {
+        jwt: jwt ? jwt : "",
+      },
+    };
+  } catch (e) {
+    console.log(e);
+    return {
+      props: {
+        jwt: "",
+      },
+    };
+  }
 }
+
+// const taskResponse = await fetcher(
+//   `https://frankconerp.herokuapp.com/api/tasks`,
+//   jwt
+//     ? {
+//         headers: {
+//           Authorization: `Bearer ${jwt}`,
+//         },
+//       }
+//     : ""
+// );
+// const purchaseRequestResponse = await fetcher(
+//   `https://frankconerp.herokuapp.com/api/purchaseRequests`,
+//   jwt
+//     ? {
+//         headers: {
+//           Authorization: `Bearer ${jwt}`,
+//         },
+//       }
+//     : ""
+// );
+// if (taskResponse.data || purchaseRequestResponse.data) {
+//   // const plot = await markdownToHtml(filmResponse.data.attributes.plot);
+//   return {
+//     props: {
+//       // taskResponse: taskResponse.data,
+//       // purchaseRequestResponse: purchaseRequestResponse.data,
+//       // data,
+//       // plot,
+//       jwt: jwt ? jwt : "",
+//     },
+//   };
+// } else {
+//   return {
+//     props: {
+//       error: taskResponse.error.message,
+//     },
+//   };
+// }
