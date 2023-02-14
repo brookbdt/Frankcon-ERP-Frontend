@@ -50,8 +50,10 @@ const Login = () => {
         }),
       }
     );
+    console.log(1, "try");
     setToken(responseData);
-    router.push("/");
+    // router.push("/");
+    location.href = "/";
   };
 
   const theme = createTheme({
