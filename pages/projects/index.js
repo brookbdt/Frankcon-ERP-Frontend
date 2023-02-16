@@ -8,6 +8,7 @@ import {
 } from "../../lib/auth";
 import { fetcher } from "../../lib/api";
 import { useFetchUser, useFetchUserDepartment } from "../../lib/authContext";
+import { readNotification } from "../../lib";
 const ProjectsPage = () => {
   const { user, loading } = useFetchUser();
   const { userDepartment } = useFetchUserDepartment();
@@ -16,7 +17,7 @@ const ProjectsPage = () => {
 
   const [response, setResponse] = useState([]);
 
-  useEffect(async () => {
+  useEffect(() => {
     console.log(1, "params console is");
 
     const jwt = getTokenFromLocalCookie();

@@ -4,11 +4,7 @@ import Layout from "../../components/Layout";
 
 import ProjectDetailPage from "../../components/ProjectDetail";
 import { readNotification } from "../../lib";
-import { fetcher } from "../../lib/api";
-import {
-  getTokenFromLocalCookie,
-  getTokenFromServerCookie,
-} from "../../lib/auth";
+import { getTokenFromLocalCookie } from "../../lib/auth";
 
 import { useFetchUser, useFetchUserDepartment } from "../../lib/authContext";
 
