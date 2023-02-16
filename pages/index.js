@@ -246,44 +246,49 @@ export async function getServerSideProps({ req, params }) {
       ? getTokenFromLocalCookie
       : getTokenFromServerCookie(req);
 
-  const taskResponse = await fetcher(
-    `https://frankconerp.herokuapp.com/api/tasks`,
-    jwt
-      ? {
-          headers: {
-            Authorization: `Bearer ${jwt}`,
-          },
-        }
-      : ""
-  );
-  console.log(1, { taskResponse });
-  const purchaseRequestResponse = await fetcher(
-    `https://frankconerp.herokuapp.com/api/purchaseRequests`,
-    jwt
-      ? {
-          headers: {
-            Authorization: `Bearer ${jwt}`,
-          },
-        }
-      : ""
-  );
-  console.log(2, { purchaseRequestResponse });
-  if (taskResponse.data || purchaseRequestResponse.data) {
-    // const plot = await markdownToHtml(filmResponse.data.attributes.plot);
-    return {
-      props: {
-        taskResponse: taskResponse.data,
-        purchaseRequestResponse: purchaseRequestResponse.data,
-        // data,
-        // plot,
-        jwt: jwt ? jwt : "",
-      },
-    };
-  } else {
-    return {
-      props: {
-        error: taskResponse.error.message,
-      },
-    };
-  }
+  // const taskResponse = await fetcher(
+  //   `https://frankconerp.herokuapp.com/api/tasks`,
+  //   jwt
+  //     ? {
+  //         headers: {
+  //           Authorization: `Bearer ${jwt}`,
+  //         },
+  //       }
+  //     : ""
+  // );
+  // console.log(1, { taskResponse });
+  // const purchaseRequestResponse = await fetcher(
+  //   `https://frankconerp.herokuapp.com/api/purchaseRequests`,
+  //   jwt
+  //     ? {
+  //         headers: {
+  //           Authorization: `Bearer ${jwt}`,
+  //         },
+  //       }
+  //     : ""
+  // );
+  // console.log(2, { purchaseRequestResponse });
+  // if (taskResponse.data || purchaseRequestResponse.data) {
+  //   // const plot = await markdownToHtml(filmResponse.data.attributes.plot);
+  //   return {
+  //     props: {
+  //       taskResponse: taskResponse.data,
+  //       purchaseRequestResponse: purchaseRequestResponse.data,
+  //       // data,
+  //       // plot,
+  //       jwt: jwt ? jwt : "",
+  //     },
+  //   };
+  // } else {
+  //   return {
+  //     props: {
+  //       error: taskResponse.error.message,
+  //     },
+  //   };
+  // }
+  return {
+    props: {
+      jwt: jwt ? jwt : "",
+    },
+  };
 }
