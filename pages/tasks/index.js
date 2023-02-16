@@ -34,6 +34,7 @@ import {
   createTask,
   readEmployee,
   readEmployeeTask,
+  readNotification,
   readTaskEmployee,
 } from "../../lib";
 import { fetcher } from "../../lib/api";
@@ -137,7 +138,7 @@ const Tasks = () => {
 
   const [jwt, setJwt] = useState(null);
 
-  useEffect(async () => {
+  useEffect(() => {
     console.log(1, "params console is");
 
     const jwt = getTokenFromLocalCookie();
@@ -151,24 +152,6 @@ const Tasks = () => {
       setNotificationResponse(r.data?.data);
     });
 
-    const fetchData = async () => {
-      // const employeeResult = await readEmployee(jwt);
-      // setEmployeeResponse(employeeResult.data);
-      if (!user) {
-        return;
-      }
-      const result = await readEmployeeTask(jwt, user);
-      const employeeList = await readEmployee(jwt, user);
-      setResponse(result.data);
-      setEmployees(employeeList.data);
-    };
-    // console.log("the jwt is", jwt);
-    fetchData();
-    // console.log("relation is:", response?.attributes?.tasks);
-    console.log("relation is:", response);
-  }, [user]);
-
-  useEffect(() => {
     const fetchData = async () => {
       // const employeeResult = await readEmployee(jwt);
       // setEmployeeResponse(employeeResult.data);
