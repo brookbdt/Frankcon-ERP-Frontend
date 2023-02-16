@@ -1,4 +1,3 @@
-import React, { useState } from "react";
 import {
   Box,
   Button,
@@ -7,7 +6,6 @@ import {
   FormControl,
   FormControlLabel,
   FormGroup,
-  IconButton,
   InputAdornment,
   InputLabel,
   OutlinedInput,
@@ -16,11 +14,7 @@ import {
   Typography,
 } from "@mui/material";
 import Image from "next/image";
-import {
-  SettingsSystemDaydreamTwoTone,
-  Visibility,
-  VisibilityOff,
-} from "@mui/icons-material";
+import React, { useState } from "react";
 
 const Signup = () => {
   const [values, setValues] = useState({

@@ -1,4 +1,4 @@
-import { InsertDriveFile } from "@mui/icons-material";
+import InsertDriveFile from "@mui/icons-material/InsertDriveFile";
 import {
   Box,
   Button,

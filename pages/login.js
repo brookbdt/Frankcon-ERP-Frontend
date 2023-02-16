@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
 import {
   Box,
   Button,
@@ -12,17 +12,15 @@ import {
   InputLabel,
   Link,
   OutlinedInput,
-  TextField,
   ThemeProvider,
   Typography,
 } from "@mui/material";
 import Image from "next/image";
-import { Visibility, VisibilityOff } from "@mui/icons-material";
+import { useRouter } from "next/router";
+import React, { useEffect, useState } from "react";
+import { fetcher } from "../lib/api";
 import { setToken } from "../lib/auth";
 import { useUser } from "../lib/authContext";
-import Home from ".";
-import { fetcher } from "../lib/api";
-import { Router, useRouter } from "next/router";
 
 const Login = () => {
   const [values, setValues] = useState({

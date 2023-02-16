@@ -1,10 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { useFetchUser } from "../../lib/authContext";
-import { readPaymentsRequests } from "../../lib";
 import {
-  Avatar,
   Box,
-  Button,
   Stack,
   Table,
   TableBody,
@@ -15,6 +10,9 @@ import {
   Typography,
 } from "@mui/material";
 import dayjs from "dayjs";
+import React, { useEffect, useState } from "react";
+import { readPaymentsRequests } from "../../lib";
+import { useFetchUser } from "../../lib/authContext";
 
 const PaymentsTable = ({ jwt }) => {
   const [response, setResponse] = useState([]);

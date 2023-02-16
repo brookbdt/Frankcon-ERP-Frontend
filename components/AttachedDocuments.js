@@ -1,11 +1,8 @@
+import FeedOutlined from "@mui/icons-material/FeedOutlined";
+import ShieldOutlined from "@mui/icons-material/ShieldOutlined";
+import WorkOutlineOutlined from "@mui/icons-material/WorkOutlined";
 import { Box, Button, Stack, Typography } from "@mui/material";
-import FeedIcon from "@mui/icons-material/Feed";
 import React from "react";
-import {
-  FeedOutlined,
-  ShieldOutlined,
-  WorkOutlineOutlined,
-} from "@mui/icons-material";
 
 const AttachedDocuments = () => {
   return (

@@ -1,13 +1,14 @@
 import { InsertPhotoOutlined } from "@mui/icons-material";
-import Link from "next/link";
 import AddIcon from "@mui/icons-material/Add";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
 import CloseIcon from "@mui/icons-material/Close";
 import NoteAddOutlinedIcon from "@mui/icons-material/NoteAddOutlined";
 import {
+  Avatar,
   Box,
-  ButtonGroup,
   Button,
+  ButtonGroup,
+  Card,
   Divider,
   Grid,
   IconButton,
@@ -16,14 +17,14 @@ import {
   Stack,
   TextField,
   Typography,
-  Card,
-  Avatar,
 } from "@mui/material";
 import dayjs from "dayjs";
+import Link from "next/link";
 
+import MenuItem from "@mui/material/MenuItem";
+import { DatePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import MenuItem from "@mui/material/MenuItem";
 import React, { useEffect, useState } from "react";
 import EmployeesLayout from "../layout/employees";
 import {
@@ -32,11 +33,8 @@ import {
   readProject,
   readTaskEmployee,
 } from "../lib";
-import Dropdown from "./Projects/dropdown";
-import DateSelector from "./shared/datePicker";
 import { useFetchUser, useFetchUserDepartment } from "../lib/authContext";
-import { DatePicker } from "@mui/x-date-pickers";
-import Image from "next/image";
+import Dropdown from "./Projects/dropdown";
 
 const Projects = ({ jwt }) => {
   const handleSlide = () => {

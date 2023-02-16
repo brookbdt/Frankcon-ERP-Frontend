@@ -1,22 +1,9 @@
-import {
-  Avatar,
-  Box,
-  Button,
-  Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Typography,
-} from "@mui/material";
-import React, { useEffect, useState } from "react";
+import { Avatar, Box, Button, Stack, Typography } from "@mui/material";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
-import { useFetchUser, useFetchUserDepartment } from "../../lib/authContext";
+import React, { useEffect, useState } from "react";
 import { readInventory } from "../../lib";
-import Image from "next/image";
+import { useFetchUser, useFetchUserDepartment } from "../../lib/authContext";
 import DataTable from "../DataTable";
 
 const Instock = ({ jwt }) => {

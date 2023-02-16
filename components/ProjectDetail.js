@@ -1,4 +1,10 @@
-import { BorderColorOutlined, IosShareOutlined } from "@mui/icons-material";
+import {
+  BorderColorOutlined,
+  InsertPhotoOutlined,
+  IosShareOutlined,
+} from "@mui/icons-material";
+import AddIcon from "@mui/icons-material/Add";
+import CloseIcon from "@mui/icons-material/Close";
 import {
   Avatar,
   Box,
@@ -16,22 +22,19 @@ import {
 } from "@mui/material";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import CloseIcon from "@mui/icons-material/Close";
-import { InsertPhotoOutlined } from "@mui/icons-material";
-import AddIcon from "@mui/icons-material/Add";
 
 import dayjs from "dayjs";
 
+import NoteAddOutlinedIcon from "@mui/icons-material/NoteAddOutlined";
+import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import EmployeesLayout from "../layout/employees";
+import { readProjectDetail } from "../lib";
 import { useFetchUser, useFetchUserDepartment } from "../lib/authContext";
-import { readEmployeeTask, readProjectDetail } from "../lib";
 import ProjectAdditionalInfo from "./ProjectAdditionalInfo";
 import ProjectDetailBox from "./ProjectDetailBox";
-import ProjectTasks from "./ProjectTasks";
-import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import Dropdown from "./Projects/dropdown";
-import NoteAddOutlinedIcon from "@mui/icons-material/NoteAddOutlined";
+import ProjectTasks from "./ProjectTasks";
 
 const ProjectDetailPage = ({ id, jwt }) => {
   const router = useRouter();

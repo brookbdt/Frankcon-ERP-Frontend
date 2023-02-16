@@ -1,7 +1,4 @@
-import React, { useEffect, useState } from "react";
-import { useFetchUser, useFetchUserDepartment } from "../../lib/authContext";
-import dayjs from "dayjs";
-import relativeTime from "dayjs/plugin/relativeTime";
+import { ArrowOutward, CallReceived } from "@mui/icons-material";
 import {
   Box,
   Button,
@@ -14,8 +11,11 @@ import {
   TableRow,
   Typography,
 } from "@mui/material";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+import React, { useEffect, useState } from "react";
 import { readInventoryDocs } from "../../lib";
-import { ArrowOutward, CallReceived } from "@mui/icons-material";
+import { useFetchUser, useFetchUserDepartment } from "../../lib/authContext";
 
 const All = ({ jwt }) => {
   const { user, loading } = useFetchUser();

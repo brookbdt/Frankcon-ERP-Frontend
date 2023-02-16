@@ -1,4 +1,4 @@
-import { Delete, East, Send } from "@mui/icons-material";
+import { East } from "@mui/icons-material";
 import {
   Button,
   createTheme,

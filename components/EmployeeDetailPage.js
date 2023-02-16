@@ -1,8 +1,4 @@
-import {
-  AttachFile,
-  BorderColorOutlined,
-  IosShareOutlined,
-} from "@mui/icons-material";
+import AttachFile from "@mui/icons-material/AttachFile";
 import {
   Avatar,
   Box,
@@ -16,20 +12,12 @@ import {
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
-import EmployeesLayout from "../layout/employees";
+import { readOneEmployeeDetail } from "../lib";
 import { useFetchUser, useFetchUserDepartment } from "../lib/authContext";
-import {
-  readEmployeeDetail,
-  readOneEmployeeDetail,
-  readProjectDetail,
-} from "../lib";
 import AttachedDocuments from "./AttachedDocuments";
 import EmployeeProjects from "./EmployeeProjects";
 import EmploymentInformation from "./EmploymentInformation";
 import ProfileDetail from "./ProfileDetail";
-import ProjectAdditionalInfo from "./ProjectAdditionalInfo";
-import ProjectDetailBox from "./ProjectDetailBox";
-import ProjectTasks from "./ProjectTasks";
 
 const EmployeeDetailPage = ({ id, jwt }) => {
   const router = useRouter();

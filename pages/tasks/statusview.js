@@ -1,81 +1,45 @@
+import { AttachFile, InsertPhotoOutlined } from "@mui/icons-material";
+import AddIcon from "@mui/icons-material/Add";
+import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
+import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import {
   Avatar,
   AvatarGroup,
   Box,
   Button,
-  ButtonGroup,
   Card,
-  CardContent,
-  Divider,
   FilledInput,
   FormControl,
   Grid,
   IconButton,
-  InputAdornment,
   InputLabel,
-  Link,
-  OutlinedInput,
   Paper,
   TextField,
   Typography,
 } from "@mui/material";
-import { Stack } from "@mui/system";
-import React, { useEffect, useState } from "react";
-import Navbar from "../../components/Navbar";
-import SideBar from "../../components/SideBar";
-import AddIcon from "@mui/icons-material/Add";
-import Image from "next/image";
-import ChevronRightIcon from "@mui/icons-material/ChevronRight";
-import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
-import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableCell from "@mui/material/TableCell";
-import TableContainer from "@mui/material/TableContainer";
-import TableHead from "@mui/material/TableHead";
-import TablePagination from "@mui/material/TablePagination";
-import TableRow from "@mui/material/TableRow";
-import Modal from "@mui/material/Modal";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { TimePicker } from "@mui/x-date-pickers/TimePicker";
-import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
-import { DesktopDatePicker } from "@mui/x-date-pickers/DesktopDatePicker";
-import dayjs from "dayjs";
 import Slide from "@mui/material/Slide";
-import FormControlLabel from "@mui/material/FormControlLabel";
+import { Stack } from "@mui/system";
 import { DatePicker } from "@mui/x-date-pickers";
-import {
-  createTask,
-  editTaskStatus,
-  readEmployeeTask,
-  readTask,
-} from "../../lib";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import dayjs from "dayjs";
+import Image from "next/image";
+import React, { useEffect, useState } from "react";
 import TasksLayout from "../../layout/tasks";
-import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
-import {
-  AttachFile,
-  CloudUpload,
-  InsertPhotoOutlined,
-  WatchLater,
-} from "@mui/icons-material";
-import FlagIcon from "@mui/icons-material/Flag";
+import { createTask, editTaskStatus, readEmployeeTask } from "../../lib";
 // import { DragDropContext, Draggable, Droppable } from "react-beautiful-dnd";
+import { DndContext } from "@dnd-kit/core";
+import ButtonGroups from "../../components/ButtonGroups";
 import Draggable from "../../components/Draggable";
 import Droppable from "../../components/Droppable";
-import { DndContext, closestCenter } from "@dnd-kit/core";
-import {
-  arrayMove,
-  SortableContext,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
+import Layout from "../../components/Layout";
+import { fetcher } from "../../lib/api";
 import {
   getTokenFromLocalCookie,
   getTokenFromServerCookie,
 } from "../../lib/auth";
-import { fetcher } from "../../lib/api";
 import { useFetchUser, useFetchUserDepartment } from "../../lib/authContext";
-import Layout from "../../components/Layout";
-import ButtonGroups from "../../components/ButtonGroups";
 
 const StatusView = ({ jwt }) => {
   const [selected, setSelected] = useState([]);

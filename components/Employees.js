@@ -1,5 +1,5 @@
-import { CloseOutlined } from "@mui/icons-material";
 import AddIcon from "@mui/icons-material/Add";
+import CloseOutlined from "@mui/icons-material/CloseOutlined";
 import {
   Alert,
   Avatar,
@@ -26,7 +26,6 @@ import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import React, { useEffect, useState } from "react";
 import EmployeesLayout from "../layout/employees";
-import { useFetchUser, useFetchUserDepartment } from "../lib/authContext";
 import {
   createEmployee,
   createPayroll,
@@ -34,6 +33,7 @@ import {
   readEmployee,
   readEmployeeByDepartment,
 } from "../lib";
+import { useFetchUser, useFetchUserDepartment } from "../lib/authContext";
 import EmployeesTable from "./Employees/EmployeesTable";
 
 const Employees = ({ jwt }) => {
