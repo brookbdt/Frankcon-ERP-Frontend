@@ -4,7 +4,10 @@ import Employees from "../../components/Employees";
 import Layout from "../../components/Layout";
 import { readNotification } from "../../lib";
 import { fetcher } from "../../lib/api";
-import { getTokenFromServerCookie } from "../../lib/auth";
+import {
+  getTokenFromLocalCookie,
+  getTokenFromServerCookie,
+} from "../../lib/auth";
 import { useFetchUser, useFetchUserDepartment } from "../../lib/authContext";
 
 const EmployeesPage = () => {

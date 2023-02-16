@@ -3,13 +3,13 @@ import Head from "next/head";
 import { useEffect, useState } from "react";
 import DashboardComponent from "../components/Dashboard/DashboardComponent";
 import Layout from "../components/Layout";
-import { fetcher } from "../lib/api";
-import { getTokenFromLocalCookie, getTokenFromServerCookie } from "../lib/auth";
-import { useFetchUser, useFetchUserDepartment } from "../lib/authContext";
 import { readNotification } from "../lib";
+import { fetcher } from "../lib/api";
+import { getTokenFromLocalCookie } from "../lib/auth";
+import { useFetchUser, useFetchUserDepartment } from "../lib/authContext";
 import Login from "./login";
 
-export default function Home({}) {
+export default function Home() {
   const [response, setResponse] = useState([]);
 
   const [jwt, setJwt] = useState(null);

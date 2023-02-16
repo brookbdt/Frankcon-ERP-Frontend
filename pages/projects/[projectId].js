@@ -22,7 +22,7 @@ function ProjectDetails({ id }) {
 
   const [response, setResponse] = useState([]);
 
-  useEffect(async () => {
+  useEffect(() => {
     console.log(1, "params console is");
 
     const jwt = getTokenFromLocalCookie();
