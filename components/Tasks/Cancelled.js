@@ -15,7 +15,7 @@ import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import React, { useEffect, useState } from "react";
 import { useFetchUser, useFetchUserDepartment } from "../../lib/authContext";
-import { readWorkshopTasks } from "../../pages/api";
+import { readWorkshopTasks } from "../../lib";
 
 const Cancelled = ({ jwt }) => {
   const { user, loading } = useFetchUser();

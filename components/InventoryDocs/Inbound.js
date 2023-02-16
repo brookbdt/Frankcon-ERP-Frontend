@@ -14,7 +14,7 @@ import {
   TableRow,
   Typography,
 } from "@mui/material";
-import { readInventoryDocs } from "../../pages/api";
+import { readInventoryDocs } from "../../lib";
 import { CallReceived } from "@mui/icons-material";
 
 const Inbound = ({ jwt }) => {

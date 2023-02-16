@@ -6,7 +6,7 @@ import relativeTime from "dayjs/plugin/relativeTime";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
 import DataTable from "../DataTable";
 import { useFetchUser, useFetchUserDepartment } from "../../lib/authContext";
-import { readPayroll } from "../../pages/api";
+import { readPayroll } from "../../lib";
 
 const AddPay = ({ jwt }) => {
   const [checked, setChecked] = React.useState(false);

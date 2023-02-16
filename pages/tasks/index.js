@@ -53,7 +53,7 @@ import {
   readTask,
   readTaskEmployee,
   readUser,
-} from "../api";
+} from "../../lib";
 import ButtonGroups from "../../components/ButtonGroups";
 import TasksTable from "../../components/Tasks/TasksTable";
 import Workshop from "../../components/Workshop/Workshop";

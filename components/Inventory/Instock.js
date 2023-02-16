@@ -15,7 +15,7 @@ import React, { useEffect, useState } from "react";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { useFetchUser, useFetchUserDepartment } from "../../lib/authContext";
-import { readInventory } from "../../pages/api";
+import { readInventory } from "../../lib";
 import Image from "next/image";
 import DataTable from "../DataTable";
 

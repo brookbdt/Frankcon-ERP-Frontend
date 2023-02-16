@@ -10,7 +10,7 @@ import All from "../Tasks/All";
 import Pending from "../Tasks/Pending";
 import Cancelled from "../Tasks/Cancelled";
 import Approved from "../Tasks/Approved";
-import { readEmployee } from "../../pages/api";
+import { readEmployee } from "../../lib";
 
 const Workshop = ({ jwt }) => {
   const [selectedIndex, setSelectedIndex] = useState(0);

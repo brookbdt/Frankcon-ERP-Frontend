@@ -27,7 +27,7 @@ import TableRow from "@mui/material/TableRow";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { useFetchUser, useFetchUserDepartment } from "../../lib/authContext";
-import { readPurchaseRequest } from "../../pages/api";
+import { readPurchaseRequest } from "../../lib";
 
 const All = ({ jwt }) => {
   const [purchaseId, setPurchaseId] = useState("");

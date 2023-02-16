@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useFetchUser, useFetchUserDepartment } from "../../lib/authContext";
-import { readEmployee, readPayroll } from "../../pages/api";
+import { readEmployee, readPayroll } from "../../lib";
 import DataTable from "../DataTable";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";

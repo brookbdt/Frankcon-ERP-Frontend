@@ -6,7 +6,7 @@ import { Stack } from "@mui/system";
 import styled from "@emotion/styled";
 import Image from "next/image";
 import { useFetchUser } from "../../lib/authContext";
-import { readEmployeeTodoTask } from "../../pages/api";
+import { readEmployeeTodoTask } from "../../lib";
 
 const Right = ({ jwt }) => {
   const StyledTypoGrey = styled(Typography)({

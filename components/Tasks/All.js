@@ -16,11 +16,7 @@ import relativeTime from "dayjs/plugin/relativeTime";
 import React, { useEffect, useState } from "react";
 import DataTable from "../DataTable";
 import { useFetchUser, useFetchUserDepartment } from "../../lib/authContext";
-import {
-  readEmployee,
-  readEmployeeTask,
-  readWorkshopTasks,
-} from "../../pages/api";
+import { readEmployee, readEmployeeTask, readWorkshopTasks } from "../../lib";
 
 const All = ({ jwt }) => {
   const { user, loading } = useFetchUser();

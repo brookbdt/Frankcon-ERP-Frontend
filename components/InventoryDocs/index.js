@@ -3,7 +3,7 @@ import { Box, Button, Divider, Stack, Typography } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import EmployeesLayout from "../../layout/employees";
 import { useFetchUser, useFetchUserDepartment } from "../../lib/authContext";
-import { readInventoryDocs } from "../../pages/api";
+import { readInventoryDocs } from "../../lib";
 import ButtonGroups from "../ButtonGroups";
 
 import All from "./All";

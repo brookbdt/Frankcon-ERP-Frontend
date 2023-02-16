@@ -15,11 +15,7 @@ import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import React, { useEffect, useState } from "react";
 import { useFetchUser, useFetchUserDepartment } from "../../lib/authContext";
-import {
-  readEmployee,
-  readEmployeeTask,
-  readWorkshopTasks,
-} from "../../pages/api";
+import { readEmployee, readEmployeeTask, readWorkshopTasks } from "../../lib";
 import DataTable from "../DataTable";
 
 const Approved = ({ jwt }) => {

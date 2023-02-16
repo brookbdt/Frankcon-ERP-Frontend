@@ -4,7 +4,7 @@ import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import React, { useEffect, useState } from "react";
 import { useFetchUser, useFetchUserDepartment } from "../../lib/authContext";
-import { readPaymentsRequests } from "../../pages/api";
+import { readPaymentsRequests } from "../../lib";
 import DataTable from "../DataTable";
 
 const Payins = ({ jwt }) => {

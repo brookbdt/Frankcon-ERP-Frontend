@@ -25,7 +25,7 @@ import dayjs from "dayjs";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import EmployeesLayout from "../layout/employees";
 import { useFetchUser, useFetchUserDepartment } from "../lib/authContext";
-import { readEmployeeTask, readProjectDetail } from "../pages/api";
+import { readEmployeeTask, readProjectDetail } from "../lib";
 import ProjectAdditionalInfo from "./ProjectAdditionalInfo";
 import ProjectDetailBox from "./ProjectDetailBox";
 import ProjectTasks from "./ProjectTasks";

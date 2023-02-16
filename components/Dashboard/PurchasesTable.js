@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useFetchUser } from "../../lib/authContext";
-import { readPaymentsRequests, readPurchaseRequest } from "../../pages/api";
+import { readPaymentsRequests, readPurchaseRequest } from "../../lib";
 import {
   Avatar,
   Box,

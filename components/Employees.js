@@ -33,7 +33,7 @@ import {
   getEmployeeId,
   readEmployee,
   readEmployeeByDepartment,
-} from "../pages/api";
+} from "../lib";
 import EmployeesTable from "./Employees/EmployeesTable";
 
 const Employees = ({ jwt }) => {

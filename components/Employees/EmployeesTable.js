@@ -10,7 +10,7 @@ import {
   getEmployeeId,
   readEmployee,
   readEmployeeByDepartment,
-} from "../../pages/api";
+} from "../../lib";
 import { useFetchUser, useFetchUserDepartment } from "../../lib/authContext";
 import DataTable from "../DataTable";
 

@@ -20,7 +20,7 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import EmployeesLayout from "../../layout/employees";
 import { useFetchUser, useFetchUserDepartment } from "../../lib/authContext";
-import { readOrder, readPurchaseRequest } from "../../pages/api";
+import { readOrder, readPurchaseRequest } from "../../lib";
 import Delivered from "./Delivered";
 import OnDelivery from "./OnDelivery";
 import InPurchase from "./InPurchase";

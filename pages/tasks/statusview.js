@@ -44,7 +44,12 @@ import dayjs from "dayjs";
 import Slide from "@mui/material/Slide";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import { DatePicker } from "@mui/x-date-pickers";
-import { createTask, editTaskStatus, readEmployeeTask, readTask } from "../api";
+import {
+  createTask,
+  editTaskStatus,
+  readEmployeeTask,
+  readTask,
+} from "../../lib";
 import TasksLayout from "../../layout/tasks";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import {

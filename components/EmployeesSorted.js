@@ -16,11 +16,7 @@ import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import EmployeesLayout from "../layout/employees";
 import { useFetchUser, useFetchUserDepartment } from "../lib/authContext";
-import {
-  getEmployeeId,
-  readEmployee,
-  readEmployeeByDepartment,
-} from "../pages/api";
+import { getEmployeeId, readEmployee, readEmployeeByDepartment } from "../lib";
 
 const EmployeesSorted = ({ jwt }) => {
   const { user, loading } = useFetchUser();

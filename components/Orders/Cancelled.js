@@ -24,7 +24,7 @@ import {
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { useFetchUser, useFetchUserDepartment } from "../../lib/authContext";
-import { readPurchaseRequest } from "../../pages/api";
+import { readPurchaseRequest } from "../../lib";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 

@@ -6,7 +6,7 @@ import Layout from "../components/Layout";
 import { fetcher } from "../lib/api";
 import { getTokenFromLocalCookie, getTokenFromServerCookie } from "../lib/auth";
 import { useFetchUser, useFetchUserDepartment } from "../lib/authContext";
-import { readNotification } from "./api";
+import { readNotification } from "../lib";
 import Login from "./login";
 
 export default function Home({ jwt, purchaseRequestResponse, error }) {

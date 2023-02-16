@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import DataTable from "../DataTable";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
-import { readEmployee, readEmployeeTask, readTask } from "../../pages/api";
+import { readEmployee, readEmployeeTask, readTask } from "../../lib";
 import { useFetchUser, useFetchUserDepartment } from "../../lib/authContext";
 import WorkshopTable from "../Workshop/WorkshopTable";
 

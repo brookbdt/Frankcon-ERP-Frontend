@@ -22,7 +22,7 @@ import {
   readEmployeeDetail,
   readOneEmployeeDetail,
   readProjectDetail,
-} from "../pages/api";
+} from "../lib";
 import AttachedDocuments from "./AttachedDocuments";
 import EmployeeProjects from "./EmployeeProjects";
 import EmploymentInformation from "./EmploymentInformation";

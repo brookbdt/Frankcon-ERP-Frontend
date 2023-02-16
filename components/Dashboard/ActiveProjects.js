@@ -11,7 +11,7 @@ import dayjs from "dayjs";
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import { useFetchUser } from "../../lib/authContext";
-import { readProject } from "../../pages/api";
+import { readProject } from "../../lib";
 import Link from "next/link";
 import KeyboardDoubleArrowRightIcon from "@mui/icons-material/KeyboardDoubleArrowRight";
 

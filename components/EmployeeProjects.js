@@ -13,7 +13,7 @@ import Image from "next/image";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import { useFetchUser } from "../lib/authContext";
-import { readEmployeeDetail, readEmployeeUnresolvedTask } from "../pages/api";
+import { readEmployeeDetail, readEmployeeUnresolvedTask } from "../lib";
 
 const EmployeeProjects = ({ jwt }) => {
   const StyledTypoGrey = styled(Typography)({

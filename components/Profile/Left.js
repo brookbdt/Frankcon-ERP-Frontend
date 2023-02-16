@@ -19,7 +19,7 @@ import {
   readEmployeeDetail,
   readEmployeeUnresolvedTask,
   readUser,
-} from "../../pages/api";
+} from "../../lib";
 
 const Left = ({ jwt }) => {
   dayjs.extend(relativeTime);

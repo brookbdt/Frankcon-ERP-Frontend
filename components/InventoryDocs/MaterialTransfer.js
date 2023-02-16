@@ -14,7 +14,7 @@ import {
   TableRow,
   Typography,
 } from "@mui/material";
-import { readInventoryDocs } from "../../pages/api";
+import { readInventoryDocs } from "../../lib";
 import { ArrowOutward, CallReceived } from "@mui/icons-material";
 
 const MaterialTransfer = ({ jwt }) => {

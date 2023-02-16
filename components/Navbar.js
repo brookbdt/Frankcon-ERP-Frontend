@@ -67,7 +67,7 @@ import {
   readInventory,
   readProject,
   readTaskEmployee,
-} from "../pages/api";
+} from "../lib";
 import ButtonGroups from "./ButtonGroups";
 import { useFetchUser, useFetchUserDepartment } from "../lib/authContext";
 import { getTokenFromLocalCookie, getTokenFromServerCookie } from "../lib/auth";

@@ -28,7 +28,7 @@ import Switch from "@mui/material/Switch";
 import DeleteIcon from "@mui/icons-material/Delete";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import { visuallyHidden } from "@mui/utils";
-import { readEmployee } from "../pages/api";
+import { readEmployee } from "../lib";
 import ChangingButton from "./ChangingButton";
 
 function createData(name, calories, fat, carbs, protein) {
