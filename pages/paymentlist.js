@@ -8,7 +8,7 @@ import { fetcher } from "../lib/api";
 import { getTokenFromLocalCookie, getTokenFromServerCookie } from "../lib/auth";
 import { useFetchUser, useFetchUserDepartment } from "../lib/authContext";
 
-const PaymentList = ({ jwt }) => {
+const PaymentList = () => {
   const { user, loading } = useFetchUser();
   const { userDepartment } = useFetchUserDepartment();
 
