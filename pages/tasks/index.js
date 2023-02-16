@@ -527,10 +527,12 @@ const Tasks = ({ jwt }) => {
 
 export async function getServerSideProps({ req, params }) {
   // const { slug } = params;
-  const jwt =
-    typeof window !== "undefined"
-      ? getTokenFromLocalCookie
-      : getTokenFromServerCookie(req);
+  console.log("before");
+  const jwt = getTokenFromServerCookie(req);
+  // typeof window !== "undefined"
+  //   ? getTokenFromLocalCookie
+  //   : getTokenFromServerCookie(req);
+  console.log("after");
 
   const taskResponse = await fetcher(
     `https://frankconerp.herokuapp.com/api/tasks`,

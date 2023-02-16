@@ -9,10 +9,40 @@ import { useFetchUser, useFetchUserDepartment } from "../lib/authContext";
 import { readNotification } from "../lib";
 import Login from "./login";
 
-export default function Home({ jwt, purchaseRequestResponse, error }) {
+export default function Home({}) {
   const [response, setResponse] = useState([]);
 
-  useEffect(() => {
+  const [jwt, setJwt] = useState(null);
+  const [purchaseRequestResponse, setPurchaseRequestResponse] = useState();
+  // const [taskResponse, taskResponse] = useState([]);
+
+  useEffect(async () => {
+    console.log(1, "start");
+
+    const jwt = getTokenFromLocalCookie();
+
+    // typeof window !== "undefined"
+    //   ? getTokenFromLocalCookie
+    //   : getTokenFromServerCookie(req);
+    console.log(2, "end", { jwt });
+
+    setJwt(jwt);
+
+    const purchaseRequestResponse = await fetcher(
+      `https://frankconerp.herokuapp.com/api/purchaseRequests`,
+      jwt
+        ? {
+            headers: {
+              Authorization: `Bearer ${jwt}`,
+            },
+          }
+        : ""
+    );
+    console.log(2, { purchaseRequestResponse });
+    if (purchaseRequestResponse.data) {
+      setPurchaseRequestResponse(purchaseRequestResponse.data);
+    }
+
     readNotification(jwt).then((r) => {
       console.log("r is", r.data?.data);
       setResponse(r.data?.data);
@@ -53,12 +83,8 @@ export default function Home({ jwt, purchaseRequestResponse, error }) {
       res.attributes?.paymentRequest?.data?.attributes?.isApproved === "pending"
   );
 
-  if (error) {
-    return (
-      <Layout>
-        <p>{error}</p>
-      </Layout>
-    );
+  if (jwt === null) {
+    return <h1>Loading</h1>;
   } else {
     return (
       <Layout
@@ -238,59 +264,4 @@ export default function Home({ jwt, purchaseRequestResponse, error }) {
   }
 }
 
-export async function getServerSideProps({ req, params }) {
-  // const { slug } = params;
-
-  console.log(1, "start");
-  const jwt =
-    typeof window !== "undefined"
-      ? getTokenFromLocalCookie
-      : getTokenFromServerCookie(req);
-  console.log(2, "end", { jwt });
-
-  // const taskResponse = await fetcher(
-  //   `https://frankconerp.herokuapp.com/api/tasks`,
-  //   jwt
-  //     ? {
-  //         headers: {
-  //           Authorization: `Bearer ${jwt}`,
-  //         },
-  //       }
-  //     : ""
-  // );
-  // console.log(1, { taskResponse });
-  // const purchaseRequestResponse = await fetcher(
-  //   `https://frankconerp.herokuapp.com/api/purchaseRequests`,
-  //   jwt
-  //     ? {
-  //         headers: {
-  //           Authorization: `Bearer ${jwt}`,
-  //         },
-  //       }
-  //     : ""
-  // );
-  // console.log(2, { purchaseRequestResponse });
-  // if (taskResponse.data || purchaseRequestResponse.data) {
-  //   // const plot = await markdownToHtml(filmResponse.data.attributes.plot);
-  //   return {
-  //     props: {
-  //       taskResponse: taskResponse.data,
-  //       purchaseRequestResponse: purchaseRequestResponse.data,
-  //       // data,
-  //       // plot,
-  //       jwt: jwt ? jwt : "",
-  //     },
-  //   };
-  // } else {
-  //   return {
-  //     props: {
-  //       error: taskResponse.error.message,
-  //     },
-  //   };
-  // }
-  return {
-    props: {
-      jwt: jwt ? jwt : "",
-    },
-  };
-}
+// }
