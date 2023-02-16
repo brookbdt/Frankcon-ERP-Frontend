@@ -1,15 +1,37 @@
 import { Box, Stack } from "@mui/material";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Layout from "../components/Layout";
 
 import OrderLists from "../components/Orders/OrderLists";
+import { readNotification } from "../lib";
 import { fetcher } from "../lib/api";
 import { getTokenFromLocalCookie, getTokenFromServerCookie } from "../lib/auth";
 import { useFetchUser, useFetchUserDepartment } from "../lib/authContext";
 
-const Orders = ({ jwt }) => {
+const Orders = () => {
   const { user, loading } = useFetchUser();
   const { userDepartment } = useFetchUserDepartment();
+
+  const [jwt, setJwt] = useState(null);
+
+  const [response, setResponse] = useState([]);
+
+  useEffect(() => {
+    console.log(1, "params console is");
+
+    const jwt = getTokenFromLocalCookie();
+
+    console.log(2, "end", { jwt });
+
+    setJwt(jwt);
+
+    readNotification(jwt).then((r) => {
+      console.log("r is", r.data?.data);
+      setResponse(r.data?.data);
+    });
+
+    console.log("index response is", { response });
+  }, []);
   return (
     <Layout jwt={jwt} user={user} userDepartment={userDepartment}>
       <Stack paddingX="48px">
@@ -19,38 +41,5 @@ const Orders = ({ jwt }) => {
     </Layout>
   );
 };
-export async function getServerSideProps({ req, params }) {
-  // const { slug } = params;
-  const jwt =
-    typeof window !== "undefined"
-      ? getTokenFromLocalCookie
-      : getTokenFromServerCookie(req);
-  const orderResponse = await fetcher(
-    `https://frankconerp.herokuapp.com/api/orders`,
-    jwt
-      ? {
-          headers: {
-            Authorization: `Bearer ${jwt}`,
-          },
-        }
-      : ""
-  );
-  if (orderResponse.data) {
-    // const plot = await markdownToHtml(filmResponse.data.attributes.plot);
-    return {
-      props: {
-        taskResponse: orderResponse.data,
-        // plot,
-        jwt: jwt ? jwt : "",
-      },
-    };
-  } else {
-    return {
-      props: {
-        error: orderResponse.error.message,
-      },
-    };
-  }
-}
 
 export default Orders;

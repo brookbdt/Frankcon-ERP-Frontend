@@ -1,11 +1,32 @@
 import { Box } from "@mui/material";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Layout from "../components/Layout";
 import Workshop from "../components/Workshop/Workshop";
+import { readNotification } from "../lib";
 import { fetcher } from "../lib/api";
 import { getTokenFromLocalCookie, getTokenFromServerCookie } from "../lib/auth";
 
-const workshop = ({ jwt }) => {
+const workshop = () => {
+  const [jwt, setJwt] = useState(null);
+
+  const [response, setResponse] = useState([]);
+
+  useEffect(async () => {
+    console.log(1, "params console is");
+
+    const jwt = getTokenFromLocalCookie();
+
+    console.log(2, "end", { jwt });
+
+    setJwt(jwt);
+
+    readNotification(jwt).then((r) => {
+      console.log("r is", r.data?.data);
+      setResponse(r.data?.data);
+    });
+
+    console.log("index response is", { response });
+  }, []);
   return (
     <Layout>
       <Box paddingLeft="48px">
@@ -14,39 +35,5 @@ const workshop = ({ jwt }) => {
     </Layout>
   );
 };
-
-export async function getServerSideProps({ req, params }) {
-  // const { slug } = params;
-  const jwt =
-    typeof window !== "undefined"
-      ? getTokenFromLocalCookie
-      : getTokenFromServerCookie(req);
-  const workshopResponse = await fetcher(
-    `https://frankconerp.herokuapp.com/api/paymentrequests`,
-    jwt
-      ? {
-          headers: {
-            Authorization: `Bearer ${jwt}`,
-          },
-        }
-      : ""
-  );
-  if (workshopResponse.data) {
-    // const plot = await markdownToHtml(filmResponse.data.attributes.plot);
-    return {
-      props: {
-        taskResponse: workshopResponse.data,
-        // plot,
-        jwt: jwt ? jwt : "",
-      },
-    };
-  } else {
-    return {
-      props: {
-        error: workshopResponse.error.message,
-      },
-    };
-  }
-}
 
 export default workshop;

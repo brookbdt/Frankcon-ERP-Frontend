@@ -1,20 +1,40 @@
 import { Box, Stack } from "@mui/material";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Inventory from "../components/Inventory/Inventory";
 
 import Layout from "../components/Layout";
+import { readNotification } from "../lib";
 import { fetcher } from "../lib/api";
 import { getTokenFromLocalCookie, getTokenFromServerCookie } from "../lib/auth";
 import { useFetchUser, useFetchUserDepartment } from "../lib/authContext";
 
-const InventoryScreen = ({ jwt }) => {
+const InventoryScreen = () => {
   const { user, loading } = useFetchUser();
   const { userDepartment } = useFetchUserDepartment();
   const buttons = ["All", "Instock", "Depleted ", "Out-of-stock"];
 
   const [selectedIndex, setSelectedIndex] = useState(0);
 
+  const [jwt, setJwt] = useState(null);
+
   const [response, setResponse] = useState([]);
+
+  useEffect(() => {
+    console.log(1, "params console is");
+
+    const jwt = getTokenFromLocalCookie();
+
+    console.log(2, "end", { jwt });
+
+    setJwt(jwt);
+
+    readNotification(jwt).then((r) => {
+      console.log("r is", r.data?.data);
+      setResponse(r.data?.data);
+    });
+
+    console.log("index response is", { response });
+  }, []);
   // useEffect(() => {
   //   const fetchData = async () => {
   //     const result = await readInventory();
@@ -49,38 +69,5 @@ const InventoryScreen = ({ jwt }) => {
     </Layout>
   );
 };
-export async function getServerSideProps({ req, params }) {
-  // const { slug } = params;
-  const jwt =
-    typeof window !== "undefined"
-      ? getTokenFromLocalCookie
-      : getTokenFromServerCookie(req);
-  const inventoryResponse = await fetcher(
-    `https://frankconerp.herokuapp.com/api/inventories`,
-    jwt
-      ? {
-          headers: {
-            Authorization: `Bearer ${jwt}`,
-          },
-        }
-      : ""
-  );
-  if (inventoryResponse.data) {
-    // const plot = await markdownToHtml(filmResponse.data.attributes.plot);
-    return {
-      props: {
-        inventoryResponse: inventoryResponse.data,
-        // plot,
-        jwt: jwt ? jwt : "",
-      },
-    };
-  } else {
-    return {
-      props: {
-        error: inventoryResponse.error.message,
-      },
-    };
-  }
-}
 
 export default InventoryScreen;

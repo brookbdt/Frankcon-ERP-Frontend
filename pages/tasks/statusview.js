@@ -27,7 +27,12 @@ import dayjs from "dayjs";
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import TasksLayout from "../../layout/tasks";
-import { createTask, editTaskStatus, readEmployeeTask } from "../../lib";
+import {
+  createTask,
+  editTaskStatus,
+  readEmployeeTask,
+  readNotification,
+} from "../../lib";
 // import { DragDropContext, Draggable, Droppable } from "react-beautiful-dnd";
 import { DndContext } from "@dnd-kit/core";
 import ButtonGroups from "../../components/ButtonGroups";
@@ -41,53 +46,9 @@ import {
 } from "../../lib/auth";
 import { useFetchUser, useFetchUserDepartment } from "../../lib/authContext";
 
-const StatusView = ({ jwt }) => {
+const StatusView = () => {
   const [selected, setSelected] = useState([]);
   // const priority = [high, low, normal];
-
-  const changeImage = (value) => {
-    setSelected(priority[value] + 1);
-    if (priority[value] == "high") {
-      setSelected(priority[0]);
-    }
-  };
-
-  const columns = [
-    { id: "task details", label: "Task Details", minWidth: 170 },
-    {
-      id: "task status",
-      label: "Task Status",
-      // minWidth: 170,
-      // align: "right",
-      format: (value) => value.toLocaleString("en-US"),
-    },
-    {
-      id: "date",
-      label: "Date",
-      // minWidth: 170,
-      // align: "right",
-      format: (value) => value.toLocaleString("en-US"),
-    },
-    {
-      id: "priority",
-      label: "Priority",
-      // minWidth: 170,
-      // align: "right",
-      format: (value) => value.toFixed(2),
-    },
-  ];
-
-  const style = {
-    position: "absolute",
-    top: "50%",
-    left: "50%",
-    transform: "translate(-50%, -50%)",
-    width: "648px",
-    bgcolor: "background.paper",
-    border: "2px solid #000",
-    boxShadow: 24,
-    p: 4,
-  };
 
   const [open, setOpen] = React.useState(false);
   const [taskFile, setTaskFile] = React.useState([]);
@@ -111,7 +72,6 @@ const StatusView = ({ jwt }) => {
   const [description, setDescription] = useState("");
   const [comment, setComment] = useState("");
 
-  const [parent, setParent] = useState(null);
   const sendTask = () => {
     const newTask = {
       // Title: name,
@@ -158,6 +118,10 @@ const StatusView = ({ jwt }) => {
   // };
   const { user, loading } = useFetchUser();
   const { userDepartment } = useFetchUserDepartment();
+
+  const [jwt, setJwt] = useState(null);
+
+  const [notificationResponse, setNotificationResponse] = useState([]);
   const fetchData = async () => {
     if (!user) {
       return;
@@ -165,9 +129,26 @@ const StatusView = ({ jwt }) => {
     const result = await readEmployeeTask(jwt, user);
     setResponse(result.data);
   };
+
   useEffect(() => {
+    console.log(1, "params console is");
+
+    const jwt = getTokenFromLocalCookie();
+
+    console.log(2, "end", { jwt });
+
+    setJwt(jwt);
+
+    readNotification(jwt).then((r) => {
+      console.log("r is", r.data?.data);
+      setNotificationResponse(r.data?.data);
+    });
+
+    console.log("index response is", { notificationResponse });
+
     fetchData();
   }, [user]);
+
   const currentDate = value.toString();
   console.log(currentDate);
 
@@ -977,38 +958,5 @@ const StatusView = ({ jwt }) => {
     </Layout>
   );
 };
-export async function getServerSideProps({ req, params }) {
-  // const { slug } = params;
-  const jwt =
-    typeof window !== "undefined"
-      ? getTokenFromLocalCookie
-      : getTokenFromServerCookie(req);
-  const taskResponse = await fetcher(
-    `https://frankconerp.herokuapp.com/api/tasks`,
-    jwt
-      ? {
-          headers: {
-            Authorization: `Bearer ${jwt}`,
-          },
-        }
-      : ""
-  );
-  if (taskResponse.data) {
-    // const plot = await markdownToHtml(filmResponse.data.attributes.plot);
-    return {
-      props: {
-        taskResponse: taskResponse.data,
-        // plot,
-        jwt: jwt ? jwt : "",
-      },
-    };
-  } else {
-    return {
-      props: {
-        error: taskResponse.error.message,
-      },
-    };
-  }
-}
 
 export default StatusView;

@@ -17,8 +17,30 @@ import Left from "../components/Profile/Left";
 import Right from "../components/Profile/Right";
 import { getTokenFromLocalCookie, getTokenFromServerCookie } from "../lib/auth";
 import { fetcher } from "../lib/api";
+import { readNotification } from "../lib";
+import { useEffect, useState } from "react";
 
-const profile = ({ jwt }) => {
+const profile = () => {
+  const [jwt, setJwt] = useState(null);
+
+  const [response, setResponse] = useState([]);
+
+  useEffect(() => {
+    console.log(1, "params console is");
+
+    const jwt = getTokenFromLocalCookie();
+
+    console.log(2, "end", { jwt });
+
+    setJwt(jwt);
+
+    readNotification(jwt).then((r) => {
+      console.log("r is", r.data?.data);
+      setResponse(r.data?.data);
+    });
+
+    console.log("index response is", { response });
+  }, []);
   return (
     <>
       <Stack
@@ -50,38 +72,5 @@ const profile = ({ jwt }) => {
     </>
   );
 };
-export async function getServerSideProps({ req, params }) {
-  // const { slug } = params;
-  const jwt =
-    typeof window !== "undefined"
-      ? getTokenFromLocalCookie
-      : getTokenFromServerCookie(req);
-  const employeeResponse = await fetcher(
-    `https://frankconerp.herokuapp.com/api/employees`,
-    jwt
-      ? {
-          headers: {
-            Authorization: `Bearer ${jwt}`,
-          },
-        }
-      : ""
-  );
-  if (employeeResponse.data) {
-    // const plot = await markdownToHtml(filmResponse.data.attributes.plot);
-    return {
-      props: {
-        employeeResponse: employeeResponse.data,
-        // plot,
-        jwt: jwt ? jwt : "",
-      },
-    };
-  } else {
-    return {
-      props: {
-        error: employeeResponse.error.message,
-      },
-    };
-  }
-}
 
 export default profile;
