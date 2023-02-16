@@ -272,8 +272,8 @@ export async function getServerSideProps({ req, params }) {
     // const plot = await markdownToHtml(filmResponse.data.attributes.plot);
     return {
       props: {
-        // taskResponse: taskResponse.data,
-        // purchaseRequestResponse: purchaseRequestResponse.data,
+        taskResponse: taskResponse.data,
+        purchaseRequestResponse: purchaseRequestResponse.data,
         // data,
         // plot,
         jwt: jwt ? jwt : "",
