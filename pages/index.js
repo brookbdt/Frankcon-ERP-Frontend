@@ -241,10 +241,12 @@ export default function Home({ jwt, purchaseRequestResponse, error }) {
 export async function getServerSideProps({ req, params }) {
   // const { slug } = params;
 
+  console.log(1, "start");
   const jwt =
     typeof window !== "undefined"
       ? getTokenFromLocalCookie
       : getTokenFromServerCookie(req);
+  console.log(2, "end", { jwt });
 
   // const taskResponse = await fetcher(
   //   `https://frankconerp.herokuapp.com/api/tasks`,
