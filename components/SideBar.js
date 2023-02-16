@@ -845,7 +845,7 @@ const SideBar = ({
                 {openList ? <ExpandLess /> : <ExpandMore />}
               </ListItemButton>
               <Collapse in={openList} timeout="auto" unmountOnExit>
-                <List component="div" disablePadding>
+                <List component="a" disablePadding href="/paymentlist">
                   <ListItemButton sx={{ pl: "80px" }}>
                     <ListItemText
                       primary="Payouts"
@@ -920,13 +920,21 @@ const SideBar = ({
               </ListItemButton>
               <Collapse in={openListInventory} timeout="auto" unmountOnExit>
                 <List component="div" disablePadding>
-                  <ListItemButton sx={{ pl: "80px" }}>
+                  <ListItemButton
+                    component="a"
+                    href="/inventory"
+                    sx={{ pl: "80px" }}
+                  >
                     <ListItemText
                       primary="Item List"
                       primaryTypographyProps={{ fontSize: "11px" }}
                     />
                   </ListItemButton>
-                  <ListItemButton sx={{ pl: "80px" }}>
+                  <ListItemButton
+                    component="a"
+                    href="/inventorydocumentation"
+                    sx={{ pl: "80px" }}
+                  >
                     <ListItemText
                       primary="Item Documentation"
                       primaryTypographyProps={{ fontSize: "11px" }}

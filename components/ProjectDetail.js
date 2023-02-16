@@ -11,9 +11,11 @@ import {
   Button,
   ButtonGroup,
   Divider,
+  Fade,
   Grid,
   IconButton,
   MenuItem,
+  Modal,
   Paper,
   Slide,
   Stack,
@@ -29,14 +31,15 @@ import NoteAddOutlinedIcon from "@mui/icons-material/NoteAddOutlined";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import EmployeesLayout from "../layout/employees";
-import { readProjectDetail } from "../lib";
+import { readNotification, readProjectDetail, readTaskEmployee } from "../lib";
 import { useFetchUser, useFetchUserDepartment } from "../lib/authContext";
 import ProjectAdditionalInfo from "./ProjectAdditionalInfo";
 import ProjectDetailBox from "./ProjectDetailBox";
 import Dropdown from "./Projects/dropdown";
 import ProjectTasks from "./ProjectTasks";
+import { getTokenFromLocalCookie } from "../lib/auth";
 
-const ProjectDetailPage = ({ id, jwt }) => {
+const ProjectDetailPage = () => {
   const router = useRouter();
   const projectId = router.query.projectId;
   const { user, loading } = useFetchUser();
@@ -46,6 +49,8 @@ const ProjectDetailPage = ({ id, jwt }) => {
     setChecked((prev) => !prev);
   };
   const [response, setResponse] = useState([]);
+  const [open, setOpen] = useState(false);
+
   const [checked, setChecked] = useState(false);
 
   const [prioritySelectedIndex, setPrioritySelectedIndex] = useState(0);
@@ -101,6 +106,23 @@ const ProjectDetailPage = ({ id, jwt }) => {
         setDescriptionButtonClicked(false);
     }
   };
+  const style = {
+    position: "absolute",
+    top: "70%",
+    left: "31%",
+    transform: "translate(-50%, -50%)",
+    width: "440px",
+    height: "604px",
+    bgcolor: "background.paper",
+    // border: "2px solid #000",
+    borderRadius: "4px",
+    boxShadow: 24,
+    p: 4,
+  };
+  const handleClick = () => {
+    setOpen(!open);
+  };
+  const handleClose = () => setOpen(false);
 
   const sendProject = async () => {
     const employee = await readTaskEmployee(jwt, user);
@@ -135,8 +157,12 @@ const ProjectDetailPage = ({ id, jwt }) => {
   };
 
   const [taskResultResponse, setTaskResultResponse] = useState("");
+  const [jwt, setJwt] = useState(null);
 
   useEffect(() => {
+    const jwt = getTokenFromLocalCookie();
+
+    setJwt(jwt);
     const fetchData = async () => {
       // const employeeResult = await readEmployee(jwt);
       // setEmployeeResponse(employeeResult.data);
@@ -145,6 +171,7 @@ const ProjectDetailPage = ({ id, jwt }) => {
       }
 
       const result = await readProjectDetail(id, jwt, user);
+      const taskResult = await readTaskEmployee(jwt, user);
       setResponse(result.data);
 
       // const taskResult = await readEmployeeTask(jwt, user);
@@ -157,6 +184,11 @@ const ProjectDetailPage = ({ id, jwt }) => {
     };
     // randomId;
     fetchData();
+
+    readNotification(jwt).then((r) => {
+      console.log("r is", r.data?.data);
+      setResponse(r.data?.data);
+    });
   }, [user]);
   return (
     <Stack
@@ -677,12 +709,29 @@ const ProjectDetailPage = ({ id, jwt }) => {
                     />
                   </label>
                 </Button>
-                <Button>
+                <Button onClick={handleClick}>
                   <Box display="flex" alignItems="center">
                     <AddIcon sx={{ color: "#4339F2" }} />
                     <Typography color="#4339F2">Add Task to Project</Typography>
                   </Box>
                 </Button>
+                <Modal
+                  aria-labelledby="transition-modal-title"
+                  aria-describedby="transition-modal-description"
+                  open={open}
+                  onClose={handleClose}
+                  closeAfterTransition
+                >
+                  <Fade in={open}>
+                    <Box sx={style}>
+                      <Stack>
+                        <Typography fontWeight="700" fontSize="16px">
+                          Select Project Files
+                        </Typography>
+                      </Stack>
+                    </Box>
+                  </Fade>
+                </Modal>
               </Box>
 
               <Box height="24px" />

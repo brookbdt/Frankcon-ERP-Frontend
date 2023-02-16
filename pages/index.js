@@ -17,14 +17,7 @@ export default function Home() {
   // const [taskResponse, taskResponse] = useState([]);
 
   useEffect(async () => {
-    console.log(1, "start");
-
     const jwt = getTokenFromLocalCookie();
-
-    // typeof window !== "undefined"
-    //   ? getTokenFromLocalCookie
-    //   : getTokenFromServerCookie(req);
-    console.log(2, "end", { jwt });
 
     setJwt(jwt);
 
@@ -38,7 +31,7 @@ export default function Home() {
           }
         : ""
     );
-    console.log(2, { purchaseRequestResponse });
+
     if (purchaseRequestResponse.data) {
       setPurchaseRequestResponse(purchaseRequestResponse.data);
     }

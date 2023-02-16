@@ -16,12 +16,8 @@ const PaymentList = () => {
 
   const [response, setResponse] = useState([]);
 
-  useEffect(async () => {
-    console.log(1, "params console is");
-
+  useEffect(() => {
     const jwt = getTokenFromLocalCookie();
-
-    console.log(2, "end", { jwt });
 
     setJwt(jwt);
 
