@@ -1,14 +1,54 @@
 import { Box } from "@mui/system";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Employees from "../../components/Employees";
 import Layout from "../../components/Layout";
+import { readNotification } from "../../lib";
 import { fetcher } from "../../lib/api";
 import { getTokenFromServerCookie } from "../../lib/auth";
 import { useFetchUser, useFetchUserDepartment } from "../../lib/authContext";
 
-const EmployeesPage = ({ jwt }) => {
+const EmployeesPage = () => {
   const { user, loading } = useFetchUser();
   const { userDepartment } = useFetchUserDepartment();
+
+  const [jwt, setJwt] = useState(null);
+  const [purchaseRequestResponse, setPurchaseRequestResponse] = useState();
+  const [response, setResponse] = useState([]);
+
+  useEffect(async () => {
+    console.log(1, "start");
+
+    const jwt = getTokenFromLocalCookie();
+
+    // typeof window !== "undefined"
+    //   ? getTokenFromLocalCookie
+    //   : getTokenFromServerCookie(req);
+    console.log(2, "end", { jwt });
+
+    setJwt(jwt);
+
+    const purchaseRequestResponse = await fetcher(
+      `https://frankconerp.herokuapp.com/api/purchaseRequests`,
+      jwt
+        ? {
+            headers: {
+              Authorization: `Bearer ${jwt}`,
+            },
+          }
+        : ""
+    );
+    console.log(2, { purchaseRequestResponse });
+    if (purchaseRequestResponse.data) {
+      setPurchaseRequestResponse(purchaseRequestResponse.data);
+    }
+
+    readNotification(jwt).then((r) => {
+      console.log("r is", r.data?.data);
+      setResponse(r.data?.data);
+    });
+
+    console.log("index response is", { response });
+  }, []);
 
   console.log("the user is", user);
   console.log("the user department is", userDepartment);
@@ -39,38 +79,5 @@ const EmployeesPage = ({ jwt }) => {
     </>
   );
 };
-export async function getServerSideProps({ req, params }) {
-  // const { slug } = params;
-  const jwt =
-    typeof window !== "undefined"
-      ? getTokenFromLocalCookie
-      : getTokenFromServerCookie(req);
-  const employeeResponse = await fetcher(
-    `https://frankconerp.herokuapp.com/api/employees`,
-    jwt
-      ? {
-          headers: {
-            Authorization: `Bearer ${jwt}`,
-          },
-        }
-      : ""
-  );
-  if (employeeResponse.data) {
-    // const plot = await markdownToHtml(filmResponse.data.attributes.plot);
-    return {
-      props: {
-        employeeResponse: employeeResponse.data,
-        // plot,
-        jwt: jwt ? jwt : "",
-      },
-    };
-  } else {
-    return {
-      props: {
-        error: employeeResponse.error.message,
-      },
-    };
-  }
-}
 
 export default EmployeesPage;

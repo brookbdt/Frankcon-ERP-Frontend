@@ -1,5 +1,5 @@
 import { Box } from "@mui/system";
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 import EmployeesSorted from "../../components/EmployeesSorted";
 import Layout from "../../components/Layout";
@@ -9,13 +9,34 @@ import {
   getTokenFromServerCookie,
 } from "../../lib/auth";
 import { fetcher } from "../../lib/api";
+import { readNotification } from "../../lib";
 
-const sortedEmployees = ({ jwt }) => {
+const sortedEmployees = () => {
   const { user, loading } = useFetchUser();
   const { userDepartment } = useFetchUserDepartment();
 
   console.log("the user is", user);
   console.log("the user department is", userDepartment);
+
+  const [response, setResponse] = useState([]);
+  const [jwt, setJwt] = useState(null);
+
+  useEffect(async () => {
+    console.log(1, "start");
+
+    const jwt = getTokenFromLocalCookie();
+
+    console.log(2, "end", { jwt });
+
+    setJwt(jwt);
+
+    readNotification(jwt).then((r) => {
+      console.log("r is", r.data?.data);
+      setResponse(r.data?.data);
+    });
+
+    console.log("index response is", { response });
+  }, []);
   return (
     <>
       {userDepartment === "Human Resource" ? (
@@ -43,38 +64,5 @@ const sortedEmployees = ({ jwt }) => {
     </>
   );
 };
-export async function getServerSideProps({ req, params }) {
-  // const { slug } = params;
-  const jwt =
-    typeof window !== "undefined"
-      ? getTokenFromLocalCookie
-      : getTokenFromServerCookie(req);
-  const employeeResponse = await fetcher(
-    `https://frankconerp.herokuapp.com/api/employees`,
-    jwt
-      ? {
-          headers: {
-            Authorization: `Bearer ${jwt}`,
-          },
-        }
-      : ""
-  );
-  if (employeeResponse.data) {
-    // const plot = await markdownToHtml(filmResponse.data.attributes.plot);
-    return {
-      props: {
-        employeeResponse: employeeResponse.data,
-        // plot,
-        jwt: jwt ? jwt : "",
-      },
-    };
-  } else {
-    return {
-      props: {
-        error: employeeResponse.error.message,
-      },
-    };
-  }
-}
 
 export default sortedEmployees;

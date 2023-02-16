@@ -1,6 +1,8 @@
 import { useRouter } from "next/router";
+import { useEffect, useState } from "react";
 import EmployeeDetailPage from "../../components/EmployeeDetailPage";
 import Layout from "../../components/Layout";
+import { readNotification } from "../../lib";
 import { fetcher } from "../../lib/api";
 import {
   getTokenFromLocalCookie,
@@ -9,15 +11,31 @@ import {
 
 import { useFetchUser, useFetchUserDepartment } from "../../lib/authContext";
 
-function EmployeeDetails({ id, jwt }) {
+function EmployeeDetails({ id }) {
   const router = useRouter();
 
   const { user, loading } = useFetchUser();
   const { userDepartment } = useFetchUserDepartment();
 
-  const handleSlide = () => {
-    setChecked((prev) => !prev);
-  };
+  const [jwt, setJwt] = useState(null);
+  const [response, setResponse] = useState([]);
+
+  useEffect(async () => {
+    console.log(1, "start");
+
+    const jwt = getTokenFromLocalCookie();
+
+    console.log(2, "end", { jwt });
+
+    setJwt(jwt);
+
+    readNotification(jwt).then((r) => {
+      console.log("r is", r.data?.data);
+      setResponse(r.data?.data);
+    });
+
+    console.log("index response is", { response });
+  }, []);
   return (
     <Layout
       jwt={jwt}
@@ -39,51 +57,11 @@ function EmployeeDetails({ id, jwt }) {
 }
 export async function getServerSideProps({ req, params }) {
   const id = params.employeeId;
-  console.log("params is ", params);
-  console.log("id is ", id);
-  const jwt =
-    typeof window !== "undefined"
-      ? getTokenFromLocalCookie
-      : getTokenFromServerCookie(req);
-  const employeeResponse = await fetcher(
-    `https://frankconerp.herokuapp.com/api/employees`,
-    jwt
-      ? {
-          headers: {
-            Authorization: `Bearer ${jwt}`,
-          },
-        }
-      : ""
-  );
-  const purchaseRequestResponse = await fetcher(
-    `https://frankconerp.herokuapp.com/api/purchaseRequests`,
-    jwt
-      ? {
-          headers: {
-            Authorization: `Bearer ${jwt}`,
-          },
-        }
-      : ""
-  );
-  if (employeeResponse.data || purchaseRequestResponse.data) {
-    // const plot = await markdownToHtml(filmResponse.data.attributes.plot);
-    return {
-      props: {
-        taskResponse: employeeResponse.data,
-        purchaseRequestResponse: purchaseRequestResponse.data,
-        // data,
-        // plot,
-        jwt: jwt ? jwt : "",
-        id,
-      },
-    };
-  } else {
-    return {
-      props: {
-        error: employeeResponse.error.message,
-      },
-    };
-  }
+  return {
+    props: {
+      id,
+    },
+  };
 }
 
 export default EmployeeDetails;

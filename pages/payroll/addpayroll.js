@@ -1,7 +1,8 @@
 import { Box } from "@mui/material";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Layout from "../../components/Layout";
 import AddPay from "../../components/Payroll/AddPay";
+import { readNotification } from "../../lib";
 import { fetcher } from "../../lib/api";
 import {
   getTokenFromLocalCookie,
@@ -9,10 +10,30 @@ import {
 } from "../../lib/auth";
 import { useFetchUser, useFetchUserDepartment } from "../../lib/authContext";
 
-const AddPayroll = ({ jwt }) => {
+const AddPayroll = () => {
   const [checked, setChecked] = React.useState(false);
   const { user, loading } = useFetchUser();
   const { userDepartment } = useFetchUserDepartment();
+  const [jwt, setJwt] = useState(null);
+  const [response, setResponse] = useState([]);
+
+  useEffect(async () => {
+    console.log(1, "start");
+
+    const jwt = getTokenFromLocalCookie();
+
+    console.log(2, "end", { jwt });
+
+    setJwt(jwt);
+
+    readNotification(jwt).then((r) => {
+      console.log("r is", r.data?.data);
+      setResponse(r.data?.data);
+    });
+
+    console.log("index response is", { response });
+  }, []);
+
   return (
     <>
       <Layout jwt={jwt} user={user} userDepartment={userDepartment}>
@@ -23,38 +44,5 @@ const AddPayroll = ({ jwt }) => {
     </>
   );
 };
-export async function getServerSideProps({ req, params }) {
-  // const { slug } = params;
-  const jwt =
-    typeof window !== "undefined"
-      ? getTokenFromLocalCookie
-      : getTokenFromServerCookie(req);
-  const payrollResponse = await fetcher(
-    `https://frankconerp.herokuapp.com/api/payrolls`,
-    jwt
-      ? {
-          headers: {
-            Authorization: `Bearer ${jwt}`,
-          },
-        }
-      : ""
-  );
-  if (payrollResponse.data) {
-    // const plot = await markdownToHtml(filmResponse.data.attributes.plot);
-    return {
-      props: {
-        employeeResponse: payrollResponse.data,
-        // plot,
-        jwt: jwt ? jwt : "",
-      },
-    };
-  } else {
-    return {
-      props: {
-        error: payrollResponse.error.message,
-      },
-    };
-  }
-}
 
 export default AddPayroll;

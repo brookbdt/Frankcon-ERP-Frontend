@@ -52,7 +52,7 @@ const inprogress = require("../../public/static/normal.png");
 
 // const priority = [high, low, normal];
 
-const Tasks = ({ jwt }) => {
+const Tasks = () => {
   const [selected, setSelected] = useState([]);
 
   const changeImage = (value) => {
@@ -129,10 +129,44 @@ const Tasks = ({ jwt }) => {
   const addEmployeeToTask = () => setAddEmployee(true);
 
   const [response, setResponse] = useState([]);
+  const [notificationResponse, setNotificationResponse] = useState([]);
   const [employees, setEmployees] = useState([]);
   // const [employeeResponse, setEmployeeResponse] = useState([]);
   const { user, loading } = useFetchUser();
   const { userDepartment } = useFetchUserDepartment();
+
+  const [jwt, setJwt] = useState(null);
+
+  useEffect(async () => {
+    console.log(1, "params console is");
+
+    const jwt = getTokenFromLocalCookie();
+
+    console.log(2, "end", { jwt });
+
+    setJwt(jwt);
+
+    readNotification(jwt).then((r) => {
+      console.log("r is", r.data?.data);
+      setNotificationResponse(r.data?.data);
+    });
+
+    const fetchData = async () => {
+      // const employeeResult = await readEmployee(jwt);
+      // setEmployeeResponse(employeeResult.data);
+      if (!user) {
+        return;
+      }
+      const result = await readEmployeeTask(jwt, user);
+      const employeeList = await readEmployee(jwt, user);
+      setResponse(result.data);
+      setEmployees(employeeList.data);
+    };
+    // console.log("the jwt is", jwt);
+    fetchData();
+    // console.log("relation is:", response?.attributes?.tasks);
+    console.log("relation is:", response);
+  }, [user]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -525,41 +559,4 @@ const Tasks = ({ jwt }) => {
   );
 };
 
-export async function getServerSideProps({ req, params }) {
-  // const { slug } = params;
-  console.log("before");
-  const jwt = getTokenFromServerCookie(req);
-  // typeof window !== "undefined"
-  //   ? getTokenFromLocalCookie
-  //   : getTokenFromServerCookie(req);
-  console.log("after");
-
-  const taskResponse = await fetcher(
-    `https://frankconerp.herokuapp.com/api/tasks`,
-    jwt
-      ? {
-          headers: {
-            Authorization: `Bearer ${jwt}`,
-          },
-        }
-      : ""
-  );
-  console.log(2, { taskResponse });
-  if (taskResponse.data) {
-    // const plot = await markdownToHtml(filmResponse.data.attributes.plot);
-    return {
-      props: {
-        taskResponse: taskResponse.data,
-        // plot,
-        jwt: jwt ? jwt : "",
-      },
-    };
-  } else {
-    return {
-      props: {
-        error: taskResponse.error.message,
-      },
-    };
-  }
-}
 export default Tasks;

@@ -144,14 +144,6 @@ const SideBar = ({
     p: 4,
   };
 
-  const Status = styled("div")(({ theme }) => ({
-    display: "flex",
-    backgroundColor: "white",
-    padding: "8px",
-    borderRadius: "8px",
-    width: "100%",
-  }));
-
   const theme = createTheme({
     components: {
       MuiListItemText: {
