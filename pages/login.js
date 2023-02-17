@@ -50,7 +50,8 @@ const Login = () => {
     );
     console.log(1, "try");
     setToken(responseData);
-    router.push("/");
+    location.href = "/";
+    // router.push("/");
   };
 
   const theme = createTheme({
