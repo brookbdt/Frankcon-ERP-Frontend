@@ -8,8 +8,9 @@ import { getTokenFromLocalCookie } from "../../lib/auth";
 
 import { useFetchUser, useFetchUserDepartment } from "../../lib/authContext";
 
-function ProjectDetails({ id }) {
+function ProjectDetails() {
   const router = useRouter();
+  const id = router.query.employeeId;
 
   const { user, loading } = useFetchUser();
   const { userDepartment } = useFetchUserDepartment();
@@ -19,8 +20,6 @@ function ProjectDetails({ id }) {
   const [response, setResponse] = useState([]);
 
   useEffect(() => {
-    console.log(1, "params console is");
-
     const jwt = getTokenFromLocalCookie();
 
     console.log(2, "end", { jwt });
@@ -52,15 +51,6 @@ function ProjectDetails({ id }) {
       </>
     </Layout>
   );
-}
-export async function getServerSideProps({ req, params }) {
-  const id = params.projectId;
-
-  return {
-    props: {
-      id,
-    },
-  };
 }
 
 export default ProjectDetails;

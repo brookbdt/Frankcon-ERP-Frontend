@@ -15,6 +15,7 @@ function EmployeeDetails() {
   const router = useRouter();
   const id = router.query.employeeId;
 
+  console.log("this", { id });
   const { user, loading } = useFetchUser();
   const { userDepartment } = useFetchUserDepartment();
 
@@ -22,8 +23,6 @@ function EmployeeDetails() {
   const [response, setResponse] = useState([]);
 
   useEffect(async () => {
-    console.log(1, { router });
-
     const jwt = getTokenFromLocalCookie();
 
     console.log(2, "end", { jwt });
