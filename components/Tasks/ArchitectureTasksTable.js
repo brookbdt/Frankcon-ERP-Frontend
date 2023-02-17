@@ -3,11 +3,16 @@ import React, { useEffect, useState } from "react";
 import DataTable from "../DataTable";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
-import { readEmployee, readEmployeeTask, readTask } from "../../lib";
+import {
+  readEmployee,
+  readEmployeeDepartmentTask,
+  readEmployeeTask,
+  readTask,
+} from "../../lib";
 import { useFetchUser, useFetchUserDepartment } from "../../lib/authContext";
 import WorkshopTable from "../Workshop/WorkshopTable";
 
-const TasksTable = ({ jwt }) => {
+const ArchitectureTasksTable = ({ jwt }) => {
   dayjs.extend(relativeTime);
   let today = new Date();
 
@@ -138,7 +143,7 @@ const TasksTable = ({ jwt }) => {
       if (!user) {
         return;
       }
-      const result = await readEmployeeTask(jwt, user);
+      const result = await readEmployeeDepartmentTask(jwt, "Architecture");
       const employeeList = await readEmployee(jwt, user);
       setResponse(result.data);
       setEmployees(employeeList.data);
@@ -209,4 +214,4 @@ const TasksTable = ({ jwt }) => {
   );
 };
 
-export default TasksTable;
+export default ArchitectureTasksTable;

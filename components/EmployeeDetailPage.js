@@ -67,7 +67,7 @@ const EmployeeDetailPage = ({ id, jwt }) => {
                   width: "56px",
                   height: "56px",
                 }}
-                src={`${process.env.NEXT_PUBLIC_STRAPI_BASE_URL}${response?.data?.attributes?.employeeImage.data?.attributes?.url}`}
+                src={`${response?.data?.attributes?.employeeImage.data?.attributes?.url}`}
               />
               <Box width="25px" />
               <Stack justifyContent="center">

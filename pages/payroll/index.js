@@ -13,6 +13,7 @@ import Layout from "../../components/Layout";
 import { useFetchUser, useFetchUserDepartment } from "../../lib/authContext";
 import Payroll from "../../components/Payroll";
 import PayrollTable from "../../components/Payroll/PayrollTable";
+import { readNotification } from "../../lib";
 
 const PayrollPage = () => {
   const handleSlide = () => {
@@ -22,6 +23,7 @@ const PayrollPage = () => {
   const [checked, setChecked] = React.useState(false);
   const { user, loading } = useFetchUser();
   const { userDepartment } = useFetchUserDepartment();
+  const [response, setResponse] = useState([]);
 
   const [jwt, setJwt] = useState(null);
 

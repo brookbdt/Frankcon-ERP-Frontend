@@ -741,7 +741,7 @@ const Projects = ({ jwt }) => {
                 <Stack justifyContent="flex-start" alignItems="flex-start">
                   <Stack direction="row">
                     <Avatar
-                      src={`${process.env.NEXT_PUBLIC_STRAPI_BASE_URL}${project?.attributes?.projectImage.data?.[0].attributes?.url}`}
+                      src={`${project?.attributes?.projectImage.data?.[0].attributes?.url}`}
                       alt="project image"
                       sx={{
                         width: "40px",

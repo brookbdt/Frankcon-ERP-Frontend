@@ -813,7 +813,7 @@ const SideBar = ({
           {userDepartment === "admin" ? (
             <>
               <ListItem disablePadding>
-                <ListItemButton component="a" href="#simple-list">
+                <ListItemButton component="a" href="/tasks/architecture">
                   <ListItemIcon>
                     <DomainIcon sx={{ color: "white" }} />
                   </ListItemIcon>
@@ -824,7 +824,7 @@ const SideBar = ({
                 </ListItemButton>
               </ListItem>
               <ListItem disablePadding>
-                <ListItemButton component="a" href="#simple-list">
+                <ListItemButton component="a" href="/tasks/engineering">
                   <ListItemIcon>
                     <EngineeringIcon sx={{ color: "white" }} />
                   </ListItemIcon>
@@ -900,7 +900,11 @@ const SideBar = ({
                       primaryTypographyProps={{ fontSize: "11px" }}
                     />
                   </ListItemButton>
-                  <ListItemButton sx={{ pl: "80px" }}>
+                  <ListItemButton
+                    component="a"
+                    href="/payroll"
+                    sx={{ pl: "80px" }}
+                  >
                     <ListItemText
                       primary="Payroll"
                       primaryTypographyProps={{ fontSize: "11px" }}
@@ -965,7 +969,7 @@ const SideBar = ({
                 </ListItemButton>
               </ListItem>
               <ListItem disablePadding>
-                <ListItemButton component="a" href="/workshop">
+                <ListItemButton component="a" href="/tasks/workshop">
                   <ListItemIcon>
                     <LocalShippingOutlined sx={{ color: "white" }} />
                   </ListItemIcon>
@@ -1068,13 +1072,21 @@ const SideBar = ({
                       primaryTypographyProps={{ fontSize: "11px" }}
                     />
                   </ListItemButton>
-                  <ListItemButton sx={{ pl: "80px" }}>
+                  <ListItemButton
+                    component="a"
+                    href="/employees"
+                    sx={{ pl: "80px" }}
+                  >
                     <ListItemText
                       primary="Employees"
                       primaryTypographyProps={{ fontSize: "11px" }}
                     />
                   </ListItemButton>
-                  <ListItemButton sx={{ pl: "80px" }}>
+                  <ListItemButton
+                    component="a"
+                    href="/payroll"
+                    sx={{ pl: "80px" }}
+                  >
                     <ListItemText
                       primary="Payroll"
                       primaryTypographyProps={{ fontSize: "11px" }}
@@ -1138,7 +1150,7 @@ const SideBar = ({
           ) : userDepartment === "architecture" ? (
             <>
               <ListItem disablePadding>
-                <ListItemButton component="a" href="#simple-list">
+                <ListItemButton component="a" href="/tasks/architecture">
                   <ListItemIcon>
                     <DomainIcon sx={{ color: "white" }} />
                   </ListItemIcon>
@@ -1149,7 +1161,7 @@ const SideBar = ({
                 </ListItemButton>
               </ListItem>
               <ListItem disablePadding>
-                <ListItemButton component="a" href="">
+                <ListItemButton component="a" href="/tasks/workshop">
                   <ListItemIcon>
                     <LocalShippingOutlined sx={{ color: "white" }} />
                   </ListItemIcon>
@@ -1222,7 +1234,7 @@ const SideBar = ({
           ) : userDepartment === "human resource" ? (
             <>
               <ListItem disablePadding>
-                <ListItemButton component="a" href="#simple-list">
+                <ListItemButton component="a" href="/tasks/architecture">
                   <ListItemIcon>
                     <DomainIcon sx={{ color: "white" }} />
                   </ListItemIcon>
@@ -1233,7 +1245,7 @@ const SideBar = ({
                 </ListItemButton>
               </ListItem>
               <ListItem disablePadding>
-                <ListItemButton component="a" href="#simple-list">
+                <ListItemButton component="a" href="/tasks/engineering">
                   <ListItemIcon>
                     <EngineeringIcon sx={{ color: "white" }} />
                   </ListItemIcon>
@@ -1299,13 +1311,21 @@ const SideBar = ({
                       primaryTypographyProps={{ fontSize: "11px" }}
                     />
                   </ListItemButton>
-                  <ListItemButton sx={{ pl: "80px" }}>
+                  <ListItemButton
+                    component="a"
+                    href="/employees"
+                    sx={{ pl: "80px" }}
+                  >
                     <ListItemText
                       primary="Employees"
                       primaryTypographyProps={{ fontSize: "11px" }}
                     />
                   </ListItemButton>
-                  <ListItemButton sx={{ pl: "80px" }}>
+                  <ListItemButton
+                    component="a"
+                    href="/payroll"
+                    sx={{ pl: "80px" }}
+                  >
                     <ListItemText
                       primary="Payroll"
                       primaryTypographyProps={{ fontSize: "11px" }}
@@ -1314,7 +1334,7 @@ const SideBar = ({
                 </List>
               </Collapse>
               <ListItem disablePadding>
-                <ListItemButton component="a" href="">
+                <ListItemButton component="a" href="/tasks/purchaser">
                   <ListItemIcon>
                     <ShoppingCartOutlined sx={{ color: "white" }} />
                   </ListItemIcon>
@@ -1325,7 +1345,7 @@ const SideBar = ({
                 </ListItemButton>
               </ListItem>
               <ListItem disablePadding>
-                <ListItemButton component="a" href="">
+                <ListItemButton component="a" href="/tasks/workshop">
                   <ListItemIcon>
                     <LocalShippingOutlined sx={{ color: "white" }} />
                   </ListItemIcon>

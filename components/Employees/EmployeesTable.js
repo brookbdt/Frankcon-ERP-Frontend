@@ -218,7 +218,7 @@ const EmployeesTable = ({ jwt }) => {
                   e?.attributes?.firstName + " " + e?.attributes?.lastName,
                 //   date: dayjs(e?.attributes?.date).format("DD MMM YYYY"),
                 priority: e.attributes?.priority,
-                employeeImage: `${process.env.NEXT_PUBLIC_STRAPI_BASE_URL}${e?.attributes?.employeeImage?.data?.attributes?.url}`,
+                employeeImage: `${e?.attributes?.employeeImage?.data?.attributes?.url}`,
                 employmentDate: e.attributes?.employmentDate,
                 contact: e.attributes?.phone,
                 email: e.attributes?.email,

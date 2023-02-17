@@ -211,7 +211,7 @@ const PayrollTable = ({ onError, jwt }) => {
               department: e?.attributes?.department,
               dueDate: "28" + " " + monthName,
               employeeSalary: e?.attributes?.employeeNetSalary,
-              employeeImage: `${process.env.NEXT_PUBLIC_STRAPI_BASE_URL}${e?.attributes?.employeeImage?.data?.attributes?.url}`,
+              employeeImage: `${e?.attributes?.employeeImage?.data?.attributes?.url}`,
               paymentStatus: e?.attributes?.paymentStatus,
             };
           }) ?? []

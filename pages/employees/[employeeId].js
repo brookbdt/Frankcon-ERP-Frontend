@@ -11,8 +11,9 @@ import {
 
 import { useFetchUser, useFetchUserDepartment } from "../../lib/authContext";
 
-function EmployeeDetails({ id }) {
+function EmployeeDetails() {
   const router = useRouter();
+  const id = router.query.employeeId;
 
   const { user, loading } = useFetchUser();
   const { userDepartment } = useFetchUserDepartment();
@@ -21,7 +22,7 @@ function EmployeeDetails({ id }) {
   const [response, setResponse] = useState([]);
 
   useEffect(async () => {
-    console.log(1, "start");
+    console.log(1, { router });
 
     const jwt = getTokenFromLocalCookie();
 
@@ -54,14 +55,6 @@ function EmployeeDetails({ id }) {
       </>
     </Layout>
   );
-}
-export async function getServerSideProps({ req, params }) {
-  const id = params.employeeId;
-  return {
-    props: {
-      id,
-    },
-  };
 }
 
 export default EmployeeDetails;
