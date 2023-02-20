@@ -49,10 +49,10 @@ const Employees = ({ jwt }) => {
   const [value, setValue] = React.useState(dayjs(new Date()));
   const [selected, setSelected] = useState([]);
 
-  const [firstName, setFirstname] = useState("");
+  const [fullName, setFirstname] = useState("");
   const [alertOpen, setAlertOpen] = useState(false);
 
-  const [lastName, setLastname] = useState("");
+  const [tinNumber, setLastname] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [dateOfBirth, setDateOfBirth] = useState("");
@@ -80,8 +80,8 @@ const Employees = ({ jwt }) => {
     formData.append(
       "data",
       JSON.stringify({
-        firstName,
-        lastName,
+        firstName: fullName,
+        lastName: tinNumber,
         employeeId,
         email,
         phone,
@@ -195,7 +195,10 @@ const Employees = ({ jwt }) => {
   ];
 
   const addEmployee = (
-    <Paper sx={{ m: 1, zIndex: 1, height: "670px" }} elevation={4}>
+    <Paper
+      sx={{ m: 1, zIndex: 1, width: "570px", height: "670px" }}
+      elevation={4}
+    >
       <Box
         sx={{
           width: "568px",
@@ -289,9 +292,9 @@ const Employees = ({ jwt }) => {
             <Stack direction="row" gap="24px">
               <FormControl variant="filled">
                 <TextField
-                  value={firstName}
+                  value={fullName}
                   htmlFor="component-filled"
-                  label="First Name"
+                  label="Full Name"
                   size="small"
                   sx={{
                     width: "248px",
@@ -299,30 +302,11 @@ const Employees = ({ jwt }) => {
                       height: "46px",
                     },
                   }}
-                  defaultValue="Employee first name"
+                  defaultValue="Employee full name"
                   variant="filled"
                   onChange={(e) => setFirstname(e.target.value)}
                 ></TextField>
               </FormControl>
-              <FormControl variant="filled">
-                <TextField
-                  value={lastName}
-                  htmlFor="component-filled"
-                  label="Last Name"
-                  sx={{
-                    width: "248px",
-                    "& .MuiInputBase-root": {
-                      height: "46px",
-                    },
-                  }}
-                  defaultValue="Employee last name"
-                  size="small"
-                  variant="filled"
-                  onChange={(e) => setLastname(e.target.value)}
-                ></TextField>
-              </FormControl>
-            </Stack>
-            <Stack direction="row" gap="24px">
               <FormControl variant="filled">
                 <TextField
                   value={email}
@@ -340,6 +324,8 @@ const Employees = ({ jwt }) => {
                   onChange={(e) => setEmail(e.target.value)}
                 ></TextField>
               </FormControl>
+            </Stack>
+            <Stack direction="row" gap="24px">
               <FormControl variant="filled">
                 <TextField
                   value={phone}
@@ -360,6 +346,23 @@ const Employees = ({ jwt }) => {
                     ),
                   }}
                   onChange={(e) => setPhone(e.target.value)}
+                ></TextField>
+              </FormControl>
+              <FormControl variant="filled">
+                <TextField
+                  value={address}
+                  htmlFor="component-filled"
+                  label="Employee Address"
+                  sx={{
+                    width: "248px",
+                    "& .MuiInputBase-root": {
+                      height: "46px",
+                    },
+                  }}
+                  defaultValue="Enter Employee Address"
+                  variant="filled"
+                  size="small"
+                  onChange={(e) => setAddress(e.target.value)}
                 ></TextField>
               </FormControl>
             </Stack>
@@ -390,21 +393,22 @@ const Employees = ({ jwt }) => {
                   />
                 </LocalizationProvider>
               </Box>
+
               <FormControl variant="filled">
                 <TextField
-                  value={address}
+                  value={tinNumber}
                   htmlFor="component-filled"
-                  label="Employee Address"
+                  label="Enter Employee TIN Number"
                   sx={{
                     width: "248px",
                     "& .MuiInputBase-root": {
                       height: "46px",
                     },
                   }}
-                  defaultValue="Enter Employee Address"
-                  variant="filled"
+                  defaultValue="Employee TIN Number"
                   size="small"
-                  onChange={(e) => setAddress(e.target.value)}
+                  variant="filled"
+                  onChange={(e) => setLastname(e.target.value)}
                 ></TextField>
               </FormControl>
             </Stack>

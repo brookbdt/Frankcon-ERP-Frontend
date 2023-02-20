@@ -193,6 +193,18 @@ const Navbar = ({ jwt }) => {
   const handleClose = () => {
     setChecked((prev) => !prev);
   };
+  const handleClosePayment = () => {
+    setCheckedPayment((prev) => !prev);
+  };
+  const handleCloseAMT = () => {
+    setCheckedAMT((prev) => !prev);
+  };
+  const handleCloseLeaveRequest = () => {
+    setCheckedLeaveRequest((prev) => !prev);
+  };
+  const handleCloseIRF = () => {
+    setCheckedIRF((prev) => !prev);
+  };
   const handleCloseTR = () => {
     setCheckedTR((prev) => !prev);
   };
@@ -1241,7 +1253,7 @@ const Navbar = ({ jwt }) => {
             </Typography>
 
             <IconButton
-              onClick={handleClose}
+              onClick={handleCloseIRF}
               sx={{
                 backgroundColor: "#F6F6F6",
                 width: "24px",
@@ -1635,8 +1647,8 @@ const Navbar = ({ jwt }) => {
                     onClick={() => {
                       setFormSelectedIndex(index);
                       formSelectedIndex === 0
-                        ? (setFormStatus("Material Transfer"),
-                          setCheckedAMT(true),
+                        ? (setCheckedAMT(true),
+                          setFormStatus("Material Transfer"),
                           setCheckedLeaveRequest(false),
                           setCheckedPayment(false),
                           setChecked(false),
@@ -1733,7 +1745,7 @@ const Navbar = ({ jwt }) => {
                 </Typography>
 
                 <IconButton
-                  onClick={handleClose}
+                  onClick={handleCloseAMT}
                   sx={{
                     backgroundColor: "#F6F6F6",
                     width: "24px",
@@ -2006,7 +2018,7 @@ const Navbar = ({ jwt }) => {
                 </Typography>
 
                 <IconButton
-                  onClick={handleClose}
+                  onClick={handleClosePayment}
                   sx={{
                     backgroundColor: "#F6F6F6",
                     width: "24px",

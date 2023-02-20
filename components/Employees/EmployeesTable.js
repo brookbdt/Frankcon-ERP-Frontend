@@ -214,8 +214,7 @@ const EmployeesTable = ({ jwt }) => {
             response?.data?.map((e) => {
               return {
                 id: e?.id,
-                employeeName:
-                  e?.attributes?.firstName + " " + e?.attributes?.lastName,
+                employeeName: e?.attributes?.firstName,
                 //   date: dayjs(e?.attributes?.date).format("DD MMM YYYY"),
                 priority: e.attributes?.priority,
                 employeeImage: `${e?.attributes?.employeeImage?.data?.attributes?.url}`,

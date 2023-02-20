@@ -42,11 +42,15 @@ const ActiveProjects = ({ jwt }) => {
         width="306px"
       >
         <Typography fontWeight="500">Active Projects</Typography>
-        <Link href="/projects">
-          <Button sx={{ color: "#9FA0AB", fontSize: "10px" }}>
-            VIEW ALL PROJECTS
-          </Button>
-        </Link>
+        {/* <Link href="/employees"> */}
+        <Button
+          component="a"
+          href="/projects"
+          sx={{ color: "#9FA0AB", fontSize: "10px" }}
+        >
+          VIEW ALL PROJECTS
+        </Button>
+        {/* </Link> */}
       </Stack>
       <Box height="8px" />
       <Divider
