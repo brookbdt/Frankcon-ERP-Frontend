@@ -23,7 +23,11 @@ const TasksTable = ({ jwt }) => {
         console.log({ cellValues });
         return (
           <Box display="flex" sx={{ paddingY: "20px" }}>
-            <Avatar src={cellValues.row.avatar} width="44px" height="44px" />
+            <Avatar
+              src={cellValues.row.employeeImage}
+              width="44px"
+              height="44px"
+            />
             <Box width="12px" />
 
             <Stack justifyContent="center">
@@ -190,7 +194,7 @@ const TasksTable = ({ jwt }) => {
                   date: e?.attributes?.date,
                   //   date: dayjs(e?.attributes?.date).format("DD MMM YYYY"),
                   priority: e.attributes?.priority,
-                  employeeImage: `${e?.attributes?.employeeImage?.data?.attributes?.url}`,
+                  employeeImage: `${e?.attributes?.employee?.data[0]?.attributes?.employeeImage?.data?.attributes?.url}`,
 
                   department:
                     e?.attributes?.employee?.data[0]?.attributes?.department,

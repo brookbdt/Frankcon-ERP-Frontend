@@ -43,6 +43,7 @@ import {
   getTokenFromServerCookie,
 } from "../../lib/auth";
 import { useFetchUser, useFetchUserDepartment } from "../../lib/authContext";
+import Dropdown from "../../components/Projects/dropdown";
 // import { convertToLocalTime } from "date-fns-timezone";
 // import { format } from "date-fns";
 
@@ -316,17 +317,27 @@ const Tasks = () => {
                                 >
                                   {employees?.data?.map((employee) => (
                                     <Stack>
+                                      <Box height="6px" />
+
                                       <Box
                                         display="flex"
                                         alignItems="center"
-                                        justifyContent="center"
+                                        // justifyContent="center"
                                       >
+                                        <Box width="6px" />
                                         <Avatar
-                                          src={`${process.env.NEXT_PUBLIC_STRAPI_BASE_URL}${employee?.attributes?.employeeImage?.data?.attributes?.url}`}
+                                          sx={{ width: "24px", height: "24px" }}
+                                          src={`${employee?.attributes?.employeeImage?.data?.attributes?.url}`}
                                         />
-                                        <Typography sx={{ p: 2 }}>
+                                        <Typography
+                                          fontWeight="400"
+                                          fontSize="12px"
+                                          sx={{
+                                            paddingLeft: "6px",
+                                            paddingRight: "20px",
+                                          }}
+                                        >
                                           {employee?.attributes?.firstName}{" "}
-                                          {employee?.attributes?.lastName}
                                         </Typography>
                                       </Box>
                                     </Stack>
@@ -347,28 +358,23 @@ const Tasks = () => {
                 justifyContent="center"
                 alignItems="center"
               >
-                <Stack
-                  direction="row"
-                  justifyContent="center"
-                  alignItems="center"
-                >
-                  <Typography>Priority:</Typography>
-                  <Box width="16px"></Box>
-                  <ChangingButton
-                    color={
-                      priority === "HIGH"
-                        ? "#F44336"
-                        : priority === "MEDIUM"
-                        ? "#FFBA2E"
-                        : priority === "LOW"
-                        ? "#24B07D"
-                        : "gray"
-                    }
-                    values={["HIGH", "MEDIUM", "LOW"]}
-                    selectedValue={priority}
-                    onChange={setPriority}
-                  />
-                </Stack>
+                <Typography>Priority:</Typography>
+                <Box width="16px"></Box>
+                <ChangingButton
+                  color={
+                    priority === "HIGH"
+                      ? "#F44336"
+                      : priority === "MEDIUM"
+                      ? "#FFBA2E"
+                      : priority === "LOW"
+                      ? "#24B07D"
+                      : "gray"
+                  }
+                  values={["HIGH", "MEDIUM", "LOW"]}
+                  selectedValue={priority}
+                  onChange={setPriority}
+                />
+
                 <Box width="24px"></Box>
                 <Typography>Status: </Typography>
                 <Box width="24px"></Box>
@@ -389,6 +395,7 @@ const Tasks = () => {
                   onChange={setStatus}
                 />
               </Stack>
+
               <Box height="25px"></Box>
             </Stack>
           </Stack>
