@@ -271,12 +271,13 @@ const All = ({ jwt }) => {
                   paymentName:
                     e?.attributes?.status +
                     e?.attributes?.paymentType +
-                    e?.attributes?.projectTitle +
-                    e?.attributes?.vendorId,
+                    e?.attributes?.projectTitle,
+                  // e?.attributes?.vendorId,
                   title: e?.attributes?.title,
                   projectTitle: e?.attributes?.projectTitle,
                   status: e.attributes?.status,
-                  date: e?.attributes?.requestDat8e,
+                  date: e?.attributes?.requestDate,
+                  approvals: "Head of Finance",
                   //   date: dayjs(e?.attributes?.date).format("DD MMM YYYY"),
                   paymentStatus: e.attributes?.isApproved,
                   paymentRequestId: e.attributes?.paymentRequestId,

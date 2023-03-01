@@ -31,7 +31,7 @@ const EmployeesPage = () => {
     setJwt(jwt);
 
     const purchaseRequestResponse = await fetcher(
-      `https://frankconerp.herokuapp.com/api/purchaseRequests`,
+      `${process.env.NEXT_PUBLIC_STRAPI_API_URL}/purchaseRequests`,
       jwt
         ? {
             headers: {

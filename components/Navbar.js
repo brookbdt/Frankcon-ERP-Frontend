@@ -64,6 +64,7 @@ import {
   getTagRegistrationId,
   getVendorId,
   readAllProjects,
+  readEmployee,
   readInventory,
   readProject,
   readTaskEmployee,
@@ -122,7 +123,7 @@ const Navbar = ({ jwt }) => {
   const [paymentRequestDate, setPaymentRequestDate] = useState("");
   const [paymentPriorityLevel, setPaymentPriorityLevel] = useState("");
   const [paymentReason, setPaymentReason] = useState("");
-  const [paymentInvoice, setPaymentInvoice] = useState("");
+  const [paymentInvoice, setPaymentInvoice] = useState([]);
 
   const [itemAmount, setItemAmount] = useState("");
   const [tagQuantity, setTagQuantity] = useState("");
@@ -287,6 +288,9 @@ const Navbar = ({ jwt }) => {
 
   const sendPaymentRequest = async () => {
     const formData = new FormData();
+    for (const files of paymentInvoice) {
+      formData.append("files.paymentInvoice", files);
+    }
     const employee = await readTaskEmployee(jwt, user);
 
     formData.append(
@@ -297,12 +301,13 @@ const Navbar = ({ jwt }) => {
         projectTitle: paymentProjectTitle,
         paymentType,
         paymentAmount,
-        requestDate: paymentRequestDate,
+        requestDate: dayjs(paymentRequestDate).add(3, "hour"),
         paymentPriorityLevel,
         paymentReason,
         paymentInformation,
         employee: employee.data?.data?.[0]?.id,
         department: userDepartment,
+        // paymentInvoice,
         isApproved: "pending",
       })
     );
@@ -1493,11 +1498,14 @@ const Navbar = ({ jwt }) => {
   const [projectsResponse, setProjectsResponse] = useState([]);
   const [inventoryResponse, setInventoryResponse] = useState([]);
   const [inventoryTest, setTestInventory] = useState([]);
+  const [employeeImage, setEmployeeImage] = useState("");
 
   let res = [];
 
   useEffect(() => {
     const fetchData = async () => {
+      const currentEmployee = await readEmployee(jwt, user);
+      setEmployeeImage(currentEmployee?.id?.employee?.employeeImage?.url);
       const lastPurchase = await getPurchaseId(jwt);
       const lastTR = await getTagRegistrationId(jwt);
 
@@ -1636,6 +1644,7 @@ const Navbar = ({ jwt }) => {
                 dropDownBackgroundColor="#F6F6F6"
                 dropDownHeight="24px"
                 dropDownFontSize="12px"
+                placeholder="Form Options"
               >
                 {formOptions.map((formOption, index) => (
                   <MenuItem
@@ -1646,7 +1655,7 @@ const Navbar = ({ jwt }) => {
                     selected={index === formSelectedIndex}
                     onClick={() => {
                       setFormSelectedIndex(index);
-                      formSelectedIndex === 0
+                      index === 0
                         ? (setCheckedAMT(true),
                           setFormStatus("Material Transfer"),
                           setCheckedLeaveRequest(false),
@@ -1654,7 +1663,7 @@ const Navbar = ({ jwt }) => {
                           setChecked(false),
                           setCheckedTR(false),
                           setCheckedIRF(false))
-                        : formSelectedIndex === 1
+                        : index === 1
                         ? (setFormStatus("Inbound Receiving Form"),
                           console.log(formSelectedIndex),
                           setCheckedIRF(true),
@@ -1663,7 +1672,7 @@ const Navbar = ({ jwt }) => {
                           setCheckedPayment(false),
                           setCheckedLeaveRequest(false),
                           setCheckedTR(false))
-                        : formSelectedIndex === 2
+                        : index === 2
                         ? (setFormStatus("Tag Registration"),
                           setChecked(false),
                           setCheckedTR(true),
@@ -1671,7 +1680,7 @@ const Navbar = ({ jwt }) => {
                           setCheckedPayment(false),
                           setCheckedAMT(false),
                           setCheckedLeaveRequest(false))
-                        : formSelectedIndex === 3
+                        : index === 3
                         ? (setFormStatus("Leave Request"),
                           setCheckedLeaveRequest(true),
                           setChecked(false),
@@ -2048,7 +2057,7 @@ const Navbar = ({ jwt }) => {
                         height="52px"
                         sx={{ padding: 0, margin: 0 }}
                         // borderRadius="50%"
-                        src=""
+                        src={employeeImage}
                       />
                     </IconButton>
                   </Box>
@@ -2158,7 +2167,7 @@ const Navbar = ({ jwt }) => {
                   <LocalizationProvider dateAdapter={AdapterDayjs}>
                     <DatePicker
                       label="Request Date"
-                      value={paymentRequestDate}
+                      value={dayjs(paymentRequestDate)}
                       // value={parseISO(salesPage.dateAt)}
                       onChange={(newValue) => {
                         setPaymentRequestDate(newValue);

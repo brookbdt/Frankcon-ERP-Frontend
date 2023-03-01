@@ -6,14 +6,24 @@ import {
   AvatarGroup,
   Box,
   Button,
+  Checkbox,
   Fade,
   FilledInput,
   FormControl,
   InputLabel,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  MenuItem,
+  OutlinedInput,
   Paper,
   Popper,
+  Select,
   TextField,
   Typography,
+  useTheme,
 } from "@mui/material";
 import Slide from "@mui/material/Slide";
 import { Stack } from "@mui/system";
@@ -21,6 +31,7 @@ import { DatePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import dayjs from "dayjs";
+import NoteAddOutlinedIcon from "@mui/icons-material/NoteAddOutlined";
 import PopupState, { bindPopper, bindToggle } from "material-ui-popup-state";
 import React, { useEffect, useState } from "react";
 import ChangingButton from "../../components/ChangingButton";
@@ -31,10 +42,12 @@ import TasksTable from "../../components/Tasks/TasksTable";
 import Workshop from "../../components/Workshop/Workshop";
 import EmployeesLayout from "../../layout/employees";
 import {
+  createComment,
   createTask,
   readEmployee,
   readEmployeeTask,
   readNotification,
+  readProject,
   readTaskEmployee,
 } from "../../lib";
 import { fetcher } from "../../lib/api";
@@ -54,6 +67,15 @@ const inprogress = require("../../public/static/normal.png");
 
 // const priority = [high, low, normal];
 
+function getStyles(name, personName, theme) {
+  return {
+    fontWeight:
+      personName.indexOf(name) === -1
+        ? theme.typography.fontWeightRegular
+        : theme.typography.fontWeightMedium,
+  };
+}
+
 const Tasks = () => {
   const [selected, setSelected] = useState([]);
 
@@ -64,50 +86,46 @@ const Tasks = () => {
     }
   };
 
-  const columns = [
-    { id: "task details", label: "Task Details", minWidth: 170 },
-    {
-      id: "task status",
-      label: "Task Status",
-      // minWidth: 170,
-      // align: "right",
-      format: (value) => value.toLocaleString("en-US"),
-    },
-    {
-      id: "date",
-      label: "Date",
-      // minWidth: 170,
-      // align: "right",
-      format: (value) => value.toLocaleString("en-US"),
-    },
-    {
-      id: "priority",
-      label: "Priority",
-      // minWidth: 170,
-      // align: "right",
-      format: (value) => value.toFixed(2),
-    },
-  ];
-  const buttons = ["Description", "Files", "Comments "];
+  const buttons = ["Description", "Files"];
   const [selectedIndex, setSelectedIndex] = useState(0);
-
-  const style = {
-    position: "absolute",
-    top: "50%",
-    left: "50%",
-    transform: "translate(-50%, -50%)",
-    width: "648px",
-    bgcolor: "background.paper",
-    border: "2px solid #000",
-    boxShadow: 24,
-    p: 4,
-  };
 
   const [open, setOpen] = React.useState(false);
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
+  const theme = useTheme();
+  const [personName, setPersonName] = React.useState([]);
   const [value, setValue] = React.useState(dayjs(new Date()));
+
+  const handleEmployee = (event) => {
+    const {
+      target: { value },
+    } = event;
+    setPersonName(
+      // On autofill we get a stringified value.
+      typeof value === "string" ? value.split(",") : value
+    );
+  };
+  const [employeeChecked, setEmployeeChecked] = React.useState([]);
+  const [assignedEmployees, setAssignedEmployees] = React.useState([{}]);
+
+  const handleToggle = (value) => () => {
+    const currentIndex = employeeChecked
+      .map((i) => JSON.stringify(i))
+      .indexOf(JSON.stringify(value));
+    console.log({ currentIndex });
+
+    const newChecked = [...employeeChecked];
+
+    if (currentIndex === -1) {
+      newChecked.push(value);
+    } else {
+      newChecked.splice(currentIndex, 1);
+    }
+
+    setEmployeeChecked(newChecked);
+    console.log({ newChecked });
+  };
 
   const handleChange = (newValue) => {
     setValue(newValue);
@@ -116,7 +134,21 @@ const Tasks = () => {
   const [checked, setChecked] = React.useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [comment, setComment] = useState("");
+  const [comment, setComment] = useState([]);
+
+  const [projects, setProject] = React.useState([]);
+  const [projectIds, setProjectIds] = React.useState([]);
+  const [projectSelected, setProjectSelected] = React.useState([]);
+
+  const handleSelect = (event) => {
+    const {
+      target: { value },
+    } = event;
+
+    setProjectIds(value);
+
+    setProjectSelected();
+  };
 
   const handleSlide = () => {
     setChecked((prev) => !prev);
@@ -133,18 +165,25 @@ const Tasks = () => {
   const [response, setResponse] = useState([]);
   const [notificationResponse, setNotificationResponse] = useState([]);
   const [employees, setEmployees] = useState([]);
+  const [currentEmployee, setCurrentEmployee] = useState([]);
   // const [employeeResponse, setEmployeeResponse] = useState([]);
   const { user, loading } = useFetchUser();
   const { userDepartment } = useFetchUserDepartment();
 
   const [jwt, setJwt] = useState(null);
+  const ITEM_HEIGHT = 48;
+  const ITEM_PADDING_TOP = 8;
+  const MenuProps = {
+    PaperProps: {
+      style: {
+        maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
+        // width: "12px",
+      },
+    },
+  };
 
   useEffect(() => {
-    console.log(1, "params console is");
-
     const jwt = getTokenFromLocalCookie();
-
-    console.log(2, "end", { jwt });
 
     setJwt(jwt);
 
@@ -159,10 +198,15 @@ const Tasks = () => {
       if (!user) {
         return;
       }
+      const employee = await readTaskEmployee(jwt, user);
+
+      setCurrentEmployee(employee);
       const result = await readEmployeeTask(jwt, user);
       const employeeList = await readEmployee(jwt, user);
+      const projectList = await readProject(jwt, user);
       setResponse(result.data);
       setEmployees(employeeList.data);
+      setProject(projectList.data.data);
     };
     // console.log("the jwt is", jwt);
     fetchData();
@@ -170,36 +214,51 @@ const Tasks = () => {
     console.log("relation is:", response);
   }, [user]);
 
+  const [taskFiles, setTaskFiles] = useState([]);
+
   const sendTask = async () => {
+    const formData = new FormData();
+    for (const files of taskFiles) {
+      formData.append("files.taskFiles", files);
+    }
+
     const employee = await readTaskEmployee(jwt, user);
     console.log("emp is", employee);
 
-    const newTask = {
-      // Title: name,
-      // data: { faq },
-      // title: title,
-      // description: description,
-      // comment: comment,
-      // title: data.title,
-      data: {
-        // tasks: {
+    formData.append(
+      "data",
+      JSON.stringify({
         title,
         department: userDepartment,
+        projects: projectIds,
         description,
-        comment,
+        // comment,
         priority,
         status,
         date: currentDate,
         jwt: jwt,
         employee: employee.data?.data?.[0]?.id,
-        // },
+        employee_checkeds: employeeChecked?.map((emp) => emp?.id),
+      })
+    );
+
+    console.log({ employeeChecked: employeeChecked?.map((emp) => emp?.id) });
+    const task = await createTask(formData, jwt);
+
+    const newComment = {
+      data: {
+        text: comment,
+        employee: employee.data?.data?.[0]?.id,
+        projects: projectIds,
+        task: task?.data?.data?.id,
       },
     };
-    createTask(newTask, jwt);
+
+    createComment(newComment, jwt);
     // {
     //   userDepartment === "workshop" ? createWorkshopTask(newTask, jwt) : "";
     // }
-    console.log("The task is:", newTask);
+    console.log("The task is:", formData);
   };
   const [buttonName, setButtonName] = useState("");
   const [backgroundColor, setBackgroundColor] = useState("");
@@ -266,100 +325,165 @@ const Tasks = () => {
             </Box>
           </Stack>
           <Box height="24px"></Box>
-          <Stack direction="row" justifyContent="center" alignItems="center">
-            <Stack direction="row" justifyContent="center" alignItems="center">
-              <Typography>Assignee</Typography>
-              <AvatarGroup max={6}>
-                <Avatar
-                  sx={{ width: "24px", height: "24px" }}
-                  alt="assignee"
-                  src="/static/Avatar.png"
-                />
-                <Box width="4.9px"></Box>
-                <Avatar
-                  sx={{ width: "24px", height: "24px" }}
-                  alt="Trevor Henderson"
-                  src="/static/Avatar (2).png"
-                />
-                <Box width="4.9px"></Box>
-
-                <Avatar
-                  sx={{ width: "24px", height: "24px" }}
-                  alt="Trevor Henderson"
-                  src="/static/Avatar.png"
-                />
-                <Box display="flex" justifyContent="center" alignItems="center">
+          <Stack
+            direction="row"
+            justifyContent="space-between"
+            alignItems="center"
+          >
+            <Stack
+              direction="row"
+              justifyContent="space-between"
+              alignItems="center"
+            >
+              <Box
+                display="flex"
+                alignItems="center"
+                justifyContent="space-between"
+              >
+                <Typography fontSize="14px" fontWeight="500">
+                  Assignee
+                </Typography>
+                <AvatarGroup max={20}>
+                  <Avatar
+                    sx={{ width: "24px", height: "24px" }}
+                    alt="Employee Image"
+                    src={
+                      currentEmployee?.data?.data[0]?.attributes?.employeeImage
+                        ?.data?.attributes?.url
+                    }
+                  />
+                  {employeeChecked.map((employee) => (
+                    <Avatar
+                      sx={{ width: "24px", height: "24px" }}
+                      alt="Employee Image"
+                      src={
+                        employee?.attributes?.employeeImage?.data?.attributes
+                          ?.url
+                      }
+                    />
+                  ))}
                   <Box
-                    borderRadius="50%"
-                    sx={{ width: "24px", height: "24px", bgcolor: "#4339F2" }}
                     display="flex"
                     justifyContent="center"
                     alignItems="center"
                   >
-                    <PopupState variant="popper" popupId="demo-popup-popper">
-                      {(popupState) => (
-                        <div>
-                          <Button {...bindToggle(popupState)}>
-                            <AddIcon
-                              sx={{
-                                width: "32px",
-                                height: "32px",
-                                padding: "6.45px",
-                                color: "white",
-                              }}
-                            />
-                          </Button>
-                          <Popper {...bindPopper(popupState)} transition>
-                            {({ TransitionProps }) => (
-                              <Fade {...TransitionProps} timeout={350}>
-                                <Paper
-                                  sx={{ height: "150px", overflow: "auto" }}
-                                >
-                                  {employees?.data?.map((employee) => (
-                                    <Stack>
-                                      <Box height="6px" />
+                    <Box
+                      borderRadius="50%"
+                      sx={{ width: "24px", height: "24px", bgcolor: "#4339F2" }}
+                      display="flex"
+                      justifyContent="center"
+                      alignItems="center"
+                    >
+                      <PopupState variant="popper" popupId="demo-popup-popper">
+                        {(popupState) => (
+                          <div>
+                            <Button {...bindToggle(popupState)}>
+                              <AddIcon
+                                sx={{
+                                  width: "13px",
+                                  height: "13px",
+                                  color: "white",
+                                }}
+                              />
+                            </Button>
+                            <Popper {...bindPopper(popupState)} transition>
+                              {({ TransitionProps }) => (
+                                <Fade {...TransitionProps} timeout={350}>
+                                  <Paper
+                                    sx={{ height: "150px", overflow: "auto" }}
+                                  >
+                                    <List
+                                      sx={{
+                                        width: "100%",
+                                        maxWidth: 360,
+                                        bgcolor: "background.paper",
+                                      }}
+                                    >
+                                      {employees?.data?.map((employee) => {
+                                        const labelId = `${employee?.id}`;
+                                        // console.log({ labelId });
+                                        return (
+                                          <ListItem
+                                            // key={employee}
+                                            disablePadding
+                                          >
+                                            <ListItemButton
+                                              role={undefined}
+                                              onClick={handleToggle(employee)}
+                                              dense
+                                            >
+                                              <ListItemIcon>
+                                                <Checkbox
+                                                  edge="start"
+                                                  checked={
+                                                    employeeChecked.indexOf(
+                                                      employee
+                                                    ) !== -1
+                                                  }
+                                                  tabIndex={-1}
+                                                  disableRipple
+                                                  inputProps={{
+                                                    "aria-labelledby": labelId,
+                                                  }}
+                                                />
+                                                <Avatar
+                                                  sx={{
+                                                    width: "24px",
+                                                    height: "24px",
+                                                  }}
+                                                  src={`${employee?.attributes?.employeeImage?.data?.attributes?.url}`}
+                                                />
+                                              </ListItemIcon>
+                                              <ListItemText
+                                                id={labelId}
+                                                primary={
+                                                  employee?.attributes
+                                                    ?.firstName
+                                                }
+                                              />
+                                            </ListItemButton>
+                                          </ListItem>
+                                        );
+                                      })}
+                                    </List>
+                                    {/* {employees?.data?.map((employee) => (
+                                      <>
+                                        <Stack>
+                                          <Box height="6px" />
 
-                                      <Box
-                                        display="flex"
-                                        alignItems="center"
-                                        // justifyContent="center"
-                                      >
-                                        <Box width="6px" />
-                                        <Avatar
-                                          sx={{ width: "24px", height: "24px" }}
-                                          src={`${employee?.attributes?.employeeImage?.data?.attributes?.url}`}
-                                        />
-                                        <Typography
-                                          fontWeight="400"
-                                          fontSize="12px"
-                                          sx={{
-                                            paddingLeft: "6px",
-                                            paddingRight: "20px",
-                                          }}
-                                        >
-                                          {employee?.attributes?.firstName}{" "}
-                                        </Typography>
-                                      </Box>
-                                    </Stack>
-                                  ))}
-                                </Paper>
-                              </Fade>
-                            )}
-                          </Popper>
-                        </div>
-                      )}
-                    </PopupState>
+                                          <Box
+                                            display="flex"
+                                            alignItems="center"
+                                            // justifyContent="center"
+                                          >
+                                            <Box width="6px" />
+                                          </Box>
+                                        </Stack>
+                                      </>
+                                    ))} */}
+                                  </Paper>
+                                </Fade>
+                              )}
+                            </Popper>
+                          </div>
+                        )}
+                      </PopupState>
+                    </Box>
                   </Box>
-                </Box>
-              </AvatarGroup>
-              <Box width="71.73px"></Box>
+                </AvatarGroup>
+              </Box>
+
+              <Box width="18px" />
+
               <Stack
                 direction="row"
                 justifyContent="center"
                 alignItems="center"
               >
-                <Typography>Priority:</Typography>
-                <Box width="16px"></Box>
+                <Typography fontSize="14px" fontWeight="500">
+                  Priority:
+                </Typography>
+                <Box width="8px" />
                 <ChangingButton
                   color={
                     priority === "HIGH"
@@ -374,27 +498,72 @@ const Tasks = () => {
                   selectedValue={priority}
                   onChange={setPriority}
                 />
-
-                <Box width="24px"></Box>
-                <Typography>Status: </Typography>
-                <Box width="24px"></Box>
+              </Stack>
+              <Box width="11px" />
+              <Box display="flex" alignItems="center">
+                <Typography fontSize="14px" fontWeight="500">
+                  Status:{" "}
+                </Typography>
+                <Box width="8px" />
                 <ChangingButton
                   color={
                     status === "INPROGRESS"
                       ? "#CFCFD6"
                       : status === "TO DO"
                       ? "#FFBA2E"
-                      : status === "IN REVIEW"
+                      : status === "INREVIEW"
                       ? "#24B07D"
                       : status === "DONE"
                       ? "#24B07D"
                       : "gray"
                   }
-                  values={["INPROGRESS", "TO DO", "IN REVIEW", "DONE"]}
+                  values={["INPROGRESS", "TO DO", "INREVIEW", "DONE"]}
                   selectedValue={status}
                   onChange={setStatus}
                 />
-              </Stack>
+              </Box>
+
+              <Box display="flex" alignItems="center">
+                <FormControl sx={{ m: 1, width: 300 }}>
+                  <InputLabel
+                    id="demo-multiple-checkbox-label"
+                    sx={{ margin: "-12px 0px" }}
+                  >
+                    Assign Projects
+                  </InputLabel>
+                  <Select
+                    labelId="demo-multiple-checkbox-label"
+                    id="demo-multiple-checkbox"
+                    multiple
+                    value={projectIds}
+                    onChange={handleSelect}
+                    input={
+                      <OutlinedInput
+                        sx={{ width: "185px", height: "24px" }}
+                        label="Assign Projects"
+                      />
+                    }
+                    renderValue={(selectedIds) =>
+                      projects
+                        .filter((p) => selectedIds.includes(p.id))
+                        .map((p) => p.attributes.projectTitle)
+                        .join(", ")
+                    }
+                    MenuProps={MenuProps}
+                  >
+                    {projects.map((projectTitle) => (
+                      <MenuItem key={projectTitle?.id} value={projectTitle?.id}>
+                        <Checkbox
+                          checked={projectIds.indexOf(projectTitle?.id) > -1}
+                        />
+                        <ListItemText
+                          primary={projectTitle?.attributes?.projectTitle}
+                        />
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Box>
 
               <Box height="25px"></Box>
             </Stack>
@@ -410,18 +579,68 @@ const Tasks = () => {
                 setSelectedIndex(i);
               }}
             />
+            {selectedIndex === 0 ? (
+              <>
+                <Box height="15px" width="100%"></Box>
+                <Box>
+                  <TextField
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    bgcolor="yellow"
+                    sx={{ width: "100%", height: "100%" }}
+                  />
+                </Box>
+              </>
+            ) : selectedIndex === 1 ? (
+              <>
+                <Button
+                  variant="filled"
+                  sx={{
+                    backgroundColor: "#F6F6F6",
+                    padding: 0,
+                    width: "248px",
+                    height: "46px",
+                  }}
+                >
+                  <label
+                    style={{
+                      // backgroundColor: "red",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      padding: "12px",
+                      width: "100%",
+                      height: "100%",
+                    }}
+                  >
+                    <input
+                      id="file"
+                      hidden
+                      multiple
+                      type="file"
+                      onChange={(e) => setTaskFiles(e.target.files)}
+                    />
+                    <Typography
+                      color="#6F7082"
+                      fontWeight="600px"
+                      fontSize="12px"
+                    >
+                      Attach Files
+                    </Typography>
+
+                    <NoteAddOutlinedIcon
+                      sx={{ width: "16px", height: "16px", color: "#6F7082" }}
+                    />
+                  </label>
+                </Button>
+              </>
+            ) : (
+              ""("")
+            )}
           </Stack>
-          <Box height="15px" width="100%"></Box>
-          <Box>
-            <TextField
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              bgcolor="yellow"
-              sx={{ width: "100%", height: "100%" }}
-            />
-          </Box>
+
           <Box height="6px"></Box>
-          <Typography>Comments(0)</Typography>
+          <Typography>Comments</Typography>
           <Box height="10px"></Box>
           <FormControl variant="filled">
             <InputLabel value={comment} htmlFor="component-filled">

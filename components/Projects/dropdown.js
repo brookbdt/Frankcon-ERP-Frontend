@@ -20,6 +20,7 @@ const Dropdown = ({
   buttonTitleColor,
   buttonTitleFontSize,
   buttonTitleFontWeight,
+  placeholder = "",
 }) => {
   const [open, setOpen] = useState(false);
   const anchorRef = React.useRef(null);
@@ -95,8 +96,9 @@ const Dropdown = ({
               {buttonTitle}
             </Typography>
 
-            {selectedItemText}
+            {selectedItemText ?? placeholder}
           </Stack>
+
           <ArrowDropDownIcon
             sx={{ width: "20px", height: "20px", padding: 0, margin: 0 }}
           />

@@ -852,38 +852,39 @@ const Projects = ({ jwt }) => {
   );
 };
 
-export async function getServerSideProps({ req, params }) {
-  // const { slug } = params;
-  const jwt =
-    typeof window !== "undefined"
-      ? getTokenFromLocalCookie
-      : getTokenFromServerCookie(req);
-  const projectResponse = await fetcher(
-    `https://frankconerp.herokuapp.com/api/projects`,
-    jwt
-      ? {
-          headers: {
-            Authorization: `Bearer ${jwt}`,
-          },
-        }
-      : ""
-  );
-  if (projectResponse.data) {
-    // const plot = await markdownToHtml(filmResponse.data.attributes.plot);
-    return {
-      props: {
-        projectResponse: projectResponse.data,
-        // plot,
-        jwt: jwt ? jwt : "",
-      },
-    };
-  } else {
-    return {
-      props: {
-        error: projectResponse.error.message,
-      },
-    };
-  }
-}
+// export async function getServerSideProps({ req, params }) {
+//   // const { slug } = params;
+//   const jwt =
+//     typeof window !== "undefined"
+//       ? getTokenFromLocalCookie
+//       : getTokenFromServerCookie(req);
+//   const projectResponse = await fetcher(
+//     `https://frankconerp.herokuapp.com/api/projects`,
+//     // `${}api/projects`,
+//     jwt
+//       ? {
+//           headers: {
+//             Authorization: `Bearer ${jwt}`,
+//           },
+//         }
+//       : ""
+//   );
+//   if (projectResponse.data) {
+//     // const plot = await markdownToHtml(filmResponse.data.attributes.plot);
+//     return {
+//       props: {
+//         projectResponse: projectResponse.data,
+//         // plot,
+//         jwt: jwt ? jwt : "",
+//       },
+//     };
+//   } else {
+//     return {
+//       props: {
+//         error: projectResponse.error.message,
+//       },
+//     };
+//   }
+// }
 
 export default Projects;

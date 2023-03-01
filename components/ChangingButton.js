@@ -11,7 +11,14 @@ const ChangingButton = ({ values, color, selectedValue, onChange }) => {
             buttonValues[buttonValues.findIndex((v) => v === selectedValue) + 1]
           );
         }}
-        sx={{ backgroundColor: color, borderRadius: "20px", color: "#F6F6F6" }}
+        sx={{
+          backgroundColor: color,
+          // width: "54px",
+          height: "24px",
+          borderRadius: "20px",
+          color: "#F6F6F6",
+          fontSize: "11px",
+        }}
       >
         {selectedValue}
       </Button>
