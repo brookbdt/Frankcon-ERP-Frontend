@@ -31,7 +31,7 @@ const ProjectDetailBox = ({ response }) => {
             gap="20px"
           >
             <Avatar
-              src={`${process.env.NEXT_PUBLIC_STRAPI_BASE_URL}${response?.data?.attributes?.projectImage.data?.[0].attributes?.url}`}
+              src={`${response?.data?.attributes?.projectImage.data?.[0].attributes?.url}`}
               alt="project image"
               sx={{
                 width: "32px",
