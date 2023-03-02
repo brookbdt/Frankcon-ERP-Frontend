@@ -25,12 +25,9 @@ function EmployeeDetails() {
   useEffect(async () => {
     const jwt = getTokenFromLocalCookie();
 
-    console.log(2, "end", { jwt });
-
     setJwt(jwt);
 
     readNotification(jwt).then((r) => {
-      console.log("r is", r.data?.data);
       setResponse(r.data?.data);
     });
 

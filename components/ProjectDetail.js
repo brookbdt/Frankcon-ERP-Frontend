@@ -39,9 +39,7 @@ import Dropdown from "./Projects/dropdown";
 import ProjectTasks from "./ProjectTasks";
 import { getTokenFromLocalCookie } from "../lib/auth";
 
-const ProjectDetailPage = () => {
-  const router = useRouter();
-  const projectId = router.query.projectId;
+const ProjectDetailPage = ({ id }) => {
   const { user, loading } = useFetchUser();
   const { userDepartment } = useFetchUserDepartment();
 
@@ -87,6 +85,7 @@ const ProjectDetailPage = () => {
   ];
   const projectLeadOptions = ["Abebe", "Kebede"];
   const priorityOptions = ["Low", "Medium", "High"];
+
   const handleImage = (e) => {
     setProjectImage(e.target.files[0]);
     setPreviewImage(URL.createObjectURL(e.target.files[0]));
@@ -161,6 +160,7 @@ const ProjectDetailPage = () => {
 
   useEffect(() => {
     const jwt = getTokenFromLocalCookie();
+    if (!id) return;
 
     setJwt(jwt);
     const fetchData = async () => {
@@ -179,7 +179,7 @@ const ProjectDetailPage = () => {
       setPreviewImage(
         response?.data?.attributes?.projectImage?.data[0].attributes?.url
       );
-      console.log("project id is:", id);
+
       console.log("edit project:", { response });
     };
     // randomId;
@@ -189,7 +189,7 @@ const ProjectDetailPage = () => {
       console.log("r is", r.data?.data);
       setResponse(r.data?.data);
     });
-  }, [user]);
+  }, [user, id]);
   return (
     <Stack
       direction="column"
@@ -853,7 +853,7 @@ const ProjectDetailPage = () => {
           </Grid>
         </Grid>
 
-        <ProjectTasks response={response} />
+        <ProjectTasks response={response} id={id} />
       </Paper>
     </Stack>
   );

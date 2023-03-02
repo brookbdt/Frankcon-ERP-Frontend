@@ -10,7 +10,8 @@ import { useFetchUser, useFetchUserDepartment } from "../../lib/authContext";
 
 function ProjectDetails() {
   const router = useRouter();
-  const id = router.query.employeeId;
+  console.log({ cons: router.query.projectId });
+  const id = router.query.projectId;
 
   const { user, loading } = useFetchUser();
   const { userDepartment } = useFetchUserDepartment();

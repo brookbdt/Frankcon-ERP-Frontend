@@ -30,6 +30,8 @@ const EmployeeDetailPage = ({ id, jwt }) => {
   const [response, setResponse] = useState([]);
 
   useEffect(() => {
+    if (!id) return;
+
     const fetchData = async () => {
       // const employeeResult = await readEmployee(jwt);
       // setEmployeeResponse(employeeResult.data);
@@ -44,7 +46,7 @@ const EmployeeDetailPage = ({ id, jwt }) => {
     };
     // randomId;
     fetchData();
-  }, [user]);
+  }, [user, id]);
   return (
     <Box paddingLeft="48px" paddingTop="27px">
       <Paper

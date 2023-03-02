@@ -5,14 +5,23 @@ import CloseIcon from "@mui/icons-material/Close";
 import NoteAddOutlinedIcon from "@mui/icons-material/NoteAddOutlined";
 import {
   Avatar,
+  AvatarGroup,
   Box,
   Button,
   ButtonGroup,
   Card,
+  Checkbox,
   Divider,
+  Fade,
   Grid,
   IconButton,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
   Paper,
+  Popper,
   Slide,
   Stack,
   TextField,
@@ -30,11 +39,14 @@ import EmployeesLayout from "../layout/employees";
 import {
   createNewProject,
   getProjectId,
+  readEmployee,
+  readEmployeeTask,
   readProject,
   readTaskEmployee,
 } from "../lib";
 import { useFetchUser, useFetchUserDepartment } from "../lib/authContext";
 import Dropdown from "./Projects/dropdown";
+import PopupState, { bindPopper, bindToggle } from "material-ui-popup-state";
 
 const Projects = ({ jwt }) => {
   const handleSlide = () => {
@@ -64,6 +76,27 @@ const Projects = ({ jwt }) => {
   const [projectDocuments, setProjectDocuments] = useState([]);
   const [projectDescription, setProjectDescription] = useState();
 
+  const [currentEmployee, setCurrentEmployee] = useState([]);
+  const [employees, setEmployees] = useState([]);
+  const [employeeChecked, setEmployeeChecked] = React.useState([]);
+
+  const handleToggle = (value) => () => {
+    const currentIndex = employeeChecked
+      .map((i) => JSON.stringify(i))
+      .indexOf(JSON.stringify(value));
+    console.log({ currentIndex });
+
+    const newChecked = [...employeeChecked];
+
+    if (currentIndex === -1) {
+      newChecked.push(value);
+    } else {
+      newChecked.splice(currentIndex, 1);
+    }
+
+    setEmployeeChecked(newChecked);
+    console.log({ newChecked });
+  };
   const sendProject = async () => {
     const employee = await readTaskEmployee(jwt, user);
     console.log({ employee });
@@ -85,8 +118,8 @@ const Projects = ({ jwt }) => {
         projectLead,
         projectStartDate: projectStartDate?.toISOString(),
         projectEndDate: projectEndDate?.toISOString(),
-        employees: employee?.data?.data?.[0]?.id,
-
+        // employees: employee?.data?.data?.[0]?.id,
+        employees: employeeChecked?.map((emp) => emp?.id),
         // projectDocument: projectDocuments,
         projectDescription,
       })
@@ -100,6 +133,7 @@ const Projects = ({ jwt }) => {
   const { userDepartment } = useFetchUserDepartment();
 
   const [response, setResponse] = useState([]);
+  const [employeeResponse, setEmployeeResponse] = useState([]);
   const [projectId, setProjectId] = useState("");
 
   useEffect(() => {
@@ -115,8 +149,16 @@ const Projects = ({ jwt }) => {
       setProjectId(`FC - ${new Date().getFullYear()} - ${lastProjectId + 1}`);
       console.log({ lastProject });
 
+      const employee = await readTaskEmployee(jwt, user);
+
+      setCurrentEmployee(employee);
+      const employeeResult = await readEmployeeTask(jwt, user);
+      const employeeList = await readEmployee(jwt, user);
+
       const result = await readProject(jwt, user);
       setResponse(result.data);
+      setEmployeeResponse(employeeResult.data);
+      setEmployees(employeeList.data);
       console.log("relation is:", response);
     };
     // randomId;
@@ -372,25 +414,117 @@ const Projects = ({ jwt }) => {
             </Stack>
             <Stack alignItems="center">
               <Typography>Project Team:</Typography>
-              <IconButton
-                component="label"
-                sx={{
-                  width: "25px",
-                  height: "24px",
-                  backgroundColor: "#4339F2",
-                }}
-              >
-                <AddIcon
-                  sx={{ color: "#FFFFFF", width: "13.09px", height: "13.09px" }}
+              <AvatarGroup max={20}>
+                <Avatar
+                  sx={{ width: "24px", height: "24px" }}
+                  alt="Employee Image"
+                  src={
+                    currentEmployee?.data?.data[0]?.attributes?.employeeImage
+                      ?.data?.attributes?.url
+                  }
                 />
-                <input
-                  // value={projectTeam}
-                  onChange={(e) => setProjectTeam(e.target.files[0])}
-                  hidden
-                  accept="image/*"
-                  type="file"
-                />
-              </IconButton>
+                {employeeChecked.map((employee) => (
+                  <Avatar
+                    sx={{ width: "24px", height: "24px" }}
+                    alt="Employee Image"
+                    src={
+                      employee?.attributes?.employeeImage?.data?.attributes?.url
+                    }
+                  />
+                ))}
+                <Box display="flex" justifyContent="center" alignItems="center">
+                  <Box
+                    borderRadius="50%"
+                    sx={{ width: "24px", height: "24px", bgcolor: "#4339F2" }}
+                    display="flex"
+                    justifyContent="center"
+                    alignItems="center"
+                  >
+                    <PopupState variant="popper" popupId="demo-popup-popper">
+                      {(popupState) => (
+                        <div>
+                          <Button {...bindToggle(popupState)}>
+                            <AddIcon
+                              sx={{
+                                width: "13px",
+                                height: "13px",
+                                color: "white",
+                              }}
+                            />
+                          </Button>
+                          <Popper
+                            {...bindPopper(popupState)}
+                            transition
+                            sx={{ zIndex: 1 }}
+                          >
+                            {({ TransitionProps }) => (
+                              <Fade {...TransitionProps} timeout={350}>
+                                <Paper
+                                  sx={{ height: "150px", overflow: "auto" }}
+                                >
+                                  <List
+                                    sx={{
+                                      width: "100%",
+                                      maxWidth: 360,
+                                      bgcolor: "background.paper",
+                                    }}
+                                  >
+                                    {employees?.data?.map((employee) => {
+                                      const labelId = `${employee?.id}`;
+                                      // console.log({ labelId });
+                                      return (
+                                        <ListItem
+                                          // key={employee}
+                                          disablePadding
+                                        >
+                                          <ListItemButton
+                                            role={undefined}
+                                            onClick={handleToggle(employee)}
+                                            dense
+                                          >
+                                            <ListItemIcon>
+                                              <Checkbox
+                                                edge="start"
+                                                checked={
+                                                  employeeChecked.indexOf(
+                                                    employee
+                                                  ) !== -1
+                                                }
+                                                tabIndex={-1}
+                                                disableRipple
+                                                inputProps={{
+                                                  "aria-labelledby": labelId,
+                                                }}
+                                              />
+                                              <Avatar
+                                                sx={{
+                                                  width: "24px",
+                                                  height: "24px",
+                                                }}
+                                                src={`${employee?.attributes?.employeeImage?.data?.attributes?.url}`}
+                                              />
+                                            </ListItemIcon>
+                                            <ListItemText
+                                              id={labelId}
+                                              primary={
+                                                employee?.attributes?.firstName
+                                              }
+                                            />
+                                          </ListItemButton>
+                                        </ListItem>
+                                      );
+                                    })}
+                                  </List>
+                                </Paper>
+                              </Fade>
+                            )}
+                          </Popper>
+                        </div>
+                      )}
+                    </PopupState>
+                  </Box>
+                </Box>
+              </AvatarGroup>
             </Stack>
           </Stack>
           <Box height="26px" />
@@ -581,7 +715,7 @@ const Projects = ({ jwt }) => {
                 )}
               </Stack>
             </Button>
-            <Button
+            {/* <Button
               id="files"
               sx={{ width: "150px", height: "38px", p: 0 }}
               variant="text"
@@ -605,7 +739,7 @@ const Projects = ({ jwt }) => {
                   <Divider width="150px" color="#4339F2" />
                 )}
               </Stack>
-            </Button>
+            </Button> */}
           </ButtonGroup>
         </Stack>
         <Box height="12px" />
@@ -729,7 +863,7 @@ const Projects = ({ jwt }) => {
           {addProject}
         </Slide>
         <Typography fontWeight="700" fontSize="20px">
-          Ongoing Projects - 2022
+          Ongoing Projects - 2023
         </Typography>
       </Stack>
       <Box height="16px" />
@@ -851,40 +985,5 @@ const Projects = ({ jwt }) => {
     </Stack>
   );
 };
-
-// export async function getServerSideProps({ req, params }) {
-//   // const { slug } = params;
-//   const jwt =
-//     typeof window !== "undefined"
-//       ? getTokenFromLocalCookie
-//       : getTokenFromServerCookie(req);
-//   const projectResponse = await fetcher(
-//     `https://frankconerp.herokuapp.com/api/projects`,
-//     // `${}api/projects`,
-//     jwt
-//       ? {
-//           headers: {
-//             Authorization: `Bearer ${jwt}`,
-//           },
-//         }
-//       : ""
-//   );
-//   if (projectResponse.data) {
-//     // const plot = await markdownToHtml(filmResponse.data.attributes.plot);
-//     return {
-//       props: {
-//         projectResponse: projectResponse.data,
-//         // plot,
-//         jwt: jwt ? jwt : "",
-//       },
-//     };
-//   } else {
-//     return {
-//       props: {
-//         error: projectResponse.error.message,
-//       },
-//     };
-//   }
-// }
 
 export default Projects;

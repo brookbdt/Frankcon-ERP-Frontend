@@ -73,7 +73,7 @@ const ProjectAdditionalInfo = ({ response }) => {
               Project Dependent Tasks
             </Typography>
             <Typography color="#6F7082" fontWeight="400" fontSize="14px">
-              4
+              {response?.data?.attributes?.tasks?.data?.length}
             </Typography>
           </Box>
           <Box
@@ -82,10 +82,10 @@ const ProjectAdditionalInfo = ({ response }) => {
             alignItems="center"
           >
             <Typography fontWeight="400" fontSize="14px" color="#050505">
-              Project Project Personnel
+              Active Project Personnel
             </Typography>
             <Typography color="#6F7082" fontWeight="400" fontSize="14px">
-              4
+              {response?.data?.attributes?.employees?.data?.length}
             </Typography>
           </Box>
           <Box
@@ -94,10 +94,10 @@ const ProjectAdditionalInfo = ({ response }) => {
             alignItems="center"
           >
             <Typography fontWeight="400" fontSize="14px" color="#050505">
-              Active Overall Cost
+              Project Overall Cost
             </Typography>
             <Typography color="#6F7082" fontWeight="400" fontSize="14px">
-              4
+              ETB 3,444,555
             </Typography>
           </Box>
           <Box

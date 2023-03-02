@@ -1,10 +1,11 @@
-import { Avatar, Box, Stack, Typography, Divider } from "@mui/material";
+import { Avatar, Box, Stack, Typography, Divider, Grid } from "@mui/material";
 import React, { useState } from "react";
 import MenuItem from "@mui/material/MenuItem";
 import Dropdown from "./Projects/dropdown";
+import { PlaylistAddCheckSharp } from "@mui/icons-material";
 
 const ProjectDetailBox = ({ response }) => {
-  console.log("detail res", response);
+  console.log("project detail res", response);
 
   const priorityOptions = ["Low", "Medium", "High"];
   const [prioritySelectedIndex, setPrioritySelectedIndex] = useState(0);
@@ -217,6 +218,19 @@ const ProjectDetailBox = ({ response }) => {
           </Typography>
           <Divider width="402px" />
         </Stack>
+        <Box height="12px" />
+
+        <Grid container>
+          {response?.data?.attributes?.tasks?.data?.map((task) => (
+            <>
+              <Grid display="flex" xs={4}>
+                <PlaylistAddCheckSharp />
+                <Box width="9px" />
+                <Typography>{task?.attributes?.title}</Typography>
+              </Grid>
+            </>
+          ))}
+        </Grid>
         {/* assigned task */}
         <Box height="64px" />
         <Box height="50px" />

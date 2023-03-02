@@ -390,7 +390,11 @@ const Tasks = () => {
                               {({ TransitionProps }) => (
                                 <Fade {...TransitionProps} timeout={350}>
                                   <Paper
-                                    sx={{ height: "150px", overflow: "auto" }}
+                                    sx={{
+                                      height: "150px",
+                                      overflow: "auto",
+                                      zIndex: "1px",
+                                    }}
                                   >
                                     <List
                                       sx={{
@@ -446,21 +450,6 @@ const Tasks = () => {
                                         );
                                       })}
                                     </List>
-                                    {/* {employees?.data?.map((employee) => (
-                                      <>
-                                        <Stack>
-                                          <Box height="6px" />
-
-                                          <Box
-                                            display="flex"
-                                            alignItems="center"
-                                            // justifyContent="center"
-                                          >
-                                            <Box width="6px" />
-                                          </Box>
-                                        </Stack>
-                                      </>
-                                    ))} */}
                                   </Paper>
                                 </Fade>
                               )}
