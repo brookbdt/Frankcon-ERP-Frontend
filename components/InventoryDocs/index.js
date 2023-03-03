@@ -36,6 +36,9 @@ const InventoryDocs = ({ jwt }) => {
   const buttons = ["All Documents", "Inbound", "Material Transfer"];
   useEffect(() => {
     const fetchData = async () => {
+      if (!user) {
+        return;
+      }
       const result = await readInventoryDocs(jwt);
       setResponse(result.data);
     };

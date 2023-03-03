@@ -126,6 +126,9 @@ const Instock = ({ jwt }) => {
 
   useEffect(() => {
     const fetchData = async () => {
+      if (!user) {
+        return;
+      }
       const result = await readInventory(jwt);
       setResponse(result.data.data);
     };

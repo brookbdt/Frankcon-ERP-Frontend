@@ -24,6 +24,9 @@ const All = ({ jwt }) => {
   const [response, setResponse] = useState([]);
   useEffect(() => {
     const fetchData = async () => {
+      if (!user) {
+        return;
+      }
       const result = await readInventoryDocs(jwt);
       setResponse(result.data);
     };
