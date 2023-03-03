@@ -31,7 +31,12 @@ import NoteAddOutlinedIcon from "@mui/icons-material/NoteAddOutlined";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import EmployeesLayout from "../layout/employees";
-import { readNotification, readProjectDetail, readTaskEmployee } from "../lib";
+import {
+  readNotification,
+  readProjectDetail,
+  readTaskEmployee,
+  updateProject,
+} from "../lib";
 import { useFetchUser, useFetchUserDepartment } from "../lib/authContext";
 import ProjectAdditionalInfo from "./ProjectAdditionalInfo";
 import ProjectDetailBox from "./ProjectDetailBox";
@@ -144,14 +149,14 @@ const ProjectDetailPage = ({ id }) => {
         projectLead,
         projectStartDate: projectStartDate?.toISOString(),
         projectEndDate: projectEndDate?.toISOString(),
-        employees: employee?.data?.data?.[0]?.id,
 
-        // projectDocument: projectDocuments,
+        employees: employeeChecked?.map((emp) => emp?.id),
+
         projectDescription,
       })
     );
 
-    createNewProject(formData, jwt);
+    updateProject(formData, id, jwt);
     console.log("the project is", formData);
   };
 
