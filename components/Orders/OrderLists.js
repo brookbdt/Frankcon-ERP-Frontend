@@ -84,7 +84,7 @@ const OrderLists = ({ jwt }) => {
               Total Inventory
             </Typography>
             <Typography fontWeight="700" fontSize="24px">
-              433 items
+              {response?.data?.length} items
             </Typography>
           </Stack>
           <Button

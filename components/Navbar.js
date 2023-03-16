@@ -212,6 +212,8 @@ const Navbar = ({ jwt }) => {
 
   const sendPurchaseRequest = async () => {
     const formData = new FormData();
+    setChecked((prev) => !prev);
+
 
     for (const doc of attachedProforma) {
       formData.append("files.attachedProforma", doc);
@@ -287,6 +289,7 @@ const Navbar = ({ jwt }) => {
   };
 
   const sendPaymentRequest = async () => {
+    setCheckedPayment((prev) => !prev)
     const formData = new FormData();
     for (const files of paymentInvoice) {
       formData.append("files.paymentInvoice", files);
@@ -441,6 +444,7 @@ const Navbar = ({ jwt }) => {
     // console.log(formData, jwt);
   };
   const sendMaterialTransfer = async () => {
+    setCheckedAMT((prev) => !prev)
     const formData = new FormData();
 
     formData.append(
@@ -1142,12 +1146,12 @@ const Navbar = ({ jwt }) => {
                   value={itemAmount}
                   label="Age"
                   onChange={(e) => setItemAmount(e.target.value)}
-                  // sx={{
-                  //   width: "248px",
-                  //   "& .MuiInputBase-root": {
-                  //     height: "30px",
-                  //   },
-                  // }}
+                // sx={{
+                //   width: "248px",
+                //   "& .MuiInputBase-root": {
+                //     height: "30px",
+                //   },
+                // }}
                 >
                   <MenuItem value="0">0%</MenuItem>
                   <MenuItem value="25">25%</MenuItem>
@@ -1556,6 +1560,8 @@ const Navbar = ({ jwt }) => {
   }, [user]);
 
   const sendLeaveRequest = async () => {
+    setCheckedLeaveRequest((prev) => !prev)
+
     const newLeaveRequest = {
       data: {
         // tasks: {
@@ -1664,31 +1670,31 @@ const Navbar = ({ jwt }) => {
                           setCheckedTR(false),
                           setCheckedIRF(false))
                         : index === 1
-                        ? (setFormStatus("Inbound Receiving Form"),
-                          console.log(formSelectedIndex),
-                          setCheckedIRF(true),
-                          setChecked(false),
-                          setCheckedAMT(false),
-                          setCheckedPayment(false),
-                          setCheckedLeaveRequest(false),
-                          setCheckedTR(false))
-                        : index === 2
-                        ? (setFormStatus("Tag Registration"),
-                          setChecked(false),
-                          setCheckedTR(true),
-                          setCheckedIRF(false),
-                          setCheckedPayment(false),
-                          setCheckedAMT(false),
-                          setCheckedLeaveRequest(false))
-                        : index === 3
-                        ? (setFormStatus("Leave Request"),
-                          setCheckedLeaveRequest(true),
-                          setChecked(false),
-                          setCheckedPayment(false),
-                          setCheckedTR(false),
-                          setCheckedIRF(false),
-                          setCheckedAMT(false))
-                        : "";
+                          ? (setFormStatus("Inbound Receiving Form"),
+                            console.log(formSelectedIndex),
+                            setCheckedIRF(true),
+                            setChecked(false),
+                            setCheckedAMT(false),
+                            setCheckedPayment(false),
+                            setCheckedLeaveRequest(false),
+                            setCheckedTR(false))
+                          : index === 2
+                            ? (setFormStatus("Tag Registration"),
+                              setChecked(false),
+                              setCheckedTR(true),
+                              setCheckedIRF(false),
+                              setCheckedPayment(false),
+                              setCheckedAMT(false),
+                              setCheckedLeaveRequest(false))
+                            : index === 3
+                              ? (setFormStatus("Leave Request"),
+                                setCheckedLeaveRequest(true),
+                                setChecked(false),
+                                setCheckedPayment(false),
+                                setCheckedTR(false),
+                                setCheckedIRF(false),
+                                setCheckedAMT(false))
+                              : "";
                     }}
                   >
                     {formOption}
@@ -2379,6 +2385,8 @@ const Navbar = ({ jwt }) => {
         <Box sx={{ p: 2 }}>
           <Paper
             sx={{
+              width: "566px",
+              height: "100%",
               m: 1,
               zIndex: 1,
               borderColor: "#4339F2",
@@ -2406,7 +2414,18 @@ const Navbar = ({ jwt }) => {
                   >
                     Leave Request
                   </Typography>
-                  <CancelIcon />
+                  <IconButton
+                    onClick={handleCloseLeaveRequest}
+                    sx={{
+                      backgroundColor: "#F6F6F6",
+                      width: "24px",
+                      height: "24px",
+                      alignSelf: "flex-start",
+                    }}
+                  >
+                    <CancelIcon sx={{ width: "15px", height: "15px" }} />
+                  </IconButton>
+
                 </Stack>
                 <Stack direction="row" justifyContent="space-between">
                   <FormControl

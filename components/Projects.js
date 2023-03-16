@@ -327,7 +327,7 @@ const Projects = ({ jwt }) => {
               justifyContent="space-between"
               alignItems="center"
               gap="15.94px"
-              //   alignItems="center"
+            //   alignItems="center"
             >
               <Stack>
                 <Typography fontSize="12px" fontWeight="400" color="#6F7082">
@@ -361,10 +361,10 @@ const Projects = ({ jwt }) => {
                         prioritySelectedIndex === 0
                           ? setProjectPriority("Low")
                           : prioritySelectedIndex === 1
-                          ? setProjectPriority("Medium")
-                          : prioritySelectedIndex === 2
-                          ? setProjectPriority("High")
-                          : "";
+                            ? setProjectPriority("Medium")
+                            : prioritySelectedIndex === 2
+                              ? setProjectPriority("High")
+                              : "";
                       }}
                     >
                       {priorityOption}
@@ -398,12 +398,12 @@ const Projects = ({ jwt }) => {
                         statusSelectedIndex === 0
                           ? setProjectStatus("Ongoing")
                           : prioritySelectedIndex === 1
-                          ? setProjectStatus("Paused")
-                          : prioritySelectedIndex === 2
-                          ? setProjectStatus("Delayed")
-                          : prioritySelectedIndex === 3
-                          ? setProjectStatus("Completed")
-                          : "";
+                            ? setProjectStatus("Paused")
+                            : prioritySelectedIndex === 2
+                              ? setProjectStatus("Delayed")
+                              : prioritySelectedIndex === 3
+                                ? setProjectStatus("Completed")
+                                : "";
                       }}
                     >
                       {statusOption}
@@ -564,14 +564,14 @@ const Projects = ({ jwt }) => {
                       departmentSelectedIndex === 0
                         ? setProjectResponsibleDepartment("Inventory")
                         : departmentSelectedIndex === 1
-                        ? setProjectResponsibleDepartment("Finance")
-                        : departmentSelectedIndex === 2
-                        ? setProjectResponsibleDepartment("Human Resource")
-                        : departmentSelectedIndex === 3
-                        ? setProjectResponsibleDepartment("Project")
-                        : departmentSelectedIndex === 4
-                        ? setProjectResponsibleDepartment("Workshop")
-                        : "";
+                          ? setProjectResponsibleDepartment("Finance")
+                          : departmentSelectedIndex === 2
+                            ? setProjectResponsibleDepartment("Human Resource")
+                            : departmentSelectedIndex === 3
+                              ? setProjectResponsibleDepartment("Project")
+                              : departmentSelectedIndex === 4
+                                ? setProjectResponsibleDepartment("Workshop")
+                                : "";
                     }}
                   >
                     {departmentOption}
@@ -606,8 +606,8 @@ const Projects = ({ jwt }) => {
                       projectLeadSelectedIndex === 0
                         ? setProjectLead("Abebe")
                         : projectLeadSelectedIndex === 1
-                        ? setProjectLead("Kebede")
-                        : "";
+                          ? setProjectLead("Kebede")
+                          : "";
                     }}
                   >
                     {projectLeadOption}
@@ -798,13 +798,13 @@ const Projects = ({ jwt }) => {
             direction="column"
             alignItems="space-between"
             justifyContent="flex-end"
-            //   gap="10px"
+          //   gap="10px"
           >
             <Typography fontWeight="400" fontSize="12px" color="#6F7082">
-              Total Inventory
+              Total Projects
             </Typography>
             <Typography fontWeight="700" fontSize="16px" color="#141522">
-              433 Items
+              {response?.data?.length}
             </Typography>
           </Stack>
           <Box width="32px" />

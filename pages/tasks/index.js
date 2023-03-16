@@ -478,10 +478,10 @@ const Tasks = () => {
                     priority === "HIGH"
                       ? "#F44336"
                       : priority === "MEDIUM"
-                      ? "#FFBA2E"
-                      : priority === "LOW"
-                      ? "#24B07D"
-                      : "gray"
+                        ? "#FFBA2E"
+                        : priority === "LOW"
+                          ? "#24B07D"
+                          : "gray"
                   }
                   values={["HIGH", "MEDIUM", "LOW"]}
                   selectedValue={priority}
@@ -499,12 +499,12 @@ const Tasks = () => {
                     status === "INPROGRESS"
                       ? "#CFCFD6"
                       : status === "TO DO"
-                      ? "#FFBA2E"
-                      : status === "INREVIEW"
-                      ? "#24B07D"
-                      : status === "DONE"
-                      ? "#24B07D"
-                      : "gray"
+                        ? "#FFBA2E"
+                        : status === "INREVIEW"
+                          ? "#24B07D"
+                          : status === "DONE"
+                            ? "#24B07D"
+                            : "gray"
                   }
                   values={["INPROGRESS", "TO DO", "INREVIEW", "DONE"]}
                   selectedValue={status}
@@ -638,8 +638,8 @@ const Tasks = () => {
             <FilledInput
               id="component-filled"
               onChange={(e) => setComment(e.target.value)}
-              // value={comment}
-              // onChange={handleChange}
+            // value={comment}
+            // onChange={handleChange}
             />
           </FormControl>
           <Box height="26px"></Box>
@@ -724,8 +724,9 @@ const Tasks = () => {
             justifyContent="space-between"
           >
             <Typography fontWeight="700" fontSize="20px">
-              All Tasks(48)
+              All Tasks  ({response?.data?.length})
             </Typography>
+
             <Box display="flex" flexDirection="row">
               <ChevronLeftIcon />
               <ChevronRightIcon />

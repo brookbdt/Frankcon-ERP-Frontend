@@ -1,7 +1,8 @@
 import { AttachFile } from "@mui/icons-material";
 import { Box, Button, Divider, Stack, Typography } from "@mui/material";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import EmployeesLayout from "../../layout/employees";
+import { readInventory } from "../../lib";
 import { useFetchUser, useFetchUserDepartment } from "../../lib/authContext";
 import ButtonGroups from "../ButtonGroups";
 import Layout from "../Layout";
@@ -18,14 +19,14 @@ const Inventory = ({ jwt }) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
 
   const [response, setResponse] = useState([]);
-  // useEffect(() => {
-  //   const fetchData = async () => {
-  //     const result = await readInventory();
-  //     setResponse(result.data);
-  //   };
-  //   fetchData();
-  //   console.log(response);
-  // }, []);
+  useEffect(() => {
+    const fetchData = async () => {
+      const result = await readInventory(jwt);
+      setResponse(result.data);
+    };
+    fetchData();
+    console.log(response);
+  }, []);
 
   const monthNames = [
     "January",
@@ -60,7 +61,7 @@ const Inventory = ({ jwt }) => {
               Total Inventory
             </Typography>
             <Typography fontWeight="700" fontSize="24px">
-              433 items
+              {response?.data?.length} items
             </Typography>
           </Stack>
           <Button
