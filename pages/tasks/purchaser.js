@@ -312,10 +312,10 @@ const Tasks = () => {
                       priority === "HIGH"
                         ? "#F44336"
                         : priority === "MEDIUM"
-                        ? "#FFBA2E"
-                        : priority === "LOW"
-                        ? "#24B07D"
-                        : "gray"
+                          ? "#FFBA2E"
+                          : priority === "LOW"
+                            ? "#24B07D"
+                            : "gray"
                     }
                     values={["HIGH", "MEDIUM", "LOW"]}
                     selectedValue={priority}
@@ -330,12 +330,12 @@ const Tasks = () => {
                     status === "INPROGRESS"
                       ? "#CFCFD6"
                       : status === "TO DO"
-                      ? "#FFBA2E"
-                      : status === "IN REVIEW"
-                      ? "#24B07D"
-                      : status === "DONE"
-                      ? "#24B07D"
-                      : "gray"
+                        ? "#FFBA2E"
+                        : status === "IN REVIEW"
+                          ? "#24B07D"
+                          : status === "DONE"
+                            ? "#24B07D"
+                            : "gray"
                   }
                   values={["INPROGRESS", "TO DO", "IN REVIEW", "DONE"]}
                   selectedValue={status}
@@ -376,8 +376,8 @@ const Tasks = () => {
             <FilledInput
               id="component-filled"
               onChange={(e) => setComment(e.target.value)}
-              // value={comment}
-              // onChange={handleChange}
+            // value={comment}
+            // onChange={handleChange}
             />
           </FormControl>
           <Box height="26px"></Box>
@@ -476,7 +476,7 @@ const Tasks = () => {
           <Slide direction="right" in={checked} mountOnEnter unmountOnExit>
             {addTask}
           </Slide>
-          {userDepartment === "workshop" ? (
+          {userDepartment === "Workshop" ? (
             <Workshop jwt={jwt} />
           ) : (
             <>

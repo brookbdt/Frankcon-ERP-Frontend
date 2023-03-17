@@ -483,7 +483,7 @@ const Tasks = () => {
           <Slide direction="right" in={checked} mountOnEnter unmountOnExit>
             {addTask}
           </Slide>
-          {userDepartment === "workshop" ? (
+          {userDepartment === "Workshop" ? (
             <Workshop jwt={jwt} />
           ) : (
             <>

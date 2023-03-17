@@ -181,7 +181,7 @@ const EngineeringTasksTable = ({ jwt }) => {
       </Typography>
       <Box height="11px" />
       {/* <pre>{JSON.stringify({ response }, null, 2)}</pre> */}
-      {userDepartment === "workshop" ? (
+      {userDepartment === "Workshop" ? (
         <WorkshopTable jwt={jwt} user={user} />
       ) : (
         <>

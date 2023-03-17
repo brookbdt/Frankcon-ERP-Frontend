@@ -48,10 +48,10 @@ export default function Home() {
       `${process.env.NEXT_PUBLIC_STRAPI_API_URL}/purchaseRequests`,
       jwt
         ? {
-            headers: {
-              Authorization: `Bearer ${jwt}`,
-            },
-          }
+          headers: {
+            Authorization: `Bearer ${jwt}`,
+          },
+        }
         : ""
     );
 
@@ -82,7 +82,7 @@ export default function Home() {
     (res) =>
       (Number(res.attributes?.originalItemQuantity) *
         Number(res.attributes?.itemAmount)) /
-        100 >
+      100 >
       Number(res.attributes?.itemQuantity)
   );
   const outOfStockItemsAmount = depletingItems?.filter(
@@ -98,7 +98,7 @@ export default function Home() {
       res.attributes?.materialtransferrequest &&
       res.attributes?.materialtransferrequest?.data?.attributes &&
       res.attributes?.materialtransferrequest?.data?.attributes?.isApproved ===
-        "pending"
+      "pending"
   );
   const pendingLeaveRequest = response?.filter(
     (res) =>
@@ -111,14 +111,14 @@ export default function Home() {
       res.attributes?.purchaseRequest &&
       res.attributes?.purchaseRequest?.data?.attributes &&
       res.attributes?.purchaseRequest?.data?.attributes?.isApproved ===
-        "pending"
+      "pending"
   );
   const activePurchaseRequest = response?.filter(
     (res) =>
       res.attributes?.purchaseRequest &&
       res.attributes?.purchaseRequest?.data?.attributes &&
       res.attributes?.purchaseRequest?.data?.attributes?.isApproved ===
-        "approved"
+      "approved"
   );
   const pendingPaymentRequest = response?.filter(
     (res) =>
@@ -174,12 +174,12 @@ export default function Home() {
                 <Box height="32px" />
                 <Stack direction="row" gap="12px">
                   {userDepartment === "admin" ||
-                  userDepartment === "Finance" ||
-                  userDepartment === "Architect" ||
-                  userDepartment === "Human Resource" ||
-                  userDepartment === "Engineering" ||
-                  userDepartment === "Purchaser" ||
-                  userDepartment === "Workshop" ? (
+                    userDepartment === "Finance" ||
+                    userDepartment === "Architect" ||
+                    userDepartment === "Human Resource" ||
+                    userDepartment === "Engineering" ||
+                    userDepartment === "Purchaser" ||
+                    userDepartment === "Workshop" ? (
                     <>
                       <Card
                         sx={{
@@ -194,7 +194,7 @@ export default function Home() {
                             fontWeight="700px"
                             fontSize="48px"
                             color="#F35B05"
-                            // sx={{ p: 0 }}
+                          // sx={{ p: 0 }}
                           >
                             {pendingMaterialRequest.length +
                               pendingPaymentRequest.length +
@@ -220,7 +220,7 @@ export default function Home() {
                         </CardContent>
                       </Card>
                     </>
-                  ) : userDepartment === "Invnetory" ? (
+                  ) : userDepartment === "Inventory" ? (
                     <Card
                       sx={{
                         width: "427px",
@@ -236,7 +236,7 @@ export default function Home() {
                           fontWeight="700px"
                           fontSize="48px"
                           color="#F35B05"
-                          // sx={{ p: 0 }}
+                        // sx={{ p: 0 }}
                         >
                           {pendingPurchaseRequest.length}
                         </Typography>
@@ -262,8 +262,8 @@ export default function Home() {
                     ""
                   )}
                   {userDepartment === "admin" ||
-                  userDepartment === "Finance" ||
-                  userDepartment === "Purchaser" ? (
+                    userDepartment === "Finance" ||
+                    userDepartment === "Purchaser" ? (
                     <Card
                       sx={{
                         width: "427px",
@@ -279,7 +279,7 @@ export default function Home() {
                           fontWeight="700px"
                           fontSize="48px"
                           color="#F35B05"
-                          // sx={{ p: 0 }}
+                        // sx={{ p: 0 }}
                         >
                           {pendingPaymentRequest.length}
                         </Typography>
@@ -322,13 +322,13 @@ export default function Home() {
                           fontWeight="700px"
                           fontSize="48px"
                           color="#F35B05"
-                          // sx={{ p: 0 }}
+                        // sx={{ p: 0 }}
                         >
                           {/* {taskResponse.length} */}
                         </Typography>
 
                         <Typography fontWeight="500px" fontSize="20px">
-                          <pre>{JSON.stringify({ taskResponse }, null, 2)}</pre>
+                          <pre>{JSON.stringify({ tr: taskResponse }, null, 2)}</pre>
                           Ongoing Tasks
                         </Typography>
 
@@ -362,7 +362,7 @@ export default function Home() {
                           fontWeight="700px"
                           fontSize="48px"
                           color="#F35B05"
-                          // sx={{ p: 0 }}
+                        // sx={{ p: 0 }}
                         >
                           {depletingItemsAmount.length}
                         </Typography>
@@ -388,7 +388,7 @@ export default function Home() {
                     ""
                   )}
                   {userDepartment === "admin" ||
-                  userDepartment === "Finance" ? (
+                    userDepartment === "Finance" ? (
                     <>
                       <Card
                         sx={{
@@ -409,7 +409,7 @@ export default function Home() {
                             fontWeight="700px"
                             fontSize="48px"
                             color="#F35B05"
-                            // sx={{ p: 0 }}
+                          // sx={{ p: 0 }}
                           >
                             243k+
                           </Typography>
@@ -453,7 +453,7 @@ export default function Home() {
                             fontWeight="700px"
                             fontSize="48px"
                             color="#F35B05"
-                            // sx={{ p: 0 }}
+                          // sx={{ p: 0 }}
                           >
                             {activeProjectsAmount.length}
                           </Typography>
@@ -496,7 +496,7 @@ export default function Home() {
                             fontWeight="700px"
                             fontSize="48px"
                             color="#F35B05"
-                            // sx={{ p: 0 }}
+                          // sx={{ p: 0 }}
                           >
                             {outOfStockItemsAmount.length}
                           </Typography>
@@ -535,7 +535,7 @@ export default function Home() {
                             fontWeight="700px"
                             fontSize="48px"
                             color="#F35B05"
-                            // sx={{ p: 0 }}
+                          // sx={{ p: 0 }}
                           >
                             {activePurchaseRequest.length}
                           </Typography>
@@ -576,7 +576,7 @@ export default function Home() {
                             fontWeight="700px"
                             fontSize="48px"
                             color="#F35B05"
-                            // sx={{ p: 0 }}
+                          // sx={{ p: 0 }}
                           >
                             123k
                           </Typography>

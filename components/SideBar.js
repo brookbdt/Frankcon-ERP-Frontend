@@ -400,21 +400,21 @@ const SideBar = ({
                   </Stack>
                   <Box height="28px" />
                   {(userDepartment === "admin" ||
-                    userDepartment === "finance" ||
-                    userDepartment === "purchaser") &&
+                    userDepartment === "Finance" ||
+                    userDepartment === "Purchaser") &&
                     response?.map((notification, index) => (
                       <>
                         <Stack direction="row" alignItems="center">
                           <>
                             {notification?.attributes?.type ===
-                            "purchase request" ? (
+                              "purchase request" ? (
                               notification?.attributes?.purchaseRequest?.data
                                 ?.attributes?.isApproved === "pending" ? (
                                 <Stack>
                                   <Box
                                     display="flex"
                                     alignItems="center"
-                                    // justifyContent="center"
+                                  // justifyContent="center"
                                   >
                                     <Avatar
                                     // src={`${process.env.NEXT_PUBLIC_STRAPI_BASE_URL}${notification?.attributes?.purchaseRequest?.data?.attributes?.vendorImage.data?.[0].attributes?.url}`}
@@ -484,8 +484,8 @@ const SideBar = ({
                                         )
                                       }
 
-                                      // color="white"
-                                      // sx={{ : "white" }}
+                                    // color="white"
+                                    // sx={{ : "white" }}
                                     >
                                       <Typography
                                         fontSize="10px"
@@ -507,7 +507,7 @@ const SideBar = ({
                                   <Box
                                     display="flex"
                                     alignItems="center"
-                                    // justifyContent="center"
+                                  // justifyContent="center"
                                   >
                                     <Avatar
                                     // src={`${process.env.NEXT_PUBLIC_STRAPI_BASE_URL}${notification?.attributes?.purchaseRequest?.data?.attributes?.vendorImage.data?.[0].attributes?.url}`}
@@ -572,8 +572,8 @@ const SideBar = ({
                                         )
                                       }
 
-                                      // color="white"
-                                      // sx={{ : "white" }}
+                                    // color="white"
+                                    // sx={{ : "white" }}
                                     >
                                       <Typography
                                         fontSize="10px"
@@ -595,7 +595,7 @@ const SideBar = ({
                                   <Box
                                     display="flex"
                                     alignItems="center"
-                                    // justifyContent="center"
+                                  // justifyContent="center"
                                   >
                                     <Avatar
                                     // src={`${process.env.NEXT_PUBLIC_STRAPI_BASE_URL}${notification?.attributes?.purchaseRequest?.data?.attributes?.vendorImage.data?.[0].attributes?.url}`}
@@ -665,8 +665,8 @@ const SideBar = ({
                                         )
                                       }
 
-                                      // color="white"
-                                      // sx={{ : "white" }}
+                                    // color="white"
+                                    // sx={{ : "white" }}
                                     >
                                       <Typography
                                         fontSize="10px"
@@ -777,8 +777,8 @@ const SideBar = ({
                                         )
                                       }
 
-                                      // color="white"
-                                      // sx={{ : "white" }}
+                                    // color="white"
+                                    // sx={{ : "white" }}
                                     >
                                       <Typography
                                         fontSize="10px"
@@ -799,8 +799,8 @@ const SideBar = ({
                         </Stack>
                       </>
                     ))}
-                  {(userDepartment === "finance" ||
-                    userDepartment === "purchaser") &&
+                  {(userDepartment === "Finance" ||
+                    userDepartment === "Purchaser") &&
                     {}}
                 </Box>
               </Fade>
@@ -996,7 +996,7 @@ const SideBar = ({
                 </ListItemButton>
               </ListItem>
             </>
-          ) : userDepartment === "finance" ? (
+          ) : userDepartment === "Finance" ? (
             <>
               <ListItemButton onClick={handleList}>
                 <ListItemIcon>
@@ -1147,7 +1147,7 @@ const SideBar = ({
                 </ListItemButton>
               </ListItem>
             </>
-          ) : userDepartment === "architecture" ? (
+          ) : userDepartment === "Architecture" ? (
             <>
               <ListItem disablePadding>
                 <ListItemButton component="a" href="/tasks/architecture">
@@ -1187,7 +1187,7 @@ const SideBar = ({
                 </ListItemButton>
               </ListItem>
             </>
-          ) : userDepartment === "inventory" ? (
+          ) : userDepartment === "Inventory" ? (
             <>
               <ListItemButton onClick={handleListInventory}>
                 <ListItemIcon>
@@ -1231,7 +1231,7 @@ const SideBar = ({
                 </ListItemButton>
               </ListItem>
             </>
-          ) : userDepartment === "human resource" ? (
+          ) : userDepartment === "Human Resource" ? (
             <>
               <ListItem disablePadding>
                 <ListItemButton component="a" href="/tasks/architecture">
@@ -1371,7 +1371,7 @@ const SideBar = ({
                 </ListItemButton>
               </ListItem>
             </>
-          ) : userDepartment === "engineering" ? (
+          ) : userDepartment === "Engineering" ? (
             <>
               <ListItemButton onClick={handleListInventory}>
                 <ListItemIcon>
@@ -1445,7 +1445,7 @@ const SideBar = ({
                 </ListItemButton>
               </ListItem>
             </>
-          ) : userDepartment === "purchaser" ? (
+          ) : userDepartment === "Purchaser" ? (
             <>
               <ListItemButton onClick={handleListInventory}>
                 <ListItemIcon>
@@ -1519,7 +1519,7 @@ const SideBar = ({
                 </ListItemButton>
               </ListItem>
             </>
-          ) : userDepartment === "workshop" ? (
+          ) : userDepartment === "Workshop" ? (
             <>
               <ListItemButton onClick={handleListInventory}>
                 <ListItemIcon>
@@ -1653,13 +1653,13 @@ const SideBar = ({
                   <Typography fontSize="12px">Online</Typography>
                 </Box>
               }
-              // action={
-              //   <Box>
-              //     <IconButton aria-label="settings">
-              //       <UnfoldMore onClick={(event) => handleClick()} />
-              //     </IconButton>
-              //   </Box>
-              // }
+            // action={
+            //   <Box>
+            //     <IconButton aria-label="settings">
+            //       <UnfoldMore onClick={(event) => handleClick()} />
+            //     </IconButton>
+            //   </Box>
+            // }
             />
           </Card>
         </Box>
@@ -1680,10 +1680,10 @@ export async function getServerSideProps({ req, params }) {
     `${process.env.NEXT_PUBLIC_STRAPI_API_URL}/api/purchaserequests`,
     jwt
       ? {
-          headers: {
-            Authorization: `Bearer ${jwt}`,
-          },
-        }
+        headers: {
+          Authorization: `Bearer ${jwt}`,
+        },
+      }
       : ""
   );
   if (newPurchaseRequestResponse.data) {
