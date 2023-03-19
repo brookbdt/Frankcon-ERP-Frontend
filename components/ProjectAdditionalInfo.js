@@ -58,9 +58,9 @@ const ProjectAdditionalInfo = ({ response }) => {
               </Typography>
             </Box>
           </Stack>
-          <Button sx={{ color: "#4339F2", fontSize: "14px", padding: 0 }}>
+          {/* <Button sx={{ color: "#4339F2", fontSize: "14px", padding: 0 }}>
             View Tasks
-          </Button>
+          </Button> */}
         </Stack>
         <Box height="32px" />
         <Stack gap="20px">

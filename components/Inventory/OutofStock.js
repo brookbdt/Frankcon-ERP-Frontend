@@ -103,20 +103,20 @@ const Instock = ({ jwt }) => {
         );
       },
     },
-    {
-      field: "additionalInfo",
-      headerName: "Additional Info",
-      width: 200,
-      renderCell: (cellValues) => {
-        return (
-          <Button
-            sx={{ fontSize: "11px", color: "#9FA0AB", fontWeight: "700" }}
-          >
-            VIEW ITEM DETAIL
-          </Button>
-        );
-      },
-    },
+    // {
+    //   field: "additionalInfo",
+    //   headerName: "Additional Info",
+    //   width: 200,
+    //   renderCell: (cellValues) => {
+    //     return (
+    //       <Button
+    //         sx={{ fontSize: "11px", color: "#9FA0AB", fontWeight: "700" }}
+    //       >
+    //         VIEW ITEM DETAIL
+    //       </Button>
+    //     );
+    //   },
+    // },
   ];
   const taskTableStyles = {
     height: "950px",

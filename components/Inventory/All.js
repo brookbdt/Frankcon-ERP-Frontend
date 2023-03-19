@@ -1,6 +1,7 @@
 import { Avatar, Box, Button, Stack, Typography } from "@mui/material";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
+import utc from "dayjs/plugin/utc";
 import React, { useEffect, useState } from "react";
 import { readInventory } from "../../lib";
 import { useFetchUser, useFetchUserDepartment } from "../../lib/authContext";
@@ -10,6 +11,7 @@ const All = ({ jwt }) => {
   const { user, loading } = useFetchUser();
   const { userDepartment } = useFetchUserDepartment();
   dayjs.extend(relativeTime);
+  dayjs.extend(utc);
   const [response, setResponse] = useState([]);
   useEffect(() => {
     const fetchData = async () => {
@@ -89,7 +91,7 @@ const All = ({ jwt }) => {
           <Stack justifyContent="center">
             <Typography fontWeight="500">
               {" "}
-              {dayjs(cellValues.row?.createdAt).format("DD MMM, YYYY")}
+              {dayjs(cellValues.row?.createdAt).utc().format("DD MMM, YYYY")}
               {/* {cellValues.attributes?.date} */}
             </Typography>
           </Stack>
@@ -112,22 +114,28 @@ const All = ({ jwt }) => {
             {(Number(cellValues.row?.originalItemQuantity) *
               Number(cellValues?.row?.itemAmount)) /
               100 <=
-            Number(cellValues.row?.itemQuantity) ? (
-              <Typography fontWeight="700">INSTOCK</Typography>
-            ) : (Number(cellValues.row?.originalItemQuantity) *
-                Number(cellValues?.row?.itemAmount)) /
-                100 >
               Number(cellValues.row?.itemQuantity) ? (
-              <Typography fontWeight="700" color="#FFBA2F">
-                DEPLETED
-              </Typography>
-            ) : Number(cellValues.row?.itemQuantity) === 0 ? (
-              <Typography fontWeight="500" color="#F44336">
-                OUT OF STOCK
-              </Typography>
-            ) : (
-              ""
-            )}
+              <Typography fontWeight="700">INSTOCK</Typography>
+            ) :
+              Number(cellValues.row?.itemQuantity) === 0 ? (
+                <Typography fontWeight="500" color="#F44336">
+                  OUT OF STOCK
+                </Typography>
+              )
+                :
+                (Number(cellValues.row?.originalItemQuantity) *
+                  Number(cellValues?.row?.itemAmount)) /
+                  100 >
+                  (Number(cellValues.row?.itemQuantity)) && (Number(cellValues.row?.originalItemQuantity) *
+                    Number(cellValues?.row?.itemAmount)) /
+                  100 !== 0 ? (
+                  <Typography fontWeight="700" color="#FFBA2F">
+                    DEPLETED
+                  </Typography>
+                )
+                  : (
+                    ""
+                  )}
           </Stack>
         );
       },
@@ -153,24 +161,24 @@ const All = ({ jwt }) => {
         );
       },
     },
-    {
-      field: "additionalInfo",
-      headerName: (
-        <Typography fontWeight="700" fontSize="14px" color="#0F112E">
-          Additional Info
-        </Typography>
-      ),
-      width: 200,
-      renderCell: (cellValues) => {
-        return (
-          <Button
-            sx={{ fontSize: "11px", color: "#9FA0AB", fontWeight: "700" }}
-          >
-            VIEW ITEM DETAIL
-          </Button>
-        );
-      },
-    },
+    // {
+    //   field: "additionalInfo",
+    //   headerName: (
+    //     <Typography fontWeight="700" fontSize="14px" color="#0F112E">
+    //       Additional Info
+    //     </Typography>
+    //   ),
+    //   width: 200,
+    //   renderCell: (cellValues) => {
+    //     return (
+    //       <Button
+    //         sx={{ fontSize: "11px", color: "#9FA0AB", fontWeight: "700" }}
+    //       >
+    //         VIEW ITEM DETAIL
+    //       </Button>
+    //     );
+    //   },
+    // },
   ];
   const taskTableStyles = {
     height: "950px",

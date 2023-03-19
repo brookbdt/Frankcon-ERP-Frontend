@@ -14,7 +14,7 @@ import {
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import React, { useEffect, useState } from "react";
-import { readInventoryDocs } from "../../lib";
+import { readInboundReceivingForm, readInventoryDocs } from "../../lib";
 import { useFetchUser, useFetchUserDepartment } from "../../lib/authContext";
 
 const Inbound = ({ jwt }) => {
@@ -27,7 +27,7 @@ const Inbound = ({ jwt }) => {
       if (!user) {
         return;
       }
-      const result = await readInventoryDocs(jwt);
+      const result = await readInboundReceivingForm(jwt);
       setResponse(result.data);
     };
     fetchData();
@@ -42,7 +42,7 @@ const Inbound = ({ jwt }) => {
               Item Title
             </TableCell>
             <TableCell sx={{ fontWeight: "700", fontSize: "16x" }}>
-              Item Type
+              Department
             </TableCell>
             <TableCell sx={{ fontWeight: "700", fontSize: "16x" }}>
               Request Date
@@ -53,166 +53,126 @@ const Inbound = ({ jwt }) => {
             <TableCell sx={{ fontWeight: "700", fontSize: "16x" }}>
               Material Quantity
             </TableCell>
-            <TableCell sx={{ fontWeight: "700", fontSize: "16x" }}>
-              Request Detail
-            </TableCell>
+
           </TableRow>
         </TableHead>
         <TableBody>
           {response?.data?.map((item) =>
-            item?.attributes?.requestType === "inboundreceiving" ? (
-              <TableRow key={item?.id}>
-                <TableCell>
-                  <>
-                    <Box display="flex">
-                      <Box
-                        width="44px"
-                        height="44px"
-                        borderRadius="50%"
-                        display="flex"
-                        alignItems="center"
-                        justifyContent="center"
-                        bgcolor={
-                          item?.attributes?.requestType === "inboundreceiving"
-                            ? "#B6E1D2"
-                            : "#FFEBEB"
-                        }
-                      >
-                        <CallReceived sx={{ color: "#24B07D" }} />
-                      </Box>
-                      <Box width="12px" />
-                      <Stack>
-                        <Typography
-                          fontWeight="500"
-                          fontSize="16px"
-                          color="#101010"
-                        >
-                          {
-                            item?.attributes?.inboundreceivingform?.data
-                              ?.attributes?.itemName
-                          }
-                        </Typography>
-                        <Typography
-                          fontWeight="400"
-                          fontSize="12px"
-                          color="#3F4158"
-                        >
-                          ####
-                        </Typography>
-                      </Stack>
-                    </Box>
-                  </>
-                </TableCell>
-                <TableCell>
-                  {item?.attributes?.requestType === "inboundreceiving" ? (
-                    <Typography
-                      fontSize="16px"
-                      fontWeight="500"
-                      color="#3F4158"
-                    >
-                      {
-                        item?.attributes?.inboundreceivingform?.data?.attributes
-                          ?.requestType
-                      }
-                    </Typography>
-                  ) : (
-                    <Typography
-                      fontSize="16px"
-                      fontWeight="500"
-                      color="#3F4158"
-                    >
-                      {
-                        item?.attributes?.materialtransfer?.data?.attributes
-                          ?.requestType
-                      }
-                    </Typography>
-                  )}
-                </TableCell>
-                <TableCell>
-                  {item?.attributes?.requestType === "inboundreceiving" ? (
-                    <Typography fontWeight="500" color="#101010">
-                      {dayjs(
-                        item?.attributes?.inboundreceivingform?.data?.attributes
-                          ?.leaveEndDate
-                      ).format("DD MMM YYYY")}
-                    </Typography>
-                  ) : (
-                    <Typography fontWeight="500" color="#101010">
-                      {dayjs(
-                        item?.attributes?.materialtransfer?.data?.attributes
-                          ?.requestDate
-                      ).format("DD MMM YYYY")}
-                    </Typography>
-                  )}
-                </TableCell>
-                <TableCell>
-                  {item?.attributes?.requestType === "inboundreceiving" ? (
-                    <Typography
-                      fontSize="16px"
-                      fontWeight="500"
-                      color="#3F4158"
-                    >
-                      Addis Ababa
-                    </Typography>
-                  ) : (
-                    <Typography
-                      fontSize="16px"
-                      fontWeight="500"
-                      color="#3F4158"
-                    >
-                      {
-                        item?.attributes?.materialtransfer?.data?.attributes
-                          ?.transferLocation
-                      }
-                    </Typography>
-                  )}
-                </TableCell>
-                <TableCell>
-                  {" "}
+
+            <TableRow key={item?.id}>
+              <TableCell>
+                <>
                   <Box display="flex">
-                    {item?.attributes?.requestType === "inboundreceiving" ? (
+                    <Box
+                      width="44px"
+                      height="44px"
+                      borderRadius="50%"
+                      display="flex"
+                      alignItems="center"
+                      justifyContent="center"
+                      bgcolor="#B6E1D2"
+
+
+                    >
+                      <CallReceived sx={{ color: "#24B07D" }} />
+                    </Box>
+                    <Box width="12px" />
+                    <Stack>
                       <Typography
-                        fontSize="16px"
                         fontWeight="500"
+                        fontSize="16px"
+                        color="#101010"
+                      >
+                        {
+                          item?.attributes?.itemName
+                        }
+                      </Typography>
+                      <Typography
+                        fontWeight="400"
+                        fontSize="12px"
                         color="#3F4158"
                       >
                         {
-                          item?.attributes?.inboundreceivingform?.data
-                            ?.attributes?.itemQuantity
+                          item?.attributes?.requestType
                         }
                       </Typography>
-                    ) : (
-                      <Typography
-                        fontSize="16px"
-                        fontWeight="500"
-                        color="#3F4158"
-                      >
-                        {
-                          item?.attributes?.materialtransfer?.data?.attributes
-                            ?.itemQuantity
-                        }
-                      </Typography>
-                    )}
-                    <Box width="5px" />
-                    <Typography>items</Typography>
-                  </Box>{" "}
-                </TableCell>
-                <TableCell>
-                  <Button
-                    // onClick={handleOpen}
-                    sx={{
-                      color: "#9FA0AB",
-                      fontWeight: "700",
-                      fontSize: "11px",
-                    }}
+                    </Stack>
+                  </Box>
+                </>
+              </TableCell>
+              <TableCell>
+
+                <Typography
+                  fontSize="16px"
+                  fontWeight="500"
+                  color="#3F4158"
+                >
+                  {
+                    item?.attributes?.department
+                  }
+                </Typography>
+                <Box display="flex">
+                  <Typography
+                    fontSize="12px"
+                    fontWeight="400"
+                    color="#3F4158"
+                  >By</Typography>
+                  <Box width="5px" />
+                  <Typography
+                    fontSize="12px"
+                    fontWeight="400"
+                    color="#3F4158"
                   >
-                    VIEW ITEM DETAIL
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ) : (
-              ""
-            )
+                    {
+                      item?.attributes?.employee
+                    }
+                  </Typography>
+                </Box>
+
+              </TableCell>
+              <TableCell>
+
+                <Typography fontWeight="500" color="#101010">
+                  {dayjs(
+                    item?.attributes?.leaveEndDate
+                  ).utc().format("DD MMM YYYY")}
+                </Typography>
+
+              </TableCell>
+              <TableCell>
+
+                <Typography
+                  fontSize="16px"
+                  fontWeight="500"
+                  color="#3F4158"
+                >
+                  Workshop
+                </Typography>
+
+
+
+              </TableCell>
+              <TableCell>
+                {" "}
+                <Box display="flex">
+
+                  <Typography
+                    fontSize="16px"
+                    fontWeight="500"
+                    color="#3F4158"
+                  >
+                    {
+                      item?.attributes?.itemQuantity
+                    }
+                  </Typography>
+
+                  <Box width="5px" />
+                  <Typography>items</Typography>
+                </Box>{" "}
+              </TableCell>
+
+            </TableRow>
+
           )}
         </TableBody>
       </Table>

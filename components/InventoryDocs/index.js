@@ -2,7 +2,7 @@ import { AttachFile } from "@mui/icons-material";
 import { Box, Button, Divider, Stack, Typography } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import EmployeesLayout from "../../layout/employees";
-import { readInventoryDocs } from "../../lib";
+import { readAllMaterialTransferRequest, readInboundReceivingForm, readInventoryDocs, readMaterialTransferRequest } from "../../lib";
 import { useFetchUser, useFetchUserDepartment } from "../../lib/authContext";
 import ButtonGroups from "../ButtonGroups";
 
@@ -15,7 +15,8 @@ const InventoryDocs = ({ jwt }) => {
   const { user, loading } = useFetchUser();
   const { userDepartment } = useFetchUserDepartment();
 
-  const [response, setResponse] = useState([]);
+  const [materialResponse, setMaterialResponse] = useState([]);
+  const [inboundResponse, setInboundResponse] = useState([]);
   const monthNames = [
     "January",
     "February",
@@ -39,11 +40,13 @@ const InventoryDocs = ({ jwt }) => {
       if (!user) {
         return;
       }
-      const result = await readInventoryDocs(jwt);
-      setResponse(result.data);
+      const materialTransferResult = await readAllMaterialTransferRequest(jwt);
+      const inboundReceivingResult = await readInboundReceivingForm(jwt);
+      setMaterialResponse(materialTransferResult.data);
+      setInboundResponse(inboundReceivingResult.data);
     };
     fetchData();
-    console.log(response);
+
   }, [user]);
 
   return (
@@ -69,7 +72,7 @@ const InventoryDocs = ({ jwt }) => {
               Documentation Request
             </Typography>
             <Typography fontWeight="700" fontSize="24px">
-              {response?.data?.length} Items
+              {materialResponse?.data?.length + inboundResponse?.data?.length} Items
             </Typography>
           </Stack>
           <Button

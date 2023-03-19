@@ -37,6 +37,13 @@ const PaymentsTable = ({ jwt }) => {
   const columns = [
     { id: "Project Title", label: "Project Title" },
     {
+      id: "Requester Name",
+      label: "Requester Name",
+      // minWidth: 170,
+      // align: "right",
+      format: (value) => value.toFixed(2),
+    },
+    {
       id: "paid to",
       label: "Paid To",
       // minWidth: 170,
@@ -57,13 +64,7 @@ const PaymentsTable = ({ jwt }) => {
       // align: "right",
       format: (value) => value.toFixed(2),
     },
-    {
-      id: "Priority Level",
-      label: "Priority Level",
-      // minWidth: 170,
-      // align: "right",
-      format: (value) => value.toFixed(2),
-    },
+
   ];
   return (
     <>
@@ -117,6 +118,9 @@ const PaymentsTable = ({ jwt }) => {
                   </Typography>
                 </TableCell>
                 <TableCell>
+                  {payment?.attributes?.employee?.data?.attributes?.firstName} {payment?.attributes?.employee?.data?.attributes?.lastName}
+                </TableCell>
+                {/* <TableCell>
                   {payment.attributes?.paymentPriorityLevel === "HIGH" ? (
                     <Typography color="#F44336">HIGH</Typography>
                   ) : (
@@ -132,7 +136,7 @@ const PaymentsTable = ({ jwt }) => {
                   ) : (
                     ""
                   )}
-                </TableCell>
+                </TableCell> */}
               </TableRow>
             ))}
           </TableBody>

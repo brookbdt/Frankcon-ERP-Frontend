@@ -808,7 +808,7 @@ const Projects = ({ jwt }) => {
             </Typography>
           </Stack>
           <Box width="32px" />
-          <Button
+          {/* <Button
             onClick={handleSlide}
             sx={{
               marginTop: "3px",
@@ -821,7 +821,7 @@ const Projects = ({ jwt }) => {
               // paddingY: "15px",
             }}
           >
-            {/* <AddIcon /> */}
+            
             <Typography
               // variant="h1"
               fontSize="14px"
@@ -834,7 +834,7 @@ const Projects = ({ jwt }) => {
             <AttachFileIcon
               sx={{ color: "#6F7082", width: "16px", height: "16px" }}
             />
-          </Button>
+          </Button> */}
           <Box width="16px" />
           <Button
             onClick={handleSlide}

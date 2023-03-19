@@ -18,7 +18,7 @@ import React, { useState } from "react";
 const Settings = ({ jwt }) => {
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
-  const handleOpen = () => setOpen(true);
+  const handleOpen = () => setOpen((prev) => !prev);
   const handleClose = () => setOpen(false);
 
   function handleClick() {

@@ -57,6 +57,7 @@ import {
   createPaymentRequest,
   createPurchaseRequest,
   createTagRegistration,
+  createVendorRequest,
   getInboundReceivingId,
   getMaterialId,
   getPaymentId,
@@ -65,9 +66,13 @@ import {
   getVendorId,
   readAllProjects,
   readEmployee,
+  readEmployeeDetail,
   readInventory,
+  readMaterialTransferRequest,
   readProject,
+  readPurchaseRequest,
   readTaskEmployee,
+  readVendor,
 } from "../lib";
 import ButtonGroups from "./ButtonGroups";
 import { useFetchUser, useFetchUserDepartment } from "../lib/authContext";
@@ -99,6 +104,7 @@ const Navbar = ({ jwt }) => {
     "Inbound Receiving Form",
     "Tag Registration",
     "Leave Request",
+    "Add Vendor"
   ];
   const [formSelectedIndex, setFormSelectedIndex] = useState();
   // const [prioritySelectedIndex, setPrioritySelectedIndex] = useState(0);
@@ -106,6 +112,7 @@ const Navbar = ({ jwt }) => {
   const [leaveRequestType, setLeaveRequestType] = useState("");
   const [itemType, setItemType] = useState("");
   const [selectedInventoryId, setSelectedInventoryId] = useState("");
+  const [selectedPurchaseId, setSelectedPurchaseId] = useState("");
   const [inboundItemType, setInboundItemType] = useState("");
   const [
     materialTransferRequesterQuantity,
@@ -129,6 +136,7 @@ const Navbar = ({ jwt }) => {
   const [tagQuantity, setTagQuantity] = useState("");
   const [itemInformation, setItemInformation] = useState("");
   const [inboundItemQuantity, setInboundItemQuantity] = useState("");
+  const [vendorItemQuantity, setVendorItemQuantity] = useState("");
   const [storageLocation, setStorageLocation] = useState("");
   const [materialItemQuantity, setMaterialItemQuantity] = useState("");
   const [requesterName, setRequesterName] = useState("");
@@ -164,6 +172,7 @@ const Navbar = ({ jwt }) => {
   const [projectAttachedProforma, setProjectAttachedProforma] = useState([]);
   const [checked, setChecked] = React.useState(false);
   const [checkedTR, setCheckedTR] = React.useState(false);
+  const [checkedVD, setCheckedVD] = React.useState(false);
   const [checkedIRF, setCheckedIRF] = React.useState(false);
   const [checkedAMT, setCheckedAMT] = React.useState(false);
   const [checkedPayment, setCheckedPayment] = React.useState(false);
@@ -209,18 +218,15 @@ const Navbar = ({ jwt }) => {
   const handleCloseTR = () => {
     setCheckedTR((prev) => !prev);
   };
+  const handleCloseVD = () => {
+    setCheckedVD((prev) => !prev);
+  };
 
   const sendPurchaseRequest = async () => {
     const formData = new FormData();
     setChecked((prev) => !prev);
 
 
-    for (const doc of attachedProforma) {
-      formData.append("files.attachedProforma", doc);
-    }
-    for (const img of vendorImage) {
-      formData.append("files.vendorImage", img);
-    }
     formData.append(
       "data",
       JSON.stringify({
@@ -310,6 +316,8 @@ const Navbar = ({ jwt }) => {
         paymentInformation,
         employee: employee.data?.data?.[0]?.id,
         department: userDepartment,
+        requestedBy: user,
+        purchaserequest: selectedPurchaseId,
         // paymentInvoice,
         isApproved: "pending",
       })
@@ -321,7 +329,7 @@ const Navbar = ({ jwt }) => {
       data: {
         date: new Date().toISOString(),
         type: "payment request",
-        paymentRequest: paymentRequest.data?.data?.id,
+        paymentRequest: paymentRequest?.data?.data?.id,
       },
     };
     // employee: employee.data?.data?.[0]?.id,
@@ -358,18 +366,35 @@ const Navbar = ({ jwt }) => {
       "data",
       JSON.stringify({
         tagRegistrationID,
-        itemName: tagName,
-        leaveEndDate: inboundRequestDate,
+        itemName: inboundItemName,
+        leaveEndDate: dayjs(inboundRequestDate).add(3, "hour"),
         itemQuantity: inboundItemQuantity,
         vendorPhoneNumber: inboundVendorPhoneNumber,
         description: inboundItemDescription,
+        requestType: itemType,
+        receivingFormId: inboundReceivingFormId,
+        department: userDepartment,
+        employee: requestingEmployee
+
+
         // vendorinboundItemTypeId,
       })
     );
     setAlertOpen(true);
+    setCheckedIRF(false);
 
     // const inboundReceivingForm =
-    createInboundReceivingForm(formData, jwt);
+    const inboundRequest = await createInboundReceivingForm(formData, jwt);
+    const newNotification = {
+      data: {
+        date: new Date().toISOString(),
+        type: "inbound receiving form",
+        inboundreceivingform: inboundRequest?.data?.data?.id,
+      },
+    };
+
+    await createNotification(newNotification, jwt);
+
     //  (
     //   formData,
     //   jwt
@@ -447,25 +472,31 @@ const Navbar = ({ jwt }) => {
     setCheckedAMT((prev) => !prev)
     const formData = new FormData();
 
-    formData.append(
-      "data",
-      JSON.stringify({
-        materialTransferId,
-        requesterName: materialRequesterName,
-        itemType: inventoryResponse.find((i) => i.id === selectedInventoryId)
-          ?.attributes?.itemName,
-        itemQuantity: materialItemQuantity,
-        requestDate: materialRequestDate,
-        transferLocation: materialTransferLocation,
-        additionalDetail: materialAdditionalDetail,
-        isApproved: "pending",
-        tag_registration: selectedInventoryId,
 
-        // vendorinboundItemTypeId,
-      })
-    );
-    setAlertOpen(true);
+    Number(inventoryResponse.find((i) => i.id === selectedInventoryId)
+      ?.attributes?.itemQuantity) - materialItemQuantity < 0 ? window.alert(`Item Quantity is ${inventoryResponse.find((i) => i.id === selectedInventoryId)
+        ?.attributes?.itemQuantity}. You can not transfer ${materialItemQuantity} amount. Please reload the page and try again! `) :
+      (setAlertOpen(true),
 
+        formData.append(
+          "data",
+          JSON.stringify({
+            materialTransferId,
+            itemType: inventoryResponse.find((i) => i.id === selectedInventoryId)
+              ?.attributes?.itemName,
+            itemQuantity: materialItemQuantity,
+            requestDate: materialRequestDate,
+            transferLocation: materialTransferLocation,
+            additionalDetail: materialAdditionalDetail,
+            isApproved: "pending",
+            tag_registration: selectedInventoryId,
+            department: userDepartment,
+            requesterName: requestingEmployee
+
+            // vendorinboundItemTypeId,
+          })
+        ))
+    setCheckedAMT(false);
     // const inboundReceivingForm =
     const materialRequest = await createMaterialTransferRequest(formData, jwt);
     const newNotification = {
@@ -487,6 +518,8 @@ const Navbar = ({ jwt }) => {
     setTagImage(e.target.files);
     setPreviewImageTR(URL.createObjectURL(e.target.files[0]));
   };
+
+
 
   const addPurchaseRequest = (
     <Paper
@@ -607,10 +640,11 @@ const Navbar = ({ jwt }) => {
                   value={inboundItemType}
                   onChange={(e) => setInboundItemType(e.target.value)}
                 >
-                  <MenuItem value={"Type 1"}>Type 1 </MenuItem>
-                  <MenuItem value={"Type 2"}>Type 2 </MenuItem>
-                  <MenuItem value={"Type 3"}>Type 3 </MenuItem>
-                  <MenuItem value={"Type 4"}>Type 4 </MenuItem>
+                  <MenuItem value={"Construction item"}>Construction item </MenuItem>
+                  <MenuItem value={"Finishing Item"}>Finishing Item </MenuItem>
+                  <MenuItem value={"Interior design Item"}>Interior design Item </MenuItem>
+                  <MenuItem value={"Workshop Item"}>Workshop Item </MenuItem>
+                  <MenuItem value={"Office Item"}>Office Item</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
@@ -624,20 +658,32 @@ const Navbar = ({ jwt }) => {
                   },
                 }}
               >
-                <InputLabel>Item Quantity</InputLabel>
+                <TextField
+                  placeholder="Item Quantity"
 
-                <Select
-                  labelId="demo-simple-select-filled-label"
-                  // defaultValue="Select leave request type"
-                  id="demo-simple-select-filled"
                   value={itemQuantity}
                   onChange={(e) => setItemQuantity(e.target.value)}
-                >
-                  <MenuItem value={" 1"}> 1 </MenuItem>
-                  <MenuItem value={" 2"}> 2 </MenuItem>
-                  <MenuItem value={" 3"}> 3 </MenuItem>
-                  <MenuItem value={" 4"}> 4 </MenuItem>
-                </Select>
+                  variant="filled"
+                  sx={{
+                    width: "248px",
+                    "& .MuiInputBase-root": {
+                      height: "46px",
+                    },
+                  }}
+
+                />
+
+              </FormControl>
+              <FormControl
+                variant="filled"
+                sx={{
+                  width: "248px",
+                  "& .MuiInputBase-root": {
+                    height: "46px",
+                  },
+                }}
+              >
+
               </FormControl>
             </Grid>
             <Grid item xs={6}>
@@ -710,221 +756,6 @@ const Navbar = ({ jwt }) => {
           />
           <Box height="11px" />
 
-          <Typography color="#0F112E" fontWeight="700" fontSize="20px">
-            Vendor Detail
-          </Typography>
-          <Box height="9px" />
-          <Stack direction="row" justifyContent="space-between">
-            <Stack
-              direction="row"
-              justifyContent="space-between"
-              gap="17px"
-              alignItems="center"
-            >
-              <Box>
-                <IconButton
-                  component="label"
-                  width="56px"
-                  height="56px"
-                  sx={previewImage ? "" : { backgroundColor: "#E8E7FD" }}
-                >
-                  <input
-                    id="file"
-                    multiple
-                    hidden
-                    accept="image/*"
-                    type="file"
-                    onChange={handleImage}
-                  />
-                  {previewImage ? (
-                    <Avatar
-                      width="52px"
-                      height="52px"
-                      sx={{ padding: 0, margin: 0 }}
-                      // borderRadius="50%"
-                      src={previewImage}
-                    />
-                  ) : (
-                    <InsertPhotoOutlined sx={{ color: "#4339F2" }} />
-                  )}
-                </IconButton>
-              </Box>
-              <Stack justifyContent="center">
-                <Typography fontSize="16px" fontWeight="500" color="#4339F2">
-                  Add Vendors
-                </Typography>
-                <Typography fontWeight="400" fontSize="14px" color="#6F7082">
-                  Add vendors to the list
-                </Typography>
-              </Stack>
-            </Stack>
-            <Stack alignItems="flex-end">
-              <Typography fontWeight="400" fontSize="14px" color="#3F4158">
-                Vendor ID
-              </Typography>
-              <Typography fontWeight="400" fontSize="14px" color="#6F7082">
-                {vendorId}
-              </Typography>
-            </Stack>
-          </Stack>
-          <Box height="16px" />
-          <Stack
-            direction="row"
-            alignItems="center"
-            justifyContent="space-between"
-          >
-            <Typography fontWeight="500" fontSize="14px" color="#3F4158">
-              Vendor Detail
-            </Typography>
-            <Divider width="400px" />
-          </Stack>
-          <Box height="15px" />
-          <Grid container spacing={3}>
-            <Grid item xs={6}>
-              <TextField
-                placeholder="Vendor Name"
-                defaultValue="Type vendor name"
-                value={vendorName}
-                onChange={(e) => setVendorName(e.target.value)}
-                variant="filled"
-                sx={{ width: "248px", height: "46px" }}
-              >
-                Type Vendor Name
-              </TextField>
-            </Grid>
-            <Grid item xs={6}>
-              <TextField
-                placeholder="Physical Address"
-                defaultValue="Enter vendor address"
-                value={vendorAddress}
-                onChange={(e) => setVendorAddress(e.target.value)}
-                variant="filled"
-                sx={{ width: "248px", height: "46px" }}
-              >
-                Type Vendor Name
-              </TextField>
-            </Grid>
-            <Grid item xs={6}>
-              <TextField
-                placeholder="Email Address"
-                defaultValue="Enter vendor email address"
-                value={vendorEmail}
-                onChange={(e) => setVendorEmail(e.target.value)}
-                variant="filled"
-                sx={{ width: "248px", height: "46px" }}
-              >
-                Type Vendor email Address
-              </TextField>
-            </Grid>
-            <Grid item xs={6}>
-              <TextField
-                placeholder="Vendor Phone Number"
-                defaultValue="Enter vendor phone number"
-                value={vendorPhone}
-                onChange={(e) => setVendorPhone(e.target.value)}
-                variant="filled"
-                sx={{ width: "248px", height: "46px" }}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">+2519</InputAdornment>
-                  ),
-                }}
-              >
-                Type Vendor Phone Number
-              </TextField>
-            </Grid>
-          </Grid>
-          <Box height="16px" />
-          <Stack
-            direction="row"
-            alignItems="center"
-            justifyContent="space-between"
-          >
-            <Typography>Item Detail</Typography>
-            <Divider width="400" px />
-          </Stack>
-          <Box height="19px" />
-          <Grid container>
-            <Grid item xs={6}>
-              <TextField
-                placeholder="Item Unit Price"
-                defaultValue="Enter item unit price"
-                value={itemUnitPrice}
-                onChange={(e) => setItemPrice(e.target.value)}
-                variant="filled"
-                sx={{ width: "248px", height: "46px" }}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">ETB</InputAdornment>
-                  ),
-                }}
-              >
-                Item Unit Price
-              </TextField>
-            </Grid>
-            <Grid item xs={6}>
-              <TextField
-                placeholder="Item Total Price"
-                defaultValue="Enter item total price"
-                value={itemTotalPrice}
-                onChange={(e) => setItemTotalPrice(e.target.value)}
-                variant="filled"
-                sx={{ width: "248px", height: "46px" }}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">ETB</InputAdornment>
-                  ),
-                }}
-              >
-                Item Total Price
-              </TextField>
-            </Grid>
-          </Grid>
-          <Box height="23px" />
-          <Grid conatiner>
-            <Grid item>
-              <Button
-                variant="filled"
-                sx={{
-                  backgroundColor: "#F6F6F6",
-                  padding: 0,
-                  width: "248px",
-                  height: "46px",
-                }}
-              >
-                <label
-                  style={{
-                    // backgroundColor: "red",
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    padding: "12px",
-                    width: "100%",
-                    height: "100%",
-                  }}
-                >
-                  <input
-                    id="file"
-                    hidden
-                    multiple
-                    type="file"
-                    onChange={(e) => setAttachedProforma(e.target.files)}
-                  />
-                  <Typography
-                    color="#6F7082"
-                    fontWeight="600px"
-                    fontSize="12px"
-                  >
-                    Attach Proforma
-                  </Typography>
-
-                  <NoteAddOutlinedIcon
-                    sx={{ width: "16px", height: "16px", color: "#6F7082" }}
-                  />
-                </label>
-              </Button>
-            </Grid>
-          </Grid>
 
           <Stack direction="row" justifyContent="space-between">
             <Button variant="text">Reset</Button>
@@ -1283,6 +1114,7 @@ const Navbar = ({ jwt }) => {
                 },
               }}
             >
+
               <InputLabel>Request Type</InputLabel>
 
               <Select
@@ -1292,10 +1124,11 @@ const Navbar = ({ jwt }) => {
                 value={itemType}
                 onChange={(e) => setItemType(e.target.value)}
               >
-                <MenuItem value={"Type 1"}>Type 1 </MenuItem>
-                <MenuItem value={"Type 2"}>Type 2 </MenuItem>
-                <MenuItem value={"Type 3"}>Type 3 </MenuItem>
-                <MenuItem value={"Type 4"}>Type 4 </MenuItem>
+                <MenuItem value={"Construction item"}>Construction item </MenuItem>
+                <MenuItem value={"Finishing Item"}>Finishing Item </MenuItem>
+                <MenuItem value={"Interior design Item"}>Interior design Item </MenuItem>
+                <MenuItem value={"Workshop Item"}>Workshop Item </MenuItem>
+                <MenuItem value={"Office Item"}>Office Item </MenuItem>
               </Select>
             </FormControl>
 
@@ -1357,7 +1190,7 @@ const Navbar = ({ jwt }) => {
             <Grid item xs={6}>
               <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <DatePicker
-                  label="Leave End Date"
+                  label="Receiving Date"
                   value={inboundRequestDate}
                   // value={parseISO(salesPage.dateAt)}
                   onChange={(newValue) => {
@@ -1389,20 +1222,21 @@ const Navbar = ({ jwt }) => {
                   },
                 }}
               >
-                <InputLabel>Item Quantity</InputLabel>
+                <TextField
+                  placeholder="Item Quantity"
 
-                <Select
-                  labelId="demo-simple-select-filled-label"
-                  // defaultValue="Select leave request type"
-                  id="demo-simple-select-filled"
                   value={inboundItemQuantity}
                   onChange={(e) => setInboundItemQuantity(e.target.value)}
-                >
-                  <MenuItem value={" 1"}> 1 </MenuItem>
-                  <MenuItem value={" 2"}> 2 </MenuItem>
-                  <MenuItem value={" 3"}> 3 </MenuItem>
-                  <MenuItem value={" 4"}> 4 </MenuItem>
-                </Select>
+                  variant="filled"
+                  sx={{
+                    width: "248px",
+                    "& .MuiInputBase-root": {
+                      height: "46px",
+                    },
+                  }}
+
+                />
+
               </FormControl>
             </Grid>
             <Grid item xs={6}>
@@ -1501,21 +1335,26 @@ const Navbar = ({ jwt }) => {
 
   const [projectsResponse, setProjectsResponse] = useState([]);
   const [inventoryResponse, setInventoryResponse] = useState([]);
+  const [purchaseResponse, setPurchaseResponse] = useState([]);
+
   const [inventoryTest, setTestInventory] = useState([]);
   const [employeeImage, setEmployeeImage] = useState("");
+  const [requestingEmployee, setRequestingEmployee] = useState("");
+
 
   let res = [];
 
   useEffect(() => {
     const fetchData = async () => {
-      const currentEmployee = await readEmployee(jwt, user);
+      const currentEmployee = await readEmployeeDetail(jwt, user);
       setEmployeeImage(currentEmployee?.id?.employee?.employeeImage?.url);
+      setRequestingEmployee(currentEmployee?.data?.data?.[0]?.attributes?.firstName);
       const lastPurchase = await getPurchaseId(jwt);
       const lastTR = await getTagRegistrationId(jwt);
 
       const lastMaterial = await getMaterialId(jwt);
       const lastPurchaseId = lastPurchase?.data?.data?.[0]?.id || 1;
-      const lastTRID = lastTR?.data?.data?.[0]?.id || 1;
+      const lastTRID = lastTR?.data?.[0]?.id || 1;
 
       const lastMaterialId = lastMaterial?.data?.data?.[0]?.id || 1;
 
@@ -1546,25 +1385,29 @@ const Navbar = ({ jwt }) => {
       setProjectsResponse(result?.data?.data);
 
       const inventoryResult = await readInventory(jwt);
-      console.log({ ir: inventoryResult });
+      const purchaseResult = await readPurchaseRequest(jwt);
+      const vendorResult = await readVendor(jwt);
 
       res = inventoryResult.data.data;
 
-      console.log({ res });
-      setInventoryResponse(inventoryResult.data.data);
+      console.log({ inventoryResult });
+      setInventoryResponse(inventoryResult?.data?.data);
+      console.log({ purchaseResult })
+      setPurchaseResponse(purchaseResult?.data?.data);
 
-      // console.log("the projects are: ", { projectsResponse });
     };
 
     fetchData();
   }, [user]);
+
+
 
   const sendLeaveRequest = async () => {
     setCheckedLeaveRequest((prev) => !prev)
 
     const newLeaveRequest = {
       data: {
-        // tasks: {
+        // tasks: { 
         leaveRequestType,
         requesterName,
         leaveDuration,
@@ -1589,8 +1432,42 @@ const Navbar = ({ jwt }) => {
     console.log(newLeaveRequest);
   };
 
-  const sendVendorDetail = () => {
-    setAlertOpen(true);
+  const sendVendorDetail = async () => {
+    const formData = new FormData();
+    setCheckedVD((prev) => !prev);
+
+
+    for (const doc of attachedProforma) {
+      formData.append("files.attachedProforma", doc);
+    }
+    for (const img of vendorImage) {
+      formData.append("files.vendorImage", img);
+    }
+
+    formData.append("data", JSON.stringify({
+      vendorName,
+      physicalAddress: vendorAddress,
+      emailAddress: vendorEmail,
+      vendorPhoneNumber: vendorPhone,
+      itemQuantity: vendorItemQuantity,
+      itemUnitPrice,
+      itemTotalPrice,
+      isApproved: "pending",
+      purchaserequest: selectedPurchaseId,
+    }))
+
+    const vendorRequest = await createVendorRequest(formData, jwt);
+    const newNotification = {
+      data: {
+        date: new Date().toISOString(),
+        type: "vendor request",
+        vendor: vendorRequest.data?.data?.id,
+      },
+    };
+    // employee: employee.data?.data?.[0]?.id,
+
+    await createNotification(newNotification, jwt);
+
   };
 
   return (
@@ -1694,7 +1571,16 @@ const Navbar = ({ jwt }) => {
                                 setCheckedTR(false),
                                 setCheckedIRF(false),
                                 setCheckedAMT(false))
-                              : "";
+                              : index === 4 ? (
+                                setFormStatus("Add Vendor"),
+                                setCheckedLeaveRequest(false),
+                                setChecked(false),
+                                setCheckedPayment(false),
+                                setCheckedTR(false),
+                                setCheckedIRF(false),
+                                setCheckedAMT(false),
+                                setCheckedVD(true)
+                              ) : ''
                     }}
                   >
                     {formOption}
@@ -1713,6 +1599,362 @@ const Navbar = ({ jwt }) => {
       </Box>
       <Slide direction="right" in={checked} mountOnEnter unmountOnExit>
         {addPurchaseRequest}
+      </Slide>
+      <Slide direction="right" in={checkedVD} mountOnEnter unmountOnExit>
+        <Paper
+          sx={{
+            width: "566px",
+            height: "100%",
+            m: 1,
+            zIndex: 1,
+            borderColor: "#4339F2",
+            borderRadius: "10px",
+          }}
+          elevation={4}
+          variant="outlined"
+        >
+          <Box
+            sx={{
+              width: "566px",
+              height: "100%",
+              paddingX: "22px",
+              paddingTop: "16px",
+              //   bgcolor: "white",
+              borderRadius: "10px",
+            }}
+          >
+            <Stack direction="column">
+              <Stack
+                direction="row"
+                justifyContent="space-between"
+                alignItems="center"
+              >
+                <Typography fontWeight="700" fontSize="20px" marginBottom="11px">
+                  Vendor Detail
+                </Typography>
+
+                <IconButton
+                  onClick={handleCloseVD}
+                  sx={{
+                    backgroundColor: "#F6F6F6",
+                    width: "24px",
+                    height: "24px",
+                    alignSelf: "flex-start",
+                  }}
+                >
+                  <CloseIcon sx={{ width: "15px", height: "15px" }} />
+                </IconButton>
+              </Stack>
+
+              <Box height="9px" />
+              <Stack direction="row" justifyContent="space-between">
+                <Stack
+                  direction="row"
+                  justifyContent="space-between"
+                  gap="17px"
+                  alignItems="center"
+                >
+                  <Box>
+                    <IconButton
+                      component="label"
+                      width="56px"
+                      height="56px"
+                      sx={previewImage ? "" : { backgroundColor: "#E8E7FD" }}
+                    >
+                      <input
+                        id="file"
+                        multiple
+                        hidden
+                        accept="image/*"
+                        type="file"
+                        onChange={handleImage}
+                      />
+                      {previewImage ? (
+                        <Avatar
+                          width="52px"
+                          height="52px"
+                          sx={{ padding: 0, margin: 0 }}
+                          // borderRadius="50%"
+                          src={previewImage}
+                        />
+                      ) : (
+                        <InsertPhotoOutlined sx={{ color: "#4339F2" }} />
+                      )}
+                    </IconButton>
+                  </Box>
+                  <Stack justifyContent="center">
+                    <Typography fontSize="16px" fontWeight="500" color="#4339F2">
+                      Add Vendors
+                    </Typography>
+                    <Typography fontWeight="400" fontSize="14px" color="#6F7082">
+                      Add vendors to the list
+                    </Typography>
+                  </Stack>
+                </Stack>
+                <Stack alignItems="flex-end">
+                  <Typography fontWeight="400" fontSize="14px" color="#3F4158">
+                    Vendor ID
+                  </Typography>
+                  <Typography fontWeight="400" fontSize="14px" color="#6F7082">
+                    {vendorId}
+                  </Typography>
+                </Stack>
+              </Stack>
+              <Box height="16px" />
+              <Stack
+                direction="row"
+                alignItems="center"
+                justifyContent="space-between"
+              >
+                <Typography fontWeight="500" fontSize="14px" color="#3F4158">
+                  Vendor Detail
+                </Typography>
+                <Divider width="400px" />
+              </Stack>
+              <Box height="15px" />
+              <Grid container spacing={3}>
+                <Grid item xs={6}>
+                  <TextField
+                    placeholder="Vendor Name"
+                    defaultValue="Type vendor name"
+                    value={vendorName}
+                    onChange={(e) => setVendorName(e.target.value)}
+                    variant="filled"
+                    sx={{ width: "248px", height: "46px" }}
+                  >
+                    Type Vendor Name
+                  </TextField>
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    placeholder="Physical Address"
+                    defaultValue="Enter vendor address"
+                    value={vendorAddress}
+                    onChange={(e) => setVendorAddress(e.target.value)}
+                    variant="filled"
+                    sx={{ width: "248px", height: "46px" }}
+                  >
+                    Type Vendor Name
+                  </TextField>
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    placeholder="Email Address"
+                    defaultValue="Enter vendor email address"
+                    value={vendorEmail}
+                    onChange={(e) => setVendorEmail(e.target.value)}
+                    variant="filled"
+                    sx={{ width: "248px", height: "46px" }}
+                  >
+                    Type Vendor email Address
+                  </TextField>
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    placeholder="Vendor Phone Number"
+                    defaultValue="Enter vendor phone number"
+                    value={vendorPhone}
+                    onChange={(e) => setVendorPhone(e.target.value)}
+                    variant="filled"
+                    sx={{ width: "248px", height: "46px" }}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">+2519</InputAdornment>
+                      ),
+                    }}
+                  >
+                    Type Vendor Phone Number
+                  </TextField>
+                </Grid>
+              </Grid>
+              <Box height="16px" />
+              <Stack
+                direction="row"
+                alignItems="center"
+                justifyContent="space-between"
+              >
+                <Typography>Item Detail</Typography>
+                <Divider width="400" px />
+              </Stack>
+              <Box height="19px" />
+              <Grid container>
+                <Grid item xs={6}>
+                  <FormControl
+                    variant="filled"
+                    sx={{
+                      width: "248px",
+                      "& .MuiInputBase-root": {
+                        height: "46px",
+                      },
+                    }}
+                  >
+                    <InputLabel>Item Type</InputLabel>
+
+
+                    <Select
+                      labelId="demo-simple-select-filled-label"
+                      defaultValue="Select leave request type"
+                      id="demo-simple-select-filled"
+                      value={selectedPurchaseId}
+                      onChange={(e) => setSelectedPurchaseId(e.target.value)}
+                    >
+                      {/* <pre>{JSON.stringify({ inventoryResponse }, null, 2)}</pre> */}
+                      {purchaseResponse?.map((i) => (
+                        <MenuItem value={i?.id}>
+                          {i.attributes?.itemName}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={6}>
+                  <FormControl
+                    variant="filled"
+                    sx={{
+                      width: "248px",
+                      "& .MuiInputBase-root": {
+                        height: "46px",
+                      },
+                    }}
+                  >
+                    <TextField
+                      placeholder="Item Quantity"
+
+                      value={vendorItemQuantity}
+                      onChange={(e) => setVendorItemQuantity(e.target.value)}
+                      variant="filled"
+                      sx={{
+                        width: "248px",
+                        "& .MuiInputBase-root": {
+                          height: "46px",
+                        },
+                      }}
+
+                    />
+
+                  </FormControl>
+                </Grid>
+              </Grid>
+              <Box height="16px" />
+
+              <Grid container>
+                <Grid item xs={6}>
+                  <TextField
+                    placeholder="Item Unit Price"
+                    defaultValue="Enter item unit price"
+                    value={itemUnitPrice}
+                    onChange={(e) => setItemPrice(e.target.value)}
+                    variant="filled"
+                    sx={{ width: "248px", height: "46px" }}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">ETB</InputAdornment>
+                      ),
+                    }}
+                  >
+                    Item Unit Price
+                  </TextField>
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    placeholder="Item Total Price"
+                    defaultValue="Enter item total price"
+                    value={itemTotalPrice}
+                    onChange={(e) => setItemTotalPrice(e.target.value)}
+                    variant="filled"
+                    sx={{ width: "248px", height: "46px" }}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">ETB</InputAdornment>
+                      ),
+                    }}
+                  >
+                    Item Total Price
+                  </TextField>
+                </Grid>
+              </Grid>
+              <Box height="23px" />
+              <Grid conatiner>
+                <Grid item>
+                  <Button
+                    variant="filled"
+                    sx={{
+                      backgroundColor: "#F6F6F6",
+                      padding: 0,
+                      width: "248px",
+                      height: "46px",
+                    }}
+                  >
+                    <label
+                      style={{
+                        // backgroundColor: "red",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        padding: "12px",
+                        width: "100%",
+                        height: "100%",
+                      }}
+                    >
+                      <input
+                        id="file"
+                        hidden
+                        multiple
+                        type="file"
+                        onChange={(e) => setAttachedProforma(e.target.files)}
+                      />
+                      <Typography
+                        color="#6F7082"
+                        fontWeight="600px"
+                        fontSize="12px"
+                      >
+                        Attach Proforma
+                      </Typography>
+
+                      <NoteAddOutlinedIcon
+                        sx={{ width: "16px", height: "16px", color: "#6F7082" }}
+                      />
+                    </label>
+                  </Button>
+                </Grid>
+              </Grid>
+
+              <Stack direction="row" justifyContent="space-between">
+                <Button variant="text">Reset</Button>
+                <Box>
+                  <Button
+                    variant="contained"
+                    onClick={sendVendorDetail}
+                    sx={{
+                      backgroundColor: "#4339F2",
+                      borderRadius: "10px",
+                      width: "192px",
+                      height: "48px",
+                    }}
+                  >
+                    <Stack
+                      direction="row"
+                      justifyContent="center"
+                      alignItems="center"
+                    >
+                      {/* <AddIcon /> */}
+                      {/* <Box width="12px"></Box> */}
+                      <Typography fontWeight="600" fontSize="12px">
+                        Send for Approval
+                      </Typography>
+                      <ArrowForwardIcon
+                        fontWeight="600"
+                        width="24px"
+                        height="24px"
+                      />
+                    </Stack>
+                  </Button>
+                </Box>
+              </Stack>
+              <Box height="17px" />
+            </Stack>
+          </Box>
+        </Paper>
       </Slide>
 
       <Slide direction="right" in={checkedTR} mountOnEnter unmountOnExit>
@@ -1772,21 +2014,7 @@ const Navbar = ({ jwt }) => {
                 </IconButton>
               </Stack>
               <Stack direction="row" justifyContent="space-between">
-                <TextField
-                  placeholder="Item Name"
-                  defaultValue="Type requester name"
-                  value={materialRequesterName}
-                  onChange={(e) => setMaterialRequesterName(e.target.value)}
-                  variant="filled"
-                  sx={{
-                    width: "248px",
-                    "& .MuiInputBase-root": {
-                      height: "46px",
-                    },
-                  }}
-                >
-                  RequesterName
-                </TextField>
+
 
                 <Stack>
                   <Typography
@@ -1845,6 +2073,7 @@ const Navbar = ({ jwt }) => {
                       onChange={(e) => setSelectedInventoryId(e.target.value)}
                     >
                       {inventoryResponse?.map((i) => (
+
                         <MenuItem value={i?.id}>
                           {i.attributes?.itemName}{" "}
                         </MenuItem>
@@ -1862,26 +2091,21 @@ const Navbar = ({ jwt }) => {
                       },
                     }}
                   >
-                    <InputLabel>Item Quantity</InputLabel>
-
-                    <Select
-                      labelId="demo-simple-select-filled-label"
-                      // defaultValue="Select leave request type"
-                      id="demo-simple-select-filled"
+                    {/* <InputLabel>Item Quantity</InputLabel> */}
+                    <TextField
+                      placeholder="Item Quantity"
+                      // defaultValue="Transfer Location"
                       value={materialItemQuantity}
                       onChange={(e) => setMaterialItemQuantity(e.target.value)}
-                    >
-                      {/* {inventoryResponse?.map((i) => (
-                        TODO
-                        <MenuItem value={i?.id}>
-                          {i.attributes?.itemQuantity}{" "}
-                        </MenuItem>
-                      ))} */}
-                      <MenuItem value={" 1"}> 1 </MenuItem>
-                      <MenuItem value={" 2"}> 2 </MenuItem>
-                      <MenuItem value={" 3"}> 3 </MenuItem>
-                      <MenuItem value={" 4"}> 4 </MenuItem>
-                    </Select>
+                      variant="filled"
+                      sx={{
+                        width: "248px",
+                        "& .MuiInputBase-root": {
+                          height: "46px",
+                        },
+                      }}
+                    />
+
                   </FormControl>
                 </Grid>
                 <Grid item xs={6}>
@@ -2172,13 +2396,13 @@ const Navbar = ({ jwt }) => {
                 <Grid item xs={6}>
                   <LocalizationProvider dateAdapter={AdapterDayjs}>
                     <DatePicker
-                      label="Request Date"
-                      value={dayjs(paymentRequestDate)}
-                      // value={parseISO(salesPage.dateAt)}
+                      // label="Request Date"
+                      // value={dayjs(paymentRequestDate)}
+                      value={paymentRequestDate}
+                      datePickerColor="#F6F6F6"
                       onChange={(newValue) => {
                         setPaymentRequestDate(newValue);
                       }}
-                      // onChange={handleDateAtOnChange}
                       renderInput={(params) => (
                         <TextField
                           variant="filled"
@@ -2236,10 +2460,10 @@ const Navbar = ({ jwt }) => {
                       value={paymentReason}
                       onChange={(e) => setPaymentReason(e.target.value)}
                     >
-                      <MenuItem value={"Type 1"}>Type 1 </MenuItem>
-                      <MenuItem value={"Type 2"}>Type 2 </MenuItem>
-                      <MenuItem value={"Type 3"}>Type 3 </MenuItem>
-                      <MenuItem value={"Type 4"}>Type 4 </MenuItem>
+                      <MenuItem value={"Purchase"}>Purchase </MenuItem>
+                      <MenuItem value={"Payroll"}>Payroll </MenuItem>
+                      <MenuItem value={"Miscellaneous"}>Miscellaneous </MenuItem>
+
                     </Select>
                   </FormControl>
                 </Grid>
@@ -2313,6 +2537,24 @@ const Navbar = ({ jwt }) => {
                 </Grid>
               </Grid>
               <Box height="16px" />
+              <InputLabel>Purchase Request</InputLabel>
+              <Select
+                labelId="demo-simple-select-filled-label"
+                // defaultValue="Select leave request type"
+                id="demo-simple-select-filled"
+                value={selectedPurchaseId}
+                onChange={(e) => setSelectedPurchaseId(e.target.value)}
+              >
+                {purchaseResponse?.map((i) => (
+                  <MenuItem value={i?.id}>
+                    {i.attributes?.itemName}
+                  </MenuItem>
+                ))}
+
+
+              </Select>
+              <Box height="16px" />
+
               <Stack direction="row">
                 <Typography
                   sx={{
@@ -2626,7 +2868,7 @@ const Navbar = ({ jwt }) => {
                         {/* <AddIcon /> */}
                         <Box width="12px"></Box>
                         <Typography fontWeight="600" fontSize="12px">
-                          Create Order
+                          Request Leave
                         </Typography>
                       </Stack>
                     </Button>

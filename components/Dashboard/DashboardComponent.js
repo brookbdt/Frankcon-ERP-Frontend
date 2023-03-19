@@ -19,7 +19,7 @@ const DashboardComponent = ({ jwt }) => {
           backgroundColor: "white",
           width: "1080px",
           overflowY: "auto",
-          maxHeight: "1600px",
+          maxHeight: "600px",
           borderRadius: "10px",
         }}
       >
@@ -45,10 +45,15 @@ const DashboardComponent = ({ jwt }) => {
             <Box height="14px" />
             <Divider width="692px" />
             <Box height="12px" />
-            {selectedIndex === 0 ? <TasksTable jwt={jwt} /> : ""}
-            {selectedIndex === 1 ? <PaymentsTable jwt={jwt} /> : ""}
-            {selectedIndex === 2 ? <ApprovalsTable jwt={jwt} /> : ""}
-            {selectedIndex === 3 ? <PurchasesTable jwt={jwt} /> : ""}
+            <Paper
+              elevation={0} sx={{ maxHeight: "600px", overflow: "auto" }}
+            >
+
+              {selectedIndex === 0 ? <TasksTable jwt={jwt} /> : ""}
+              {selectedIndex === 1 ? <PaymentsTable jwt={jwt} /> : ""}
+              {selectedIndex === 2 ? <ApprovalsTable jwt={jwt} /> : ""}
+              {selectedIndex === 3 ? <PurchasesTable jwt={jwt} /> : ""}
+            </Paper>
           </Stack>
           <Stack justifyContent="center">
             <ActiveProjects jwt={jwt} />

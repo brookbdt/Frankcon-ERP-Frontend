@@ -266,21 +266,34 @@ const SideBar = ({
       jwt
     );
     console.log({ materialTransferRequest });
-    await editInventory(
-      {
-        data: {
-          itemQuantity: String(
-            Number(
-              materialTransferRequest.data?.data?.attributes?.tag_registration
-                ?.data?.attributes?.itemQuantity
-            ) - Number(materialItemQuantity)
-          ),
+
+    Number(
+      materialTransferRequest.data?.data?.attributes?.tag_registration
+        ?.data?.attributes?.itemQuantity
+    ) - Number(materialItemQuantity) < 0 ? window.alert("Item Quantity can't be less than zero") :
+
+      await editInventory(
+        {
+          data: {
+            // itemQuantity: String(
+            //   Number(
+            //     materialTransferRequest.data?.data?.attributes?.tag_registration
+            //       ?.data?.attributes?.itemQuantity
+            //   ) - Number(materialItemQuantity)
+            // ),
+
+            itemQuantity: String(
+              Number(
+                materialTransferRequest.data?.data?.attributes?.tag_registration
+                  ?.data?.attributes?.itemQuantity
+              ) - Number(materialItemQuantity)
+            ),
+          },
         },
-      },
-      materialTransferRequest?.data?.data?.attributes?.tag_registration?.data
-        ?.id,
-      jwt
-    );
+        materialTransferRequest?.data?.data?.attributes?.tag_registration?.data
+          ?.id,
+        jwt
+      );
 
     //
 
@@ -603,7 +616,7 @@ const SideBar = ({
                                     <Box width="16px" />
                                     <Typography>
                                       {" "}
-                                      Payment Requesdddddddt to
+                                      Payment Request to
                                     </Typography>
                                     <Box width="5px" />
                                     <Typography
@@ -792,9 +805,36 @@ const SideBar = ({
                               ) : (
                                 ""
                               )
-                            ) : (
-                              ""
-                            )}
+                            ) : notification?.attributes?.type === 'inbound receiving form' ? (
+                              <>
+                                <Typography
+                                  fontSize="14px"
+                                  fontWeight="700"
+                                >
+                                  {notification?.attributes?.inboundreceivingform?.data?.attributes?.itemQuantity} items
+                                </Typography>
+                                <Box width="5px" />
+                                <Typography>of</Typography>
+                                <Box width="5px" />
+
+                                <Typography
+                                  fontSize="14px"
+                                  fontWeight="700"
+                                >
+                                  {notification?.attributes?.inboundreceivingform?.data?.attributes?.itemName}
+                                </Typography>
+                                <Box width="5px" />
+
+                                <Typography>inbound receiving form by</Typography>
+                                <Box width="5px" />
+                                <Typography
+                                  fontSize="14px"
+                                  fontWeight="700"
+                                >
+                                  {notification?.attributes?.inboundreceivingform?.data?.attributes?.employee}
+                                </Typography>
+                              </>
+                            ) : ''}
                           </>
                         </Stack>
                       </>
@@ -1106,7 +1146,9 @@ const SideBar = ({
               </ListItemButton>
               <Collapse in={openListInventory} timeout="auto" unmountOnExit>
                 <List component="div" disablePadding>
-                  <ListItemButton sx={{ pl: "80px" }}>
+                  <ListItemButton component="a"
+                    href="/inventorydocumentation"
+                    sx={{ pl: "80px" }}>
                     <ListItemText
                       primary="Item List"
                       primaryTypographyProps={{ fontSize: "11px" }}
@@ -1201,7 +1243,9 @@ const SideBar = ({
               </ListItemButton>
               <Collapse in={openListInventory} timeout="auto" unmountOnExit>
                 <List component="div" disablePadding>
-                  <ListItemButton sx={{ pl: "80px" }}>
+                  <ListItemButton component="a"
+                    href="/inventorydocumentation"
+                    sx={{ pl: "80px" }}>
                     <ListItemText
                       primary="Item List"
                       primaryTypographyProps={{ fontSize: "11px" }}
@@ -1386,7 +1430,9 @@ const SideBar = ({
               </ListItemButton>
               <Collapse in={openListInventory} timeout="auto" unmountOnExit>
                 <List component="div" disablePadding>
-                  <ListItemButton sx={{ pl: "80px" }}>
+                  <ListItemButton component="a"
+                    href="/inventorydocumentation"
+                    sx={{ pl: "80px" }}>
                     <ListItemText
                       primary="Item List"
                       primaryTypographyProps={{ fontSize: "11px" }}
@@ -1460,7 +1506,9 @@ const SideBar = ({
               </ListItemButton>
               <Collapse in={openListInventory} timeout="auto" unmountOnExit>
                 <List component="div" disablePadding>
-                  <ListItemButton sx={{ pl: "80px" }}>
+                  <ListItemButton component="a"
+                    href="/inventorydocumentation"
+                    sx={{ pl: "80px" }}>
                     <ListItemText
                       primary="Item List"
                       primaryTypographyProps={{ fontSize: "11px" }}
@@ -1536,7 +1584,9 @@ const SideBar = ({
               </ListItemButton>
               <Collapse in={openListInventory} timeout="auto" unmountOnExit>
                 <List component="div" disablePadding>
-                  <ListItemButton sx={{ pl: "80px" }}>
+                  <ListItemButton component="a"
+                    href="/inventorydocumentation"
+                    sx={{ pl: "80px" }}>
                     <ListItemText
                       primary="Item List"
                       primaryTypographyProps={{ fontSize: "11px" }}
@@ -1586,7 +1636,9 @@ const SideBar = ({
                       primaryTypographyProps={{ fontSize: "11px" }}
                     />
                   </ListItemButton>
-                  <ListItemButton sx={{ pl: "80px" }}>
+                  <ListItemButton component="a"
+                    href="/inventorydocumentation"
+                    sx={{ pl: "80px" }}>
                     <ListItemText
                       primary="Item List"
                       primaryTypographyProps={{ fontSize: "11px" }}

@@ -13,25 +13,30 @@ import {
 } from "@mui/material";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
+import utc from "dayjs/plugin/utc";
 import React, { useEffect, useState } from "react";
-import { readInventoryDocs } from "../../lib";
+import { readAllMaterialTransferRequest, readInboundReceivingForm, readInventoryDocs } from "../../lib";
 import { useFetchUser, useFetchUserDepartment } from "../../lib/authContext";
 
 const All = ({ jwt }) => {
   const { user, loading } = useFetchUser();
   const { userDepartment } = useFetchUserDepartment();
   dayjs.extend(relativeTime);
-  const [response, setResponse] = useState([]);
+  dayjs.extend(utc);
+  const [materialResponse, setMaterialResponse] = useState([]);
+  const [inboundResponse, setInboundResponse] = useState([]);
   useEffect(() => {
     const fetchData = async () => {
       if (!user) {
         return;
       }
-      const result = await readInventoryDocs(jwt);
-      setResponse(result.data);
+      const materialTransferResult = await readAllMaterialTransferRequest(jwt);
+      const inboundReceivingResult = await readInboundReceivingForm(jwt);
+      setMaterialResponse(materialTransferResult.data);
+      setInboundResponse(inboundReceivingResult.data);
     };
     fetchData();
-    console.log(response);
+
   }, [user]);
   return (
     <TableContainer>
@@ -42,7 +47,7 @@ const All = ({ jwt }) => {
               Item Title
             </TableCell>
             <TableCell sx={{ fontWeight: "700", fontSize: "16x" }}>
-              Item Type
+              Department
             </TableCell>
             <TableCell sx={{ fontWeight: "700", fontSize: "16x" }}>
               Request Date
@@ -53,181 +58,205 @@ const All = ({ jwt }) => {
             <TableCell sx={{ fontWeight: "700", fontSize: "16x" }}>
               Material Quantity
             </TableCell>
-            <TableCell sx={{ fontWeight: "700", fontSize: "16x" }}>
-              Request Detail
-            </TableCell>
+
           </TableRow>
         </TableHead>
         <TableBody>
-          {response?.data?.map((item) => (
+          {inboundResponse?.data?.map((item) => (
             <TableRow key={item?.id}>
               <TableCell>
                 <>
                   <Box display="flex">
-                    {item?.attributes?.requestType === "inboundreceiving" ? (
-                      <Box
-                        width="44px"
-                        height="44px"
-                        borderRadius="50%"
-                        display="flex"
-                        alignItems="center"
-                        justifyContent="center"
-                        bgcolor={
-                          item?.attributes?.requestType === "inboundreceiving"
-                            ? "#B6E1D2"
-                            : "#FFEBEB"
-                        }
-                      >
-                        <CallReceived sx={{ color: "#20B07C" }} />
-                      </Box>
-                    ) : (
-                      <Box
-                        width="44px"
-                        height="44px"
-                        borderRadius="50%"
-                        display="flex"
-                        alignItems="center"
-                        justifyContent="center"
-                        bgcolor={
-                          item?.attributes?.requestType === "inboundreceiving"
-                            ? "#B6E1D2"
-                            : "#FFEBEB"
-                        }
-                      >
-                        <ArrowOutward sx={{ color: "#F44336" }} />
-                      </Box>
-                    )}
+                    <Box
+                      width="44px"
+                      height="44px"
+                      borderRadius="50%"
+                      display="flex"
+                      alignItems="center"
+                      justifyContent="center"
+                      bgcolor="#B6E1D2"
+                    >
+                      <CallReceived sx={{ color: "#20B07C" }} />
+                    </Box>
+
                     <Box width="12px" />
                     <Stack>
-                      {item.attributes?.requestType === "inboundreceiving" ? (
-                        <>
-                          <Typography
-                            fontWeight="500"
-                            fontSize="16px"
-                            color="#101010"
-                          >
-                            {
-                              item?.attributes?.inboundreceivingform?.data
-                                ?.attributes?.itemName
-                            }
-                          </Typography>
-                          <Typography
-                            fontWeight="400"
-                            fontSize="12px"
-                            color="#3F4158"
-                          >
-                            ####
-                          </Typography>
-                        </>
-                      ) : (
-                        <>
-                          {
-                            item?.attributes?.materialtransferrequest?.data
-                              ?.attributes?.requesterName
-                          }
-                          <Typography
-                            fontWeight="400"
-                            fontSize="12px"
-                            color="#3F4158"
-                          >
-                            ####
-                          </Typography>
-                        </>
-                      )}
+                      <Typography
+                        fontWeight="500"
+                        fontSize="16px"
+                        color="#101010"
+                      >
+                        {
+                          item?.attributes?.itemName
+                        }
+                      </Typography>
+                      <Typography
+                        fontWeight="400"
+                        fontSize="12px"
+                        color="#3F4158"
+                      >
+                        {
+                          item?.attributes?.requestType
+                        }
+                      </Typography>
+
+
                     </Stack>
                   </Box>
                 </>
               </TableCell>
               <TableCell>
-                {item?.attributes?.requestType === "inboundreceiving" ? (
-                  <Typography fontSize="16px" fontWeight="500" color="#3F4158">
-                    {
-                      item?.attributes?.inboundreceivingform?.data?.attributes
-                        ?.requestType
-                    }
-                  </Typography>
-                ) : (
-                  <Typography fontSize="16px" fontWeight="500" color="#3F4158">
-                    {
-                      item?.attributes?.materialtransferrequest?.data
-                        ?.attributes?.itemType
-                    }
-                  </Typography>
-                )}
+
+                <Typography fontSize="16px" fontWeight="500" color="#3F4158">
+                  {item?.attributes?.department}
+                </Typography>
+
+                <Typography fontSize="16px" fontWeight="500" color="#3F4158">
+                  By {item?.attributes?.employee}
+                </Typography>
+
               </TableCell>
               <TableCell>
-                {item?.attributes?.requestType === "inboundreceiving" ? (
-                  <Typography fontWeight="500" color="#101010">
-                    {dayjs(
-                      item?.attributes?.inboundreceivingform?.data?.attributes
-                        ?.leaveEndDate
-                    ).format("DD MMM YYYY")}
-                  </Typography>
-                ) : (
-                  <Typography fontWeight="500" color="#101010">
-                    {dayjs(
-                      item?.attributes?.materialtransfer?.data?.attributes
-                        ?.requestDate
-                    ).format("DD MMM YYYY")}
-                  </Typography>
-                )}
+
+                <Typography fontWeight="500" color="#101010">
+                  {dayjs(
+                    item?.attributes?.leaveEndDate
+                  ).utc().format("DD MMM YYYY")}
+                </Typography>
+
+
+
               </TableCell>
               <TableCell>
-                {item?.attributes?.requestType === "inboundreceiving" ? (
-                  <Typography fontSize="16px" fontWeight="500" color="#3F4158">
-                    Addis Ababa
-                  </Typography>
-                ) : (
-                  <Typography fontSize="16px" fontWeight="500" color="#3F4158">
-                    {
-                      item?.attributes?.materialtransferrequest?.data
-                        ?.attributes?.transferLocation
-                    }
-                  </Typography>
-                )}
+
+                <Typography fontSize="16px" fontWeight="500" color="#3F4158">
+                  Workshop
+                </Typography>
+
               </TableCell>
               <TableCell>
                 {" "}
                 <Box display="flex">
-                  {item?.attributes?.requestType === "inboundreceiving" ? (
-                    <Typography
-                      fontSize="16px"
-                      fontWeight="500"
-                      color="#3F4158"
-                    >
-                      {
-                        item?.attributes?.inboundreceivingform?.data?.attributes
-                          ?.itemQuantity
-                      }
-                    </Typography>
-                  ) : (
-                    <Typography
-                      fontSize="16px"
-                      fontWeight="500"
-                      color="#3F4158"
-                    >
-                      {
-                        item?.attributes?.materialtransferrequest?.data
-                          ?.attributes?.itemQuantity
-                      }
-                    </Typography>
-                  )}
+
+                  <Typography
+                    fontSize="16px"
+                    fontWeight="500"
+                    color="#3F4158"
+                  >
+                    {item?.attributes?.itemQuantity}
+                  </Typography>
+
+
                   <Box width="5px" />
                   <Typography>items</Typography>
                 </Box>{" "}
               </TableCell>
+
+            </TableRow>
+          ))}
+          {materialResponse?.data?.map((item) => (
+            <TableRow key={item?.id}>
               <TableCell>
-                <Button
-                  // onClick={handleOpen}
-                  sx={{
-                    color: "#9FA0AB",
-                    fontWeight: "700",
-                    fontSize: "11px",
-                  }}
-                >
-                  VIEW ITEM DETAIL
-                </Button>
+                <>
+                  <Box display="flex">
+
+                    <Box
+                      width="44px"
+                      height="44px"
+                      borderRadius="50%"
+                      display="flex"
+                      alignItems="center"
+                      justifyContent="center"
+                      bgcolor="#FFEBEB"
+
+                    >
+                      <ArrowOutward sx={{ color: "#F44336" }} />
+                    </Box>
+
+                    <Box width="12px" />
+                    <Stack>
+
+                      <>
+                        <Typography
+                          fontWeight="500"
+                          fontSize="16px"
+                          color="#101010"
+                        >
+                          {item?.attributes?.itemType}
+                        </Typography>
+
+                      </>
+
+                      <>
+
+                        <Typography
+                          fontWeight="400"
+                          fontSize="12px"
+                          color="#3F4158"
+                        >
+                          {
+                            item?.attributes?.materialTransferId
+                          }
+                        </Typography>
+                      </>
+
+                    </Stack>
+                  </Box>
+                </>
               </TableCell>
+              <TableCell>
+
+                <Typography fontSize="16px" fontWeight="500" color="#3F4158">
+                  {
+                    item?.attributes?.department
+                  }
+                </Typography>
+
+                <Typography fontSize="16px" fontWeight="500" color="#3F4158">
+                  By {
+                    item?.attributes?.requesterName}
+                </Typography>
+
+              </TableCell>
+              <TableCell>
+
+                <Typography fontWeight="500" color="#101010">
+                  {dayjs(
+                    item?.attributes?.requestDate
+                  ).utc().format("DD MMM YYYY")}
+                </Typography>
+
+              </TableCell>
+              <TableCell>
+
+
+                <Typography fontSize="16px" fontWeight="500" color="#3F4158">
+                  {
+                    item?.attributes?.transferLocation
+                  }
+                </Typography>
+
+              </TableCell>
+              <TableCell>
+                {" "}
+                <Box display="flex">
+
+
+                  <Typography
+                    fontSize="16px"
+                    fontWeight="500"
+                    color="#3F4158"
+                  >
+                    {
+                      item?.attributes?.itemQuantity
+                    }
+                  </Typography>
+
+                  <Box width="5px" />
+                  <Typography>items</Typography>
+                </Box>{" "}
+              </TableCell>
+
             </TableRow>
           ))}
         </TableBody>

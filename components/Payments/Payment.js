@@ -24,7 +24,7 @@ const Payment = ({ jwt }) => {
       setResponse(result.data);
     };
     fetchData();
-    console.log(response);
+
   }, [user]);
 
   const monthNames = [
