@@ -43,6 +43,7 @@ import Workshop from "../../components/Workshop/Workshop";
 import EmployeesLayout from "../../layout/employees";
 import {
   createComment,
+  createNotification,
   createTask,
   readEmployee,
   readEmployeeTask,
@@ -187,7 +188,7 @@ const Tasks = () => {
 
     setJwt(jwt);
 
-    readNotification(jwt).then((r) => {
+    readNotification(jwt, user).then((r) => {
       console.log("r is", r.data?.data);
       setNotificationResponse(r.data?.data);
     });
@@ -254,7 +255,21 @@ const Tasks = () => {
       },
     };
 
-    createComment(newComment, jwt);
+    await createComment(newComment, jwt);
+
+    const newNotification = {
+      data: {
+        date: new Date().toISOString(),
+        type: "Task",
+        task: task?.data?.data?.id,
+        employees: [currentEmployee?.data?.data[0]?.id, ...employeeChecked?.map((emp) => emp?.id)],
+        employee: [currentEmployee?.data?.data[0]?.id],
+
+      },
+    };
+    // employee: employee.data?.data?.[0]?.id,
+
+    await createNotification(newNotification, jwt);
     // {
     //   userDepartment === "workshop" ? createWorkshopTask(newTask, jwt) : "";
     // }
@@ -347,19 +362,23 @@ const Tasks = () => {
                   <Avatar
                     sx={{ width: "24px", height: "24px" }}
                     alt="Employee Image"
-                    src={
-                      currentEmployee?.data?.data[0]?.attributes?.employeeImage
-                        ?.data?.attributes?.url
-                    }
+                    // src={
+                    //   currentEmployee?.data?.data[0]?.attributes?.employeeImage
+                    //     ?.data?.attributes?.url
+                    // }
+                    src={`${process.env.NEXT_PUBLIC_STRAPI_BASE_URL}${currentEmployee?.data?.data[0]?.attributes?.employeeImage
+                      ?.data?.attributes?.url}`}
                   />
                   {employeeChecked.map((employee) => (
                     <Avatar
                       sx={{ width: "24px", height: "24px" }}
                       alt="Employee Image"
-                      src={
-                        employee?.attributes?.employeeImage?.data?.attributes
-                          ?.url
-                      }
+                      // src={
+                      //   employee?.attributes?.employeeImage?.data?.attributes
+                      //     ?.url
+                      // }
+                      src={`${process.env.NEXT_PUBLIC_STRAPI_BASE_URL}${employee?.attributes?.employeeImage?.data?.attributes?.url
+                        }`}
                     />
                   ))}
                   <Box
@@ -403,7 +422,7 @@ const Tasks = () => {
                                         bgcolor: "background.paper",
                                       }}
                                     >
-                                      {employees?.data?.map((employee) => {
+                                      {employees?.data?.filter((employee) => (currentEmployee?.data?.data[0]?.id !== employee?.id)).map((employee) => {
                                         const labelId = `${employee?.id}`;
                                         // console.log({ labelId });
                                         return (
@@ -435,7 +454,8 @@ const Tasks = () => {
                                                     width: "24px",
                                                     height: "24px",
                                                   }}
-                                                  src={`${employee?.attributes?.employeeImage?.data?.attributes?.url}`}
+                                                  src={`${process.env.NEXT_PUBLIC_STRAPI_BASE_URL}${employee?.attributes?.employeeImage?.data?.attributes?.url}`}
+
                                                 />
                                               </ListItemIcon>
                                               <ListItemText

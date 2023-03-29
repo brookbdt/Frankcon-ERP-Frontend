@@ -54,16 +54,20 @@ import {
   createLeaveRequest,
   createMaterialTransferRequest,
   createNotification,
+  createPayin,
   createPaymentRequest,
+  createPayout,
   createPurchaseRequest,
   createTagRegistration,
   createVendorRequest,
+  editAccountBalance,
   getInboundReceivingId,
   getMaterialId,
   getPaymentId,
   getPurchaseId,
   getTagRegistrationId,
   getVendorId,
+  readAccountBalanceId,
   readAllProjects,
   readEmployee,
   readEmployeeDetail,
@@ -99,13 +103,8 @@ const Navbar = ({ jwt }) => {
   const [purchaseOpen, setPurchaseOpen] = useState(false);
   const [close, setClose] = useState(false);
   const [formStatus, setFormStatus] = useState("");
-  const formOptions = [
-    "Material Transfer",
-    "Inbound Receiving Form",
-    "Tag Registration",
-    "Leave Request",
-    "Add Vendor"
-  ];
+  // const [formOptions, setFormOptions] = useState([]);
+
   const [formSelectedIndex, setFormSelectedIndex] = useState();
   // const [prioritySelectedIndex, setPrioritySelectedIndex] = useState(0);
 
@@ -157,6 +156,8 @@ const Navbar = ({ jwt }) => {
   const [vendorImage, setVendorImage] = useState([]);
   const [tagImage, setTagImage] = useState([]);
   const [vendorId, setVendorId] = useState("");
+  const [accountBalanceId, setAccountBalanceId] = useState("");
+  const [accountBalanceAmount, setAccountBalanceAmount] = useState("");
   const [purchaseId, setPurchaseId] = useState("");
   const [materialTransferId, setMaterialTransferId] = useState("");
   const [inboundReceivingFormId, setInboundReceivingFormId] = useState("");
@@ -184,7 +185,7 @@ const Navbar = ({ jwt }) => {
   const buttons = ["Forms", "Requests", "Help Center"];
 
   const [selectedIndex, setSelectedIndex] = useState(0);
-
+  const [balance, setBalance] = useState(0)
   const handleClick = () => {
     setOpen(true);
   };
@@ -221,8 +222,17 @@ const Navbar = ({ jwt }) => {
   const handleCloseVD = () => {
     setCheckedVD((prev) => !prev);
   };
+  const formOptions = [
+    "Material Transfer",
+    "Inbound Receiving Form",
+    "Tag Registration",
+    "Leave Request",
+    "Add Vendor"
+  ];
 
   const sendPurchaseRequest = async () => {
+    const employee = await readEmployeeDetail(jwt, user);
+
     const formData = new FormData();
     setChecked((prev) => !prev);
 
@@ -233,13 +243,15 @@ const Navbar = ({ jwt }) => {
         itemName,
         additionalDetail,
         requestDate: requestDate?.toISOString(),
-        requesterName,
+        // requesterName,
         purchaseId,
         approvedBy: user,
         responsibleDepartment: userDepartment,
         itemQuantity,
         vendorId,
         itemType,
+        employee: employee.data?.data?.[0]?.id,
+
         // employee_name: user,
         // user,
         // jwt: jwt,
@@ -284,6 +296,8 @@ const Navbar = ({ jwt }) => {
         date: new Date().toISOString(),
         type: "purchase request",
         purchaseRequest: purchaseRequest.data?.data?.id,
+        employee: employee.data?.data?.[0]?.id,
+        employees: employee.data?.data?.[0]?.id,
       },
     };
     // employee: employee.data?.data?.[0]?.id,
@@ -295,12 +309,15 @@ const Navbar = ({ jwt }) => {
   };
 
   const sendPaymentRequest = async () => {
+    console.log({ balance })
+    const paymentAmountNumber = parseInt(paymentAmount.replace(/\,/g, '')); // Remove commas and convert payment amount to a number
     setCheckedPayment((prev) => !prev)
     const formData = new FormData();
     for (const files of paymentInvoice) {
       formData.append("files.paymentInvoice", files);
     }
     const employee = await readTaskEmployee(jwt, user);
+    console.log({ paymentAmountNumber })
 
     formData.append(
       "data",
@@ -323,6 +340,21 @@ const Navbar = ({ jwt }) => {
       })
     );
     setAlertOpen(true);
+    // const getAccountBalanceId = async () => {
+    //   const response = await readAccountBalanceId(jwt);
+
+    //   console.log({ response })
+    //   const accountBalance = await response?.data?.data[0];
+    //   return accountBalance; // assuming the ID field is called "_id"
+    // };
+
+
+
+    // ...
+
+
+    // const accountBalanceId = await getAccountBalanceId(jwt);
+    // console.log({ accountBalanceId })
 
     const paymentRequest = await createPaymentRequest(formData, jwt);
     const newNotification = {
@@ -330,37 +362,58 @@ const Navbar = ({ jwt }) => {
         date: new Date().toISOString(),
         type: "payment request",
         paymentRequest: paymentRequest?.data?.data?.id,
+        employee: employee.data?.data?.[0]?.id,
+        employees: employee.data?.data?.[0]?.id,
+
       },
     };
     // employee: employee.data?.data?.[0]?.id,
 
     await createNotification(newNotification, jwt);
-    // const newNotification = await createNotification(
-    //   {
-    //     data: {
-    //       date: new Date().toISOString(),
-    //       type: "purchase request",
-    //       purchaseRequest: purchaseRequest?.data?.data?.id,
-    //     },
-    //   },
-    //   jwt
-    // );
-    // const newNotification = {
-    //   data: {
-    //     date: new Date().toISOString(),
-    //     type: "purchase request",
-    //     purchaseRequest: purchaseRequest.data?.data?.id,
-    //   },
-    // };
-    // employee: employee.data?.data?.[0]?.id,
 
-    // await createNotification(newNotification, jwt);
-    // console.log({ purchaseRequest });
-    // console.log({ newNotification });
-    // console.log(formData, jwt);
+    // const newBalance = paymentType === "Pay out" ? balance - paymentAmountNumber : balance + paymentAmountNumber
+
+    const newPayin = {
+      data: {
+        payInDate: new Date().toISOString(),
+        paymentrequest: paymentRequest?.data?.data?.id,
+        amount: paymentAmount,
+        isApproved: "pending",
+      }
+
+    }
+    const newPayout = {
+      data: {
+        payOutDate: new Date().toISOString(),
+        paymentrequest: paymentRequest?.data?.data?.id,
+        amount: paymentAmount,
+        isApproved: "pending",
+      }
+
+    }
+    console.log({ accountBalanceAmount })
+
+    paymentType === "Pay in" ?
+      await createPayin(newPayin, jwt) :
+      paymentType === "Pay out" ?
+        await createPayout(newPayout, jwt) : ''
+
+
+    // setBalance(newBalance);
+    // console.log({ accountBalanceAmount })
+
+    // const updatedBalance = {
+    //   data: {
+    //     accountBalance: newBalance.toString(),
+    //   }
+    // }
+    // await editAccountBalance(updatedBalance, accountBalanceId, jwt);
+
   };
   const sendInboundReceivingForm = async () => {
     const formData = new FormData();
+    const employee = await readEmployeeDetail(jwt, user);
+    console.log({ employee })
 
     formData.append(
       "data",
@@ -374,7 +427,7 @@ const Navbar = ({ jwt }) => {
         requestType: itemType,
         receivingFormId: inboundReceivingFormId,
         department: userDepartment,
-        employee: requestingEmployee
+        employee: employee.data?.data?.[0]?.id,
 
 
         // vendorinboundItemTypeId,
@@ -390,36 +443,22 @@ const Navbar = ({ jwt }) => {
         date: new Date().toISOString(),
         type: "inbound receiving form",
         inboundreceivingform: inboundRequest?.data?.data?.id,
+        employee: employee.data?.data?.[0]?.id,
+        employees: employee.data?.data?.[0]?.id,
+
       },
     };
 
+
     await createNotification(newNotification, jwt);
 
-    //  (
-    //   formData,
-    //   jwt
-    // );
-    // const inboundReceivingForm = await createInboundReceivingForm(
-    //   formData,
-    //   jwt
-    // );
 
-    // const newNotification = {
-    //   data: {
-    //     date: new Date().toISOString(),
-    //     type: "inbound receiving form",
-    //     inboundReceivingForm: inboundReceivingForm.data?.data?.id,
-    //   },
-    // };
-    // employee: employee.data?.data?.[0]?.id,
-
-    // await createNotification(newNotification, jwt);
-    // console.log({ purchaseRequest });
-    // console.log({ newNotification });
-    // console.log(formData, jwt);
   };
   const sendTagRegistration = async () => {
     const formData = new FormData();
+    const employee = await readEmployeeDetail(jwt, user);
+    setCheckedTR(false);
+
 
     for (const img of tagImage) {
       formData.append("files.tagImage", img);
@@ -437,6 +476,9 @@ const Navbar = ({ jwt }) => {
         itemStorageLocation: storageLocation,
         itemAmount,
         itemInformation,
+        employee: employee.data?.data?.[0]?.id,
+
+
         // vendorinboundItemTypeId,
       })
     );
@@ -444,29 +486,21 @@ const Navbar = ({ jwt }) => {
     setAlertOpen(true);
 
     // const inboundReceivingForm =
-    createTagRegistration(formData, jwt);
-    //  (
-    //   formData,
-    //   jwt
-    // );
-    // const inboundReceivingForm = await createInboundReceivingForm(
-    //   formData,
-    //   jwt
-    // );
+    const tagRegistration = await createTagRegistration(formData, jwt);
+    const newNotification = {
+      data: {
+        date: new Date().toISOString(),
+        type: "tag registration",
+        tag_registration: tagRegistration.data?.data?.id,
+        employee: employee.data?.data?.[0]?.id,
+        employees: employee.data?.data?.[0]?.id,
 
-    // const newNotification = {
-    //   data: {
-    //     date: new Date().toISOString(),
-    //     type: "inbound receiving form",
-    //     inboundReceivingForm: inboundReceivingForm.data?.data?.id,
-    //   },
-    // };
+      },
+    };
     // employee: employee.data?.data?.[0]?.id,
 
-    // await createNotification(newNotification, jwt);
-    // console.log({ purchaseRequest });
-    // console.log({ newNotification });
-    // console.log(formData, jwt);
+    await createNotification(newNotification, jwt);
+
   };
   const sendMaterialTransfer = async () => {
     setCheckedAMT((prev) => !prev)
@@ -569,7 +603,7 @@ const Navbar = ({ jwt }) => {
           <Stack direction="row" justifyContent="space-between">
             <TextField
               placeholder="Item Name"
-              defaultValue="Type requester name"
+
               value={itemName}
               onChange={(e) => setItemName(e.target.value)}
               variant="filled"
@@ -580,7 +614,7 @@ const Navbar = ({ jwt }) => {
                 },
               }}
             >
-              Type Requester Name
+
             </TextField>
 
             <Stack>
@@ -711,7 +745,7 @@ const Navbar = ({ jwt }) => {
                 />
               </LocalizationProvider>
             </Grid>
-            <Grid item xs={6}>
+            {/* <Grid item xs={6}>
               <TextField
                 placeholder="Requester Name"
                 defaultValue="Type requester name"
@@ -727,7 +761,7 @@ const Navbar = ({ jwt }) => {
               >
                 Type Requester Name
               </TextField>
-            </Grid>
+            </Grid> */}
           </Grid>
           <Box height="16px" />
           <Stack direction="row">
@@ -1060,6 +1094,7 @@ const Navbar = ({ jwt }) => {
     </Paper>
   );
   const addInboundReceivingForm = (
+
     <Paper
       sx={{
         width: "568px",
@@ -1072,6 +1107,7 @@ const Navbar = ({ jwt }) => {
       elevation={4}
       variant="outlined"
     >
+
       <Box
         sx={{
           width: "568px",
@@ -1309,8 +1345,9 @@ const Navbar = ({ jwt }) => {
                 >
                   {/* <AddIcon /> */}
                   {/* <Box width="12px"></Box> */}
+                  {/* <pre>{JSON.stringify({ requestingEmployee }, null, 2)}</pre> */}
                   <Typography fontWeight="600" fontSize="12px">
-                    Save Item Form
+                    Save Item Formddd
                   </Typography>
                   <ArrowForwardIcon
                     fontWeight="600"
@@ -1325,6 +1362,7 @@ const Navbar = ({ jwt }) => {
         </Stack>
       </Box>
     </Paper>
+
   );
   // const AddMaterialTransfer = () => (
 
@@ -1339,19 +1377,30 @@ const Navbar = ({ jwt }) => {
 
   const [inventoryTest, setTestInventory] = useState([]);
   const [employeeImage, setEmployeeImage] = useState("");
-  const [requestingEmployee, setRequestingEmployee] = useState("");
+  const [requestingEmployee, setRequestingEmployee] = useState({});
 
 
   let res = [];
 
   useEffect(() => {
+    // userDepartment === 'admin' ? (setFormOptions("Material Transfer",
+    //   "Inbound Receiving Form",
+    //   "Tag Registration",
+    //   "Leave Request",
+    //   "Add Vendor")) :
+    //   (setFormOptions
+    //     ("Material Transfer",
+    //       "Tag Registration",
+    //       "Leave Request",
+    //       "Add Vendor"));
+
     const fetchData = async () => {
       const currentEmployee = await readEmployeeDetail(jwt, user);
       setEmployeeImage(currentEmployee?.id?.employee?.employeeImage?.url);
-      setRequestingEmployee(currentEmployee?.data?.data?.[0]?.attributes?.firstName);
+      setRequestingEmployee(currentEmployee);
       const lastPurchase = await getPurchaseId(jwt);
       const lastTR = await getTagRegistrationId(jwt);
-
+      console.log({ balance })
       const lastMaterial = await getMaterialId(jwt);
       const lastPurchaseId = lastPurchase?.data?.data?.[0]?.id || 1;
       const lastTRID = lastTR?.data?.[0]?.id || 1;
@@ -1375,11 +1424,17 @@ const Navbar = ({ jwt }) => {
         `RF - ${new Date().getFullYear()} - ${lastInboundReceivingId + 1}`
       );
       const lastVendor = await getVendorId(jwt);
+      const lastAccountBalance = await readAccountBalanceId(jwt);
       const lastPayment = await getPaymentId(jwt);
       const lastVendorId = lastVendor?.data?.data?.[0]?.id || 1;
+      const lastAccountBalanceId = lastAccountBalance?.data?.data?.[0]?.id || 1;
+      const lastAccountBalanceAmount = lastAccountBalance?.data?.data?.[0]?.attributes?.accountBalance;
       const lastPaymentId = lastPayment?.data?.data?.[0]?.id || 1;
       setVendorId(`#VD${new Date().getFullYear()}-${lastVendorId + 1}`);
+      setAccountBalanceId(lastAccountBalanceId);
+      setAccountBalanceAmount(parseInt(lastAccountBalanceAmount.replace(/\,/g, '')));
       setPaymentId(`#PR${new Date().getFullYear()}-${lastPaymentId + 1}`);
+      setBalance(accountBalanceAmount);
 
       const result = await readAllProjects(jwt, user);
       setProjectsResponse(result?.data?.data);
@@ -1392,18 +1447,19 @@ const Navbar = ({ jwt }) => {
 
       console.log({ inventoryResult });
       setInventoryResponse(inventoryResult?.data?.data);
-      console.log({ purchaseResult })
+      console.log({ accountBalanceAmount })
       setPurchaseResponse(purchaseResult?.data?.data);
 
     };
 
     fetchData();
-  }, [user]);
+  }, [user, balance, paymentAmount, paymentType, accountBalanceAmount]);
 
 
 
   const sendLeaveRequest = async () => {
     setCheckedLeaveRequest((prev) => !prev)
+    const employee = await readTaskEmployee(jwt, user);
 
     const newLeaveRequest = {
       data: {
@@ -1414,6 +1470,9 @@ const Navbar = ({ jwt }) => {
         leaveStartDate,
         leaveEndDate,
         leaveReason,
+        isApproved: 'pending',
+        employee: employee.data?.data?.[0]?.id,
+
 
         // },
       },
@@ -1424,6 +1483,9 @@ const Navbar = ({ jwt }) => {
         date: new Date().toISOString(),
         type: "leave request",
         leaverequest: leaveRequest.data?.data?.id,
+        employee: employee.data?.data?.[0]?.id,
+        employees: employee.data?.data?.[0]?.id,
+
       },
     };
     // employee: employee.data?.data?.[0]?.id,
@@ -1435,6 +1497,7 @@ const Navbar = ({ jwt }) => {
   const sendVendorDetail = async () => {
     const formData = new FormData();
     setCheckedVD((prev) => !prev);
+    const employee = await readEmployeeDetail(jwt, user);
 
 
     for (const doc of attachedProforma) {
@@ -1454,6 +1517,9 @@ const Navbar = ({ jwt }) => {
       itemTotalPrice,
       isApproved: "pending",
       purchaserequest: selectedPurchaseId,
+      employee: employee.data?.data?.[0]?.id,
+
+
     }))
 
     const vendorRequest = await createVendorRequest(formData, jwt);
@@ -1462,6 +1528,8 @@ const Navbar = ({ jwt }) => {
         date: new Date().toISOString(),
         type: "vendor request",
         vendor: vendorRequest.data?.data?.id,
+        employee: employee.data?.data?.[0]?.id,
+        employees: employee.data?.data?.[0]?.id,
       },
     };
     // employee: employee.data?.data?.[0]?.id,
@@ -1529,66 +1597,73 @@ const Navbar = ({ jwt }) => {
                 dropDownFontSize="12px"
                 placeholder="Form Options"
               >
-                {formOptions.map((formOption, index) => (
-                  <MenuItem
-                    id={formOption}
-                    key={formOption}
-                    value={formStatus}
-                    //   disabled={index === 2}
-                    selected={index === formSelectedIndex}
-                    onClick={() => {
-                      setFormSelectedIndex(index);
-                      index === 0
-                        ? (setCheckedAMT(true),
-                          setFormStatus("Material Transfer"),
-                          setCheckedLeaveRequest(false),
-                          setCheckedPayment(false),
-                          setChecked(false),
-                          setCheckedTR(false),
-                          setCheckedIRF(false))
-                        : index === 1
-                          ? (setFormStatus("Inbound Receiving Form"),
-                            console.log(formSelectedIndex),
-                            setCheckedIRF(true),
-                            setChecked(false),
-                            setCheckedAMT(false),
-                            setCheckedPayment(false),
+                {
+
+                  formOptions?.map((formOption, index) => (
+
+                    <MenuItem
+                      id={formOption}
+                      key={formOption}
+                      value={formStatus}
+                      //   disabled={index === 2}
+                      selected={index === formSelectedIndex}
+                      onClick={() => {
+                        setFormSelectedIndex(index);
+                        index === 0
+                          ? (setCheckedAMT(true),
+                            setFormStatus("Material Transfer"),
                             setCheckedLeaveRequest(false),
-                            setCheckedTR(false))
-                          : index === 2
-                            ? (setFormStatus("Tag Registration"),
+                            setCheckedPayment(false),
+                            setChecked(false),
+                            setCheckedTR(false),
+                            setCheckedIRF(false))
+                          : index === 1
+                            ? (
+                              setFormStatus("Inbound Receiving Form"),
+                              setCheckedIRF(true),
                               setChecked(false),
-                              setCheckedTR(true),
-                              setCheckedIRF(false),
-                              setCheckedPayment(false),
                               setCheckedAMT(false),
-                              setCheckedLeaveRequest(false))
-                            : index === 3
-                              ? (setFormStatus("Leave Request"),
-                                setCheckedLeaveRequest(true),
+                              setCheckedPayment(false),
+                              setCheckedLeaveRequest(false),
+                              setCheckedTR(false))
+
+                            : index === 2
+                              ? (setFormStatus("Tag Registration"),
                                 setChecked(false),
-                                setCheckedPayment(false),
-                                setCheckedTR(false),
+                                setCheckedTR(true),
                                 setCheckedIRF(false),
-                                setCheckedAMT(false))
-                              : index === 4 ? (
-                                setFormStatus("Add Vendor"),
-                                setCheckedLeaveRequest(false),
-                                setChecked(false),
                                 setCheckedPayment(false),
-                                setCheckedTR(false),
-                                setCheckedIRF(false),
                                 setCheckedAMT(false),
-                                setCheckedVD(true)
-                              ) : ''
-                    }}
-                  >
-                    {formOption}
-                  </MenuItem>
-                ))}
+                                setCheckedLeaveRequest(false))
+                              : index === 3
+                                ? (setFormStatus("Leave Request"),
+                                  setCheckedLeaveRequest(true),
+                                  setChecked(false),
+                                  setCheckedPayment(false),
+                                  setCheckedTR(false),
+                                  setCheckedIRF(false),
+                                  setCheckedAMT(false))
+                                : index === 4 ? (
+                                  setFormStatus("Add Vendor"),
+                                  setCheckedLeaveRequest(false),
+                                  setChecked(false),
+                                  setCheckedPayment(false),
+                                  setCheckedTR(false),
+                                  setCheckedIRF(false),
+                                  setCheckedAMT(false),
+                                  setCheckedVD(true)
+                                ) : ''
+                      }}
+                    >
+                      {formOption}
+                    </MenuItem>
+                  ))
+
+
+                }
               </Dropdown>
               {/* <Button onClick={handleClick}>Requests</Button> */}
-              <Button>Status</Button>
+              {/* <Button>Status</Button> */}
               {/* <pre>{JSON.stringify({ projectsResponse }, null, 2)}</pre> */}
               <Button>Help Center</Button>
             </ButtonGroup>
@@ -1788,7 +1863,7 @@ const Navbar = ({ jwt }) => {
                       },
                     }}
                   >
-                    <InputLabel>Item Type</InputLabel>
+                    <InputLabel>Purchase Order</InputLabel>
 
 
                     <Select
@@ -2545,7 +2620,7 @@ const Navbar = ({ jwt }) => {
                 value={selectedPurchaseId}
                 onChange={(e) => setSelectedPurchaseId(e.target.value)}
               >
-                {purchaseResponse?.map((i) => (
+                {purchaseResponse?.filter((pr) => pr?.attributes?.isApproved === 'approved').map((i) => (
                   <MenuItem value={i?.id}>
                     {i.attributes?.itemName}
                   </MenuItem>
@@ -2688,10 +2763,14 @@ const Navbar = ({ jwt }) => {
                       value={leaveRequestType}
                       onChange={(e) => setLeaveRequestType(e.target.value)}
                     >
-                      <MenuItem value={"Reason 1"}>Reason1 </MenuItem>
-                      <MenuItem value={"Reason 2"}>Reason2 </MenuItem>
-                      <MenuItem value={"Reason 3"}>Reason3 </MenuItem>
-                      <MenuItem value={"Reason 4"}>Reason4 </MenuItem>
+                      <MenuItem value={"Annual leave"}>Annual leave </MenuItem>
+                      <MenuItem value={"Sick leave"}>Sick leave </MenuItem>
+                      <MenuItem value={"Medical appointment"}>Medical appointment</MenuItem>
+                      <MenuItem value={"Maternal leave"}>Maternal leave </MenuItem>
+                      <MenuItem value={"Paternity leave"}>Paternity leave </MenuItem>
+                      <MenuItem value={"Study leave"}>Study leave </MenuItem>
+                      <MenuItem value={"Social leave"}>Social leave </MenuItem>
+                      <MenuItem value={"Other"}>Other</MenuItem>
                     </Select>
                   </FormControl>
                   <Stack>
@@ -2734,17 +2813,18 @@ const Navbar = ({ jwt }) => {
                 <Grid container spacing={3}>
                   <Grid item xs={6}>
                     <TextField
-                      placeholder="Requester Name"
-                      defaultValue="Type requester name"
-                      value={requesterName}
-                      onChange={(e) => setRequesterName(e.target.value)}
+                      placeholder="Leave Duration"
+                      defaultValue="Leave Duration"
+                      value={leaveDuration}
+                      onChange={(e) => setLeaveDuration(e.target.value)}
+
                       variant="filled"
                       sx={{ width: "248px", height: "46px" }}
                     >
-                      Type Requester Name
+                      Leave Duration
                     </TextField>
                   </Grid>
-                  <Grid item xs={6}>
+                  {/* <Grid item xs={6}>
                     <FormControl
                       variant="filled"
                       sx={{
@@ -2769,7 +2849,7 @@ const Navbar = ({ jwt }) => {
                         <MenuItem value={"4 Days"}>4 Days </MenuItem>
                       </Select>
                     </FormControl>
-                  </Grid>
+                  </Grid> */}
                   <Grid item xs={6}>
                     <LocalizationProvider dateAdapter={AdapterDayjs}>
                       <DatePicker

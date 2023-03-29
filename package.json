@@ -25,6 +25,7 @@
     "axios": "^1.1.2",
     "dayjs": "^1.11.5",
     "js-cookie": "^3.0.1",
+    "kill-port": "^2.0.1",
     "material-table": "^2.0.3",
     "material-ui-popup-state": "^5.0.4",
     "moment": "^2.29.4",

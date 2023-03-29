@@ -408,7 +408,7 @@ const ProjectDetailPage = ({ id }) => {
                   justifyContent="space-between"
                   alignItems="center"
                   gap="15.94px"
-                  //   alignItems="center"
+                //   alignItems="center"
                 >
                   <Stack>
                     <Typography
@@ -453,10 +453,10 @@ const ProjectDetailPage = ({ id }) => {
                             prioritySelectedIndex === 0
                               ? setProjectPriority("Low")
                               : prioritySelectedIndex === 1
-                              ? setProjectPriority("Medium")
-                              : prioritySelectedIndex === 2
-                              ? setProjectPriority("High")
-                              : "";
+                                ? setProjectPriority("Medium")
+                                : prioritySelectedIndex === 2
+                                  ? setProjectPriority("High")
+                                  : "";
                           }}
                         >
                           {priorityOption}
@@ -494,12 +494,12 @@ const ProjectDetailPage = ({ id }) => {
                             statusSelectedIndex === 0
                               ? setProjectStatus("Ongoing")
                               : prioritySelectedIndex === 1
-                              ? setProjectStatus("Paused")
-                              : prioritySelectedIndex === 2
-                              ? setProjectStatus("Delayed")
-                              : prioritySelectedIndex === 3
-                              ? setProjectStatus("Completed")
-                              : "";
+                                ? setProjectStatus("Paused")
+                                : prioritySelectedIndex === 2
+                                  ? setProjectStatus("Delayed")
+                                  : prioritySelectedIndex === 3
+                                    ? setProjectStatus("Completed")
+                                    : "";
                           }}
                         >
                           {statusOption}
@@ -576,14 +576,14 @@ const ProjectDetailPage = ({ id }) => {
                           departmentSelectedIndex === 0
                             ? setProjectResponsibleDepartment("Inventory")
                             : departmentSelectedIndex === 1
-                            ? setProjectResponsibleDepartment("Finance")
-                            : departmentSelectedIndex === 2
-                            ? setProjectResponsibleDepartment("Human Resource")
-                            : departmentSelectedIndex === 3
-                            ? setProjectResponsibleDepartment("Project")
-                            : departmentSelectedIndex === 4
-                            ? setProjectResponsibleDepartment("Workshop")
-                            : "";
+                              ? setProjectResponsibleDepartment("Finance")
+                              : departmentSelectedIndex === 2
+                                ? setProjectResponsibleDepartment("Human Resource")
+                                : departmentSelectedIndex === 3
+                                  ? setProjectResponsibleDepartment("Project")
+                                  : departmentSelectedIndex === 4
+                                    ? setProjectResponsibleDepartment("Workshop")
+                                    : "";
                         }}
                       >
                         {departmentOption}
@@ -620,8 +620,8 @@ const ProjectDetailPage = ({ id }) => {
                           projectLeadSelectedIndex === 0
                             ? setProjectLead("Abebe")
                             : projectLeadSelectedIndex === 1
-                            ? setProjectLead("Kebede")
-                            : "";
+                              ? setProjectLead("Kebede")
+                              : "";
                         }}
                       >
                         {projectLeadOption}

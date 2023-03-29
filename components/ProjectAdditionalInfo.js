@@ -31,7 +31,8 @@ const ProjectAdditionalInfo = ({ response }) => {
             Elapsed Time
           </Typography>
           <Typography>
-            {dayjs(response?.attributes?.projectStartDate).fromNow(true)}
+            {/* <pre>{JSON.stringify({ response }, null, 2)}</pre> */}
+            {dayjs(response?.data?.attributes?.createdAt).fromNow(true)}
           </Typography>
         </Stack>
       </Stack>
@@ -54,7 +55,7 @@ const ProjectAdditionalInfo = ({ response }) => {
               </Typography>
               <Box width="5px" />
               <Typography fontWeight="400" fontSize="12px" color="#3F4158">
-                {dayjs(response?.attributes?.updatedAt).fromNow(true)}
+                {dayjs(response?.data?.attributes?.updatedAt).fromNow(true)}
               </Typography>
             </Box>
           </Stack>
@@ -97,7 +98,8 @@ const ProjectAdditionalInfo = ({ response }) => {
               Project Overall Cost
             </Typography>
             <Typography color="#6F7082" fontWeight="400" fontSize="14px">
-              ETB 3,444,555
+              {response?.data?.attributes?.projectBudget}
+
             </Typography>
           </Box>
           <Box

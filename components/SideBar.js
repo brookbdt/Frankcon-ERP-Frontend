@@ -43,18 +43,27 @@ import {
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import { fetcher } from "../lib/api";
-import { getTokenFromLocalCookie, getTokenFromServerCookie } from "../lib/auth";
+import { getTokenFromLocalCookie, getTokenFromServerCookie, getUserFromLocalCookie } from "../lib/auth";
 import { useFetchUser, useFetchUserDepartment } from "../lib/authContext";
 import {
+  createNotification,
+  createPayin,
+  createPayout,
+  editAccountBalance,
   editInventory,
   editLeaveRequest,
   editMaterialTransfer,
   editPaymentRequest,
   editPurchaseRequest,
+  editVendorRequest,
   getInventoryQuantity,
+  readAccountBalanceId,
+  readAllProjects,
+  readEmployeeDetail,
   readInventory,
   readMaterialTransferRequest,
   readNotification,
+  readPaymentsRequests,
   readPurchaseRequest,
 } from "../lib";
 import Notifications from "./Notifications";
@@ -96,6 +105,11 @@ const SideBar = ({
   const [openListHR, setOpenListHR] = React.useState(false);
   const [openListInventory, setOpenListInventory] = React.useState(false);
   const [openListWorkshop, setOpenListWorkshop] = React.useState(false);
+  const [accountBalanceId, setAccountBalanceId] = useState("");
+  const [accountBalanceAmount, setAccountBalanceAmount] = useState("");
+  const [paymentId, setPaymentId] = useState("");
+
+  const [showNotifications, setShowNotifications] = React.useState(true);
 
   const handleClick = () => {
     setOpen(!open);
@@ -121,6 +135,7 @@ const SideBar = ({
 
   const handleClose = () => setOpen(false);
 
+
   const SideBox = styled(Box)(({ theme }) => ({
     // display: "column",
     alignItems: "center",
@@ -141,6 +156,8 @@ const SideBar = ({
     // border: "2px solid #000",
     borderRadius: "4px",
     boxShadow: 24,
+    overflow: "auto",
+    height: "80%",
     p: 4,
   };
 
@@ -168,14 +185,55 @@ const SideBar = ({
   };
 
   const [response, setResponse] = useState([]);
+  const [balance, setBalance] = useState(0)
+
+
   useEffect(() => {
-    readNotification(jwt).then((r) => {
+    if (!user) {
+      return;
+    }
+
+
+
+
+    readNotification(jwt, user).then((r) => {
       console.log("r is", r.data?.data);
       setResponse(r.data?.data);
     });
 
-    console.log("response is", { response });
-  }, []);
+    const fetchData = async () => {
+
+      const lastAccountBalance = await readAccountBalanceId(jwt);
+
+
+
+      const lastAccountBalanceId = lastAccountBalance?.data?.data?.[0]?.id || 1;
+      const lastAccountBalanceAmount = lastAccountBalance?.data?.data?.[0]?.attributes?.accountBalance;
+
+      setAccountBalanceId(lastAccountBalanceId);
+      setAccountBalanceAmount(parseInt(lastAccountBalanceAmount.replace(/\,/g, '')));
+
+      setBalance(accountBalanceAmount);
+
+      const result = await readAllProjects(jwt, user);
+      // setProjectsResponse(result?.data?.data);
+
+      const inventoryResult = await readInventory(jwt);
+      const purchaseResult = await readPurchaseRequest(jwt);
+      // const vendorResult = await readVendor(jwt);
+
+      // res = inventoryResult.data.data;
+
+      console.log({ inventoryResult });
+      // setInventoryResponse(inventoryResult?.data?.data);
+      console.log({ accountBalanceAmount })
+      // setPurchaseResponse(purchaseResult?.data?.data);
+
+    };
+
+    fetchData();
+    console.log("notif is", { user });
+  }, [user, balance, accountBalanceAmount]);
 
   const handleRequest = async (
     isApproved,
@@ -185,6 +243,7 @@ const SideBar = ({
   ) => {
     // optimistic update
     console.log({ response });
+
 
     setResponse(
       response.map((r) => {
@@ -197,12 +256,23 @@ const SideBar = ({
     );
 
     // setAdminResponse()
-    await editPurchaseRequest(
+    const editedPurchaseRequest = await editPurchaseRequest(
       { data: { isApproved, user } },
       purchaseRequestId,
       jwt
     );
     await fetchData();
+    const newNotification = {
+      data: {
+        date: new Date().toISOString(),
+        type: "edited purchase request",
+        purchaseRequest: editedPurchaseRequest.data?.data?.id,
+
+      },
+    };
+    // employee: employee.data?.data?.[0]?.id,
+
+    await createNotification(newNotification, jwt);
   };
 
   const handleRequestPaymentRequest = async (
@@ -213,6 +283,8 @@ const SideBar = ({
   ) => {
     // optimistic update
     console.log({ response });
+    // const paymentAmountNumber = parseInt(paymentAmount.replace(/\,/g, '')); // Remove commas and convert payment amount to a number
+
 
     setResponse(
       response.map((r) => {
@@ -224,9 +296,80 @@ const SideBar = ({
       })
     );
     // setAdminResponse()
+    console.log('this balance', { balance })
+
+
+
+    const newBalance = response.map((r) => {
+      if ((r.id === paymentRequestId) && isApproved === true && r.attributes.paymentType === "Pay out") {
+        const paymentAmountNumber = parseInt(r.attributes.paymentAmount.replace(/\,/g, '')); // Remove commas and convert payment amount to a number
+
+        console.log({
+          paymentAmountNumber
+        })
+
+
+        return balance - paymentAmountNumber
+
+
+      } else if ((r.id === paymentRequestId) && isApproved === true && r.attributes.paymentType === "Pay in") {
+        const paymentAmountNumber = parseInt(r.attributes.paymentAmount.replace(/\,/g, '')); // Remove commas and convert payment amount to a number
+
+        console.log({
+          paymentAmountNumber
+        })
+        return balance + paymentAmountNumber
+      }
+
+    })
+    console.log({ newBalance })
+
+
+    console.log({ accountBalanceAmount })
+
+    setBalance(newBalance);
+    console.log({ accountBalanceAmount })
     await editPaymentRequest(
       { data: { isApproved, user } },
       paymentRequestId,
+      jwt
+    );
+
+    const updatedBalance = {
+      data: {
+        accountBalance: newBalance.toString(),
+      }
+    }
+
+    await editAccountBalance(updatedBalance, accountBalanceId, jwt)
+
+
+
+    await fetchData();
+  };
+
+  const handleRequestVendorRequest = async (
+    isApproved,
+    vendorRequestId,
+    requesterName,
+    itemName
+  ) => {
+    // optimistic update
+    console.log({ response });
+
+    setResponse(
+      response.map((r) => {
+        if (r.id === vendorRequestId) {
+          r.attributes.isApproved = isApproved;
+          r.attributes.approvedBy = user;
+        }
+        return r;
+      })
+    );
+    // setAdminResponse()
+    await editVendorRequest(
+      { data: { isApproved, user } },
+      vendorRequestId,
       jwt
     );
     await fetchData();
@@ -399,6 +542,7 @@ const SideBar = ({
               aria-describedby="transition-modal-description"
               open={open}
               onClose={handleClose}
+              sx={{ overflow: "auto" }}
               closeAfterTransition
               BackdropComponent={Backdrop}
               BackdropProps={{
@@ -406,23 +550,156 @@ const SideBar = ({
               }}
             >
               <Fade in={open}>
-                <Box sx={style}>
-                  <Stack direction="row" justifyContent="space-between">
+                <Box sx={style} >
+                  <Stack direction="row" justifyContent="space-between" alignItems="center">
                     <Typography>Notifications </Typography>
-                    <Typography>Mark all as read</Typography>
+                    <Button onClick={() => setShowNotifications(false)}>Mark all as read</Button>
                   </Stack>
                   <Box height="28px" />
-                  {(userDepartment === "admin" ||
-                    userDepartment === "Finance" ||
-                    userDepartment === "Purchaser") &&
-                    response?.map((notification, index) => (
-                      <>
-                        <Stack direction="row" alignItems="center">
+                  {
+                    showNotifications === true ?
+                      (
+                        response?.map((notification, index) => (
                           <>
-                            {notification?.attributes?.type ===
-                              "purchase request" ? (
-                              notification?.attributes?.purchaseRequest?.data
-                                ?.attributes?.isApproved === "pending" ? (
+                            {/* <Stack direction="row" alignItems="center"> */}
+                            <>
+                              {notification?.attributes?.type ===
+                                "purchase request" ? (
+                                notification?.attributes?.purchaseRequest?.data
+                                  ?.attributes?.isApproved === "pending" ? (
+                                  <Stack>
+                                    <Box
+                                      display="flex"
+                                      alignItems="center"
+                                    // justifyContent="center"
+                                    >
+                                      <Avatar
+                                      // src={`${process.env.NEXT_PUBLIC_STRAPI_BASE_URL}${notification?.attributes?.purchaseRequest?.data?.attributes?.vendorImage.data?.[0].attributes?.url}`}
+                                      />
+                                      <Box width="16px" />
+
+                                      <Typography
+                                        fontSize="14px"
+                                        fontWeight="700"
+                                      >
+                                        {
+                                          notification?.attributes?.employee?.data?.attributes?.firstName
+                                        }
+                                      </Typography>
+                                      <Box width="5px" />
+                                      <Typography>
+                                        {" "}
+                                        requested purchase of
+                                      </Typography>
+                                      <Box width="5px" />
+                                      <Typography
+                                        fontSize="14px"
+                                        fontWeight="700"
+                                      >
+                                        {
+                                          notification?.attributes
+                                            ?.purchaseRequest?.data?.attributes
+                                            ?.itemName
+                                        }
+                                      </Typography>
+                                      <Box width="5px" />
+
+                                    </Box>
+                                    <Box height="8px" />
+                                    <Stack direction="row">
+                                      <Box width="55px" />
+                                      <Button
+                                        id="accept"
+                                        variant="contained"
+                                        onClick={() =>
+                                          handleRequest(
+                                            "approved",
+                                            notification?.attributes?.purchaseRequest
+                                              ?.data?.id
+                                          )
+                                        }
+                                        sx={{
+                                          width: "64px",
+                                          height: "28px",
+                                          backgroundColor: "#F44336",
+                                        }}
+                                      >
+                                        <Typography fontSize="10px">
+                                          Accept{" "}
+                                        </Typography>
+                                      </Button>
+                                      <Box width="8px" />
+                                      <Button
+                                        id="reject"
+                                        variant="outlined"
+                                        onClick={() =>
+                                          handleRequest(
+                                            "rejected",
+                                            notification?.attributes?.purchaseRequest
+                                              ?.data?.id
+                                          )
+                                        }
+
+                                      // color="white"
+                                      // sx={{ : "white" }}
+                                      >
+                                        <Typography
+                                          fontSize="10px"
+                                          color="#404158"
+                                        >
+                                          Reject
+                                        </Typography>
+                                      </Button>
+                                    </Stack>
+
+                                  </Stack>
+                                ) : <Stack>
+                                  <Box
+                                    display="flex"
+                                    alignItems="center"
+                                  // justifyContent="center"
+                                  >
+                                    <Avatar
+                                    // src={`${process.env.NEXT_PUBLIC_STRAPI_BASE_URL}${notification?.attributes?.purchaseRequest?.data?.attributes?.vendorImage.data?.[0].attributes?.url}`}
+                                    />
+                                    <Box width="16px" />
+
+                                    <Typography
+                                      fontSize="14px"
+                                      fontWeight="700"
+                                    >
+                                      {
+                                        notification?.attributes?.employee?.data?.attributes?.firstName
+                                      }'s
+                                    </Typography>
+                                    <Box width="5px" />
+                                    <Typography>
+                                      {" "}
+                                      requested purchase on
+                                    </Typography>
+                                    <Box width="5px" />
+                                    <Typography
+                                      fontSize="14px"
+                                      fontWeight="700"
+                                    >
+                                      {
+                                        notification?.attributes
+                                          ?.purchaseRequest?.data?.attributes
+                                          ?.itemName
+                                      }
+                                    </Typography>
+                                  </Box>
+                                  <Box height="8px" />
+
+                                  <Typography> was {
+                                    notification?.attributes
+                                      ?.purchaseRequest?.data?.attributes
+                                      ?.isApproved
+                                  }</Typography>
+                                </Stack>
+                              ) : notification?.attributes?.type ===
+                                "edited purchase request" ? (
+
                                 <Stack>
                                   <Box
                                     display="flex"
@@ -439,10 +716,8 @@ const SideBar = ({
                                       fontWeight="700"
                                     >
                                       {
-                                        notification?.attributes
-                                          ?.purchaseRequest?.data?.attributes
-                                          ?.requesterName
-                                      }
+                                        notification?.attributes?.employee?.data?.attributes?.firstName
+                                      }'s
                                     </Typography>
                                     <Box width="5px" />
                                     <Typography>
@@ -463,385 +738,645 @@ const SideBar = ({
                                   </Box>
                                   <Box height="8px" />
 
-                                  <Stack direction="row">
-                                    <Box width="55px" />
-                                    <Button
-                                      id="accept"
-                                      variant="contained"
-                                      onClick={() =>
-                                        handleRequest(
-                                          "approved",
-                                          notification?.attributes
-                                            ?.purchaseRequest?.data?.id
-                                        )
-                                      }
-                                      sx={{
-                                        width: "64px",
-                                        height: "28px",
-                                        backgroundColor: "#F44336",
-                                      }}
-                                    >
-                                      <Typography fontSize="10px">
-                                        Accept{" "}
-                                      </Typography>
-                                    </Button>
-                                    <Box width="8px" />
-                                    <Button
-                                      id="reject"
-                                      variant="outlined"
-                                      onClick={() =>
-                                        handleRequest(
-                                          "rejected",
-                                          notification?.attributes
-                                            ?.purchaseRequest?.data?.id
-                                        )
-                                      }
-
-                                    // color="white"
-                                    // sx={{ : "white" }}
-                                    >
-                                      <Typography
-                                        fontSize="10px"
-                                        color="#404158"
-                                      >
-                                        Reject
-                                      </Typography>
-                                    </Button>
-                                  </Stack>
+                                  <Typography> was {
+                                    notification?.attributes
+                                      ?.purchaseRequest?.data?.attributes
+                                      ?.isApproved
+                                  }</Typography>
                                 </Stack>
-                              ) : (
-                                ""
+
                               )
-                            ) : notification?.attributes?.type ===
-                              "leave request" ? (
-                              notification?.attributes?.leaveRequest?.data
-                                ?.attributes?.isApproved === "pending" ? (
-                                <Stack>
-                                  <Box
-                                    display="flex"
-                                    alignItems="center"
-                                  // justifyContent="center"
-                                  >
-                                    <Avatar
-                                    // src={`${process.env.NEXT_PUBLIC_STRAPI_BASE_URL}${notification?.attributes?.purchaseRequest?.data?.attributes?.vendorImage.data?.[0].attributes?.url}`}
-                                    />
-                                    <Box width="16px" />
 
-                                    <Typography
-                                      fontSize="14px"
-                                      fontWeight="700"
-                                    >
-                                      {
-                                        notification?.attributes?.leaveRequest
-                                          ?.data?.attributes?.requesterName
-                                      }
-                                    </Typography>
-                                    <Box width="5px" />
-                                    <Typography> requested leave on</Typography>
-                                    <Box width="5px" />
-                                    <Typography
-                                      fontSize="14px"
-                                      fontWeight="700"
-                                    >
-                                      {
-                                        notification?.attributes?.leaveRequest
-                                          ?.data?.attributes?.createdAt
-                                      }
-                                    </Typography>
-                                  </Box>
-                                  <Box height="8px" />
-
-                                  <Stack direction="row">
-                                    <Box width="55px" />
-                                    <Button
-                                      id="accept"
-                                      variant="contained"
-                                      onClick={() =>
-                                        handleRequestLeaveRequest(
-                                          "approved",
-                                          notification?.attributes?.leaveRequest
-                                            ?.data?.id
-                                        )
-                                      }
-                                      sx={{
-                                        width: "64px",
-                                        height: "28px",
-                                        backgroundColor: "#F44336",
-                                      }}
-                                    >
-                                      <Typography fontSize="10px">
-                                        Accept{" "}
-                                      </Typography>
-                                    </Button>
-                                    <Box width="8px" />
-                                    <Button
-                                      id="reject"
-                                      variant="outlined"
-                                      onClick={() =>
-                                        handleRequestLeaveRequest(
-                                          "rejected",
-                                          notification?.attributes?.leaveRequest
-                                            ?.data?.id
-                                        )
-                                      }
-
-                                    // color="white"
-                                    // sx={{ : "white" }}
-                                    >
-                                      <Typography
-                                        fontSize="10px"
-                                        color="#404158"
+                                : notification?.attributes?.type ===
+                                  "leave request" ? (
+                                  notification?.attributes?.leaverequest?.data
+                                    ?.attributes?.isApproved === "pending" ? (
+                                    <Stack>
+                                      <Box
+                                        display="flex"
+                                        alignItems="center"
+                                      // justifyContent="center"
                                       >
-                                        Reject
+                                        <Avatar
+                                        // src={`${process.env.NEXT_PUBLIC_STRAPI_BASE_URL}${notification?.attributes?.purchaseRequest?.data?.attributes?.vendorImage.data?.[0].attributes?.url}`}
+                                        />
+                                        <Box width="16px" />
+
+                                        <Typography
+                                          fontSize="14px"
+                                          fontWeight="700"
+                                        >
+                                          {
+                                            notification?.attributes?.employee?.data?.attributes?.firstName
+                                          }
+                                        </Typography>
+                                        <Box width="5px" />
+                                        <Typography> requested leave for</Typography>
+                                        <Box width="5px" />
+                                        <Typography
+                                          fontSize="14px"
+                                          fontWeight="700"
+                                        >
+                                          {
+                                            notification?.attributes?.leaverequest
+                                              ?.data?.attributes?.leaveRequestType
+                                          }
+                                        </Typography>
+                                      </Box>
+                                      <Box height="8px" />
+
+                                      <Stack direction="row">
+                                        <Box width="55px" />
+                                        <Button
+                                          id="accept"
+                                          variant="contained"
+                                          onClick={() =>
+                                            handleRequestLeaveRequest(
+                                              "approved",
+                                              notification?.attributes?.leaverequest
+                                                ?.data?.id
+                                            )
+                                          }
+                                          sx={{
+                                            width: "64px",
+                                            height: "28px",
+                                            backgroundColor: "#F44336",
+                                          }}
+                                        >
+                                          <Typography fontSize="10px">
+                                            Accept{" "}
+                                          </Typography>
+                                        </Button>
+                                        <Box width="8px" />
+                                        <Button
+                                          id="reject"
+                                          variant="outlined"
+                                          onClick={() =>
+                                            handleRequestLeaveRequest(
+                                              "rejected",
+                                              notification?.attributes?.leaverequest
+                                                ?.data?.id
+                                            )
+                                          }
+
+                                        // color="white"
+                                        // sx={{ : "white" }}
+                                        >
+                                          <Typography
+                                            fontSize="10px"
+                                            color="#404158"
+                                          >
+                                            Reject
+                                          </Typography>
+                                        </Button>
+                                      </Stack>
+                                    </Stack>
+                                  ) : <Stack>
+                                    <Box
+                                      display="flex"
+                                      alignItems="center"
+                                    // justifyContent="center"
+                                    >
+                                      <Avatar
+                                      // src={`${process.env.NEXT_PUBLIC_STRAPI_BASE_URL}${notification?.attributes?.purchaseRequest?.data?.attributes?.vendorImage.data?.[0].attributes?.url}`}
+                                      />
+                                      <Box width="16px" />
+                                      <Typography>
+                                        {" "}
+                                        Leave Request by
                                       </Typography>
-                                    </Button>
-                                  </Stack>
-                                </Stack>
-                              ) : (
-                                ""
-                              )
-                            ) : notification?.attributes?.type ===
-                              "payment request" ? (
-                              notification?.attributes?.paymentRequest?.data
-                                ?.attributes?.isApproved === "pending" ? (
-                                <Stack>
-                                  <Box
-                                    display="flex"
-                                    alignItems="center"
-                                  // justifyContent="center"
-                                  >
-                                    <Avatar
-                                    // src={`${process.env.NEXT_PUBLIC_STRAPI_BASE_URL}${notification?.attributes?.purchaseRequest?.data?.attributes?.vendorImage.data?.[0].attributes?.url}`}
-                                    />
-                                    <Box width="16px" />
-                                    <Typography>
-                                      {" "}
-                                      Payment Request to
-                                    </Typography>
-                                    <Box width="5px" />
-                                    <Typography
-                                      fontSize="14px"
-                                      fontWeight="700"
-                                    >
-                                      {
-                                        notification?.attributes?.paymentRequest
-                                          ?.data?.attributes?.paidTo
-                                      }
-                                    </Typography>
-                                    <Box width="5px" />
-                                    <Typography>for project </Typography>
-                                    <Box width="5px" />
-
-                                    <Typography
-                                      fontSize="14px"
-                                      fontWeight="700"
-                                    >
-                                      {
-                                        notification?.attributes?.paymentRequest
-                                          ?.data?.attributes?.projectTitle
-                                      }
-                                    </Typography>
-                                  </Box>
-                                  <Box height="8px" />
-
-                                  <Stack direction="row">
-                                    <Box width="55px" />
-                                    <Button
-                                      id="accept"
-                                      variant="contained"
-                                      onClick={() =>
-                                        handleRequestPaymentRequest(
-                                          "approved",
-                                          notification?.attributes
-                                            ?.paymentRequest?.data?.id
-                                        )
-                                      }
-                                      sx={{
-                                        width: "64px",
-                                        height: "28px",
-                                        backgroundColor: "#F44336",
-                                      }}
-                                    >
-                                      <Typography fontSize="10px">
-                                        Accept{" "}
-                                      </Typography>
-                                    </Button>
-                                    <Box width="8px" />
-                                    <Button
-                                      id="reject"
-                                      variant="outlined"
-                                      onClick={() =>
-                                        handleRequestPaymentRequest(
-                                          "rejected",
-                                          notification?.attributes
-                                            ?.paymentRequest?.data?.id
-                                        )
-                                      }
-
-                                    // color="white"
-                                    // sx={{ : "white" }}
-                                    >
+                                      <Box width="5px" />
                                       <Typography
-                                        fontSize="10px"
-                                        color="#404158"
+                                        fontSize="14px"
+                                        fontWeight="700"
                                       >
-                                        Reject
+                                        {
+                                          notification?.attributes?.employee?.data?.attributes?.firstName
+                                        }
                                       </Typography>
-                                    </Button>
+                                      <Box width="5px" />
+                                      <Typography>due to reason</Typography>
+                                      <Box width="5px" />
+
+                                      <Typography
+                                        fontSize="14px"
+                                        fontWeight="700"
+                                      >
+                                        {
+                                          notification?.attributes?.leaverequest
+                                            ?.data?.attributes?.leaveRequestType
+                                        }
+                                      </Typography>
+                                    </Box>
+                                    <Box height="8px" />
+
+                                    <Typography> was {
+                                      notification?.attributes
+                                        ?.leaverequest?.data?.attributes
+                                        ?.isApproved
+                                    }</Typography>
                                   </Stack>
-                                </Stack>
-                              ) : (
-                                ""
-                              )
-                            ) : notification?.attributes?.type ===
-                              "material request" ? (
-                              notification?.attributes?.materialtransferrequest
-                                ?.data?.attributes?.isApproved === "pending" ? (
-                                <>
-                                  <Box>
-                                    {/* <Box
+                                ) : notification?.attributes?.type ===
+                                  "payment request" ? (
+                                  notification?.attributes?.paymentRequest?.data
+                                    ?.attributes?.isApproved === "pending" ? (
+                                    <>
+                                      <Box
+                                        display="flex"
+                                        // alignItems="center"
+                                        justifyContent="space-around"
+                                      >
+                                        <Avatar
+                                        // src={`${process.env.NEXT_PUBLIC_STRAPI_BASE_URL}${notification?.attributes?.purchaseRequest?.data?.attributes?.vendorImage.data?.[0].attributes?.url}`}
+                                        />
+
+                                        <Stack>
+                                          <Box>
+                                            <Box display="flex" alignItems="center">
+                                              <Typography>
+                                                {" "}
+                                                Payment Request of amount
+                                              </Typography>
+                                              <Box width="5px" />
+                                              <Typography fontSize="14px"
+                                                fontWeight="700">
+                                                {" "}
+                                                ETB {notification?.attributes?.paymentRequest?.data?.attributes?.paymentAmount}
+                                              </Typography>
+                                            </Box>
+                                            <Box width="5px" />
+                                            <Box display="flex" alignItems="center">
+                                              <Typography>
+                                                {" "}
+                                                made by
+                                              </Typography>
+                                              <Box width="5px" />
+                                              <Typography
+                                                fontSize="14px"
+                                                fontWeight="700"
+                                              >
+                                                {
+                                                  notification?.attributes?.employee?.data?.attributes?.firstName
+                                                }
+                                              </Typography>
+                                              <Box width="5px" />
+                                              <Typography>for project </Typography>
+                                              <Box width="5px" />
+
+                                              <Typography
+                                                fontSize="14px"
+                                                fontWeight="700"
+                                              >
+                                                {
+                                                  notification?.attributes?.paymentRequest
+                                                    ?.data?.attributes?.projectTitle
+                                                }
+                                              </Typography>
+                                            </Box>
+                                          </Box>
+                                          <Box height="16px" />
+                                          <Stack direction="row">
+                                            {/* <Box width="55px" /> */}
+                                            <Button
+                                              id="accept"
+                                              variant="contained"
+                                              onClick={() =>
+                                                handleRequestPaymentRequest(
+                                                  "approved",
+                                                  notification?.attributes
+                                                    ?.paymentRequest?.data?.id
+                                                )
+                                              }
+                                              sx={{
+                                                width: "64px",
+                                                height: "28px",
+                                                backgroundColor: "#F44336",
+                                              }}
+                                            >
+                                              <Typography fontSize="10px">
+                                                Accept{" "}
+                                              </Typography>
+                                            </Button>
+                                            <Box width="8px" />
+                                            <Button
+                                              id="reject"
+                                              variant="outlined"
+                                              onClick={() =>
+                                                handleRequestPaymentRequest(
+                                                  "rejected",
+                                                  notification?.attributes
+                                                    ?.paymentRequest?.data?.id
+                                                )
+                                              }
+
+
+                                            >
+                                              <Typography
+                                                fontSize="10px"
+                                                color="#404158"
+                                              >
+                                                Reject
+                                              </Typography>
+                                            </Button>
+                                          </Stack>
+
+                                        </Stack>
+
+                                        <Box height="8px" />
+                                      </Box>
+
+
+                                    </>
+                                  ) : <Stack>
+                                    <Box
+                                      display="flex"
+                                      alignItems="center"
+                                    // justifyContent="center"
+                                    >
+                                      <Avatar
+                                      // src={`${process.env.NEXT_PUBLIC_STRAPI_BASE_URL}${notification?.attributes?.purchaseRequest?.data?.attributes?.vendorImage.data?.[0].attributes?.url}`}
+                                      />
+                                      <Box width="16px" />
+                                      <Typography>
+                                        {" "}
+                                        Payment Request by
+                                      </Typography>
+                                      <Box width="5px" />
+                                      <Typography
+                                        fontSize="14px"
+                                        fontWeight="700"
+                                      >
+                                        {
+                                          notification?.attributes?.employee?.data?.attributes?.firstName
+                                        }
+                                      </Typography>
+                                      <Box width="5px" />
+                                      <Typography>for project </Typography>
+                                      <Box width="5px" />
+
+                                      <Typography
+                                        fontSize="14px"
+                                        fontWeight="700"
+                                      >
+                                        {
+                                          notification?.attributes?.paymentRequest
+                                            ?.data?.attributes?.projectTitle
+                                        }
+                                      </Typography>
+                                    </Box>
+                                    <Box height="8px" />
+
+                                    <Typography> was {
+                                      notification?.attributes
+                                        ?.paymentRequest?.data?.attributes
+                                        ?.isApproved
+                                    }</Typography>
+                                  </Stack>
+                                ) : notification?.attributes?.type ===
+                                  "material request" ? (
+                                  notification?.attributes?.materialtransferrequest
+                                    ?.data?.attributes?.isApproved === "pending" ? (
+                                    <>
+                                      <Box>
+                                        {/* <Box
                                     display="flex"
                                     alignItems="center"
                                   > */}
-                                    <Avatar
-                                    // src={`${process.env.NEXT_PUBLIC_STRAPI_BASE_URL}${notification?.attributes?.purchaseRequest?.data?.attributes?.vendorImage.data?.[0].attributes?.url}`}
-                                    />
-                                    <Box width="16px" />
-                                    <Typography>
-                                      {" "}
-                                      {
-                                        notification?.attributes
-                                          ?.materialtransferrequest?.data
-                                          ?.attributes?.requesterName
-                                      }
-                                    </Typography>
-                                    <Box width="5px" />
-                                    <Typography
-                                      fontSize="14px"
-                                      fontWeight="700"
-                                    >
-                                      requested material transfer of
-                                    </Typography>
-                                    <Box width="5px" />
-                                    <Typography
-                                      fontSize="14px"
-                                      fontWeight="700"
-                                    >
-                                      {
-                                        notification?.attributes
-                                          ?.materialtransferrequest?.data
-                                          ?.attributes?.itemQuantity
-                                      }
-                                      <Box width="5px" />
-                                      {
-                                        notification?.attributes
-                                          ?.materialtransferrequest?.data
-                                          ?.attributes?.itemType
-                                      }
-                                    </Typography>
-                                    <Box width="5px" />
-                                    <Typography>to</Typography>
-                                    <Box width="5px" />
-                                    <Typography>
-                                      {
-                                        notification?.attributes
-                                          ?.materialtransferrequest?.data
-                                          ?.attributes?.transferLocation
-                                      }
-                                    </Typography>
-                                    <Box width="5px" />
-                                    {/* </Box> */}
-                                    <Box height="8px" />
-                                  </Box>
-                                  <Stack direction="row">
-                                    <Box width="55px" />
-                                    <Button
-                                      id="accept"
-                                      variant="contained"
-                                      onClick={() =>
-                                        handleRequestMaterialTransfer(
-                                          "approved",
-                                          notification?.attributes
-                                            ?.materialtransferrequest?.data?.id,
-                                          notification?.attributes
-                                            ?.materialtransferrequest?.data
-                                            ?.attributes?.itemQuantity
-                                        )
-                                      }
-                                      sx={{
-                                        width: "64px",
-                                        height: "28px",
-                                        backgroundColor: "#F44336",
-                                      }}
-                                    >
-                                      <Typography fontSize="10px">
-                                        Accept{" "}
-                                      </Typography>
-                                    </Button>
-                                    <Box width="8px" />
-                                    <Button
-                                      id="reject"
-                                      variant="outlined"
-                                      onClick={() =>
-                                        handleRequestMaterialTransfer(
-                                          "rejected",
-                                          notification?.attributes
-                                            ?.materialtransferrequest?.data?.id
-                                        )
-                                      }
+                                        <Avatar
+                                        // src={`${process.env.NEXT_PUBLIC_STRAPI_BASE_URL}${notification?.attributes?.purchaseRequest?.data?.attributes?.vendorImage.data?.[0].attributes?.url}`}
+                                        />
+                                        <Box width="16px" />
+                                        <Typography>
+                                          {" "}
+                                          {
+                                            notification?.attributes
+                                              ?.materialtransferrequest?.data
+                                              ?.attributes?.requesterName
+                                          }
+                                        </Typography>
+                                        <Box width="5px" />
+                                        <Typography
+                                          fontSize="14px"
+                                          fontWeight="700"
+                                        >
+                                          requested material transfer of
+                                        </Typography>
+                                        <Box width="5px" />
+                                        <Typography
+                                          fontSize="14px"
+                                          fontWeight="700"
+                                        >
+                                          {
+                                            notification?.attributes
+                                              ?.materialtransferrequest?.data
+                                              ?.attributes?.itemQuantity
+                                          }
+                                          <Box width="5px" />
+                                          {
+                                            notification?.attributes
+                                              ?.materialtransferrequest?.data
+                                              ?.attributes?.itemType
+                                          }
+                                        </Typography>
+                                        <Box width="5px" />
+                                        <Typography>to</Typography>
+                                        <Box width="5px" />
+                                        <Typography>
+                                          {
+                                            notification?.attributes
+                                              ?.materialtransferrequest?.data
+                                              ?.attributes?.transferLocation
+                                          }
+                                        </Typography>
+                                        <Box width="5px" />
+                                        {/* </Box> */}
+                                        <Box height="8px" />
+                                      </Box>
+                                      <Stack direction="row">
+                                        <Box width="55px" />
+                                        <Button
+                                          id="accept"
+                                          variant="contained"
+                                          onClick={() =>
+                                            handleRequestMaterialTransfer(
+                                              "approved",
+                                              notification?.attributes
+                                                ?.materialtransferrequest?.data?.id,
+                                              notification?.attributes
+                                                ?.materialtransferrequest?.data
+                                                ?.attributes?.itemQuantity
+                                            )
+                                          }
+                                          sx={{
+                                            width: "64px",
+                                            height: "28px",
+                                            backgroundColor: "#F44336",
+                                          }}
+                                        >
+                                          <Typography fontSize="10px">
+                                            Accept{" "}
+                                          </Typography>
+                                        </Button>
+                                        <Box width="8px" />
+                                        <Button
+                                          id="reject"
+                                          variant="outlined"
+                                          onClick={() =>
+                                            handleRequestMaterialTransfer(
+                                              "rejected",
+                                              notification?.attributes
+                                                ?.materialtransferrequest?.data?.id
+                                            )
+                                          }
 
-                                    // color="white"
-                                    // sx={{ : "white" }}
+                                        // color="white"
+                                        // sx={{ : "white" }}
+                                        >
+                                          <Typography
+                                            fontSize="10px"
+                                            color="#404158"
+                                          >
+                                            Reject
+                                          </Typography>
+                                        </Button>
+                                      </Stack>
+                                    </>
+                                  ) : (
+                                    ""
+                                  )
+                                ) : notification?.attributes?.type === 'inbound receiving form' ? (
+                                  <>
+                                    <Typography
+                                      fontSize="14px"
+                                      fontWeight="700"
                                     >
-                                      <Typography
-                                        fontSize="10px"
-                                        color="#404158"
+                                      {notification?.attributes?.inboundreceivingform?.data?.attributes?.itemQuantity} items
+                                    </Typography>
+                                    <Box width="5px" />
+                                    <Typography>of</Typography>
+                                    <Box width="5px" />
+
+                                    <Typography
+                                      fontSize="14px"
+                                      fontWeight="700"
+                                    >
+                                      {notification?.attributes?.inboundreceivingform?.data?.attributes?.itemName}
+                                    </Typography>
+                                    <Box width="5px" />
+
+                                    <Typography>inbound receiving form by</Typography>
+                                    <Box width="5px" />
+                                    <Typography
+                                      fontSize="14px"
+                                      fontWeight="700"
+                                    >
+                                      {notification?.attributes?.inboundreceivingform?.data?.attributes?.employee}
+                                    </Typography>
+                                  </>
+                                ) : notification?.attributes?.type === 'Project' ? (
+                                  <>
+                                    {/* <pre>{JSON.stringify({ notification }, null, 2)}</pre> */}
+                                    <Typography>You have been added to project </Typography>
+                                    <Box width="5px" />
+
+                                    <Typography
+                                      fontSize="14px"
+                                      fontWeight="700"
+                                    >
+                                      {notification?.attributes?.project?.data?.attributes?.projectTitle}
+                                    </Typography>
+
+                                    <Box width="5px" />
+                                    <Typography> By</Typography>
+                                    <Box width="5px" />
+                                    <Typography
+                                      fontSize="14px"
+                                      fontWeight="700"
+                                    >
+                                      {notification?.attributes?.employee?.data?.attributes?.firstName}
+                                    </Typography>
+                                  </>
+                                ) : notification?.attributes?.type === 'Task' ? (
+                                  <>
+                                    {/* <pre>{JSON.stringify({ notification }, null, 2)}</pre> */}
+                                    <Box display="flex">
+                                      <Typography>You have been added to task   <Typography
+                                        fontSize="14px"
+                                        fontWeight="700"
                                       >
-                                        Reject
+                                        {notification?.attributes?.task?.data?.attributes?.title}
+                                      </Typography> </Typography>
+                                      <Box width="5px" />
+
+                                    </Box>
+
+
+                                    <Box width="5px" />
+                                    <Typography> By</Typography>
+                                    <Box width="5px" />
+                                    <Typography
+                                      fontSize="14px"
+                                      fontWeight="700"
+                                    >
+                                      {notification?.attributes?.employee?.data?.attributes?.firstName}
+                                    </Typography>
+                                  </>
+                                ) : notification?.attributes?.type === 'tag registration' ? (
+                                  <>
+                                    {/* <pre>{JSON.stringify({ notification }, null, 2)}</pre> */}
+                                    <Box display="flex">
+                                      <Typography>Tag Registration of  <Typography
+                                        fontSize="14px"
+                                        fontWeight="700"
+                                      >
+                                        {notification?.attributes?.tag_registration?.data?.attributes?.itemName}
+                                      </Typography> </Typography>
+                                      <Box width="5px" />
+
+                                    </Box>
+
+
+                                    <Box width="5px" />
+                                    <Typography> By</Typography>
+                                    <Box width="5px" />
+                                    <Typography
+                                      fontSize="14px"
+                                      fontWeight="700"
+                                    >
+                                      {notification?.attributes?.employee?.data?.attributes?.firstName}
+                                    </Typography>
+                                  </>
+                                ) : notification?.attributes?.type ===
+                                  "vendor request" ? (
+                                  notification?.attributes?.vendor?.data
+                                    ?.attributes?.isApproved === "pending" ? (
+                                    <Stack>
+                                      <Box
+                                        display="flex"
+                                        alignItems="center"
+                                      // justifyContent="center"
+                                      >
+                                        <Avatar
+                                        // src={`${process.env.NEXT_PUBLIC_STRAPI_BASE_URL}${notification?.attributes?.purchaseRequest?.data?.attributes?.vendorImage.data?.[0].attributes?.url}`}
+                                        />
+                                        <Box width="16px" />
+                                        <Typography>
+                                          {" "}
+                                          Vendor Request to
+                                        </Typography>
+                                        <Box width="5px" />
+                                        <Typography
+                                          fontSize="14px"
+                                          fontWeight="700"
+                                        >
+                                          {
+                                            notification?.attributes?.vendor?.data?.attributes?.vendorName
+                                          }
+                                        </Typography>
+                                        <Box width="5px" />
+
+                                        <Box width="5px" />
+
+                                        <Typography
+                                          fontSize="14px"
+                                          fontWeight="700"
+                                        >
+
+                                        </Typography>
+                                      </Box>
+                                      <Box height="8px" />
+
+                                      <Stack direction="row">
+                                        <Box width="55px" />
+                                        <Button
+                                          id="accept"
+                                          variant="contained"
+                                          onClick={() =>
+                                            handleRequestVendorRequest(
+                                              "approved",
+                                              notification?.attributes
+                                                ?.vendor?.data?.id
+                                            )
+                                          }
+                                          sx={{
+                                            width: "64px",
+                                            height: "28px",
+                                            backgroundColor: "#F44336",
+                                          }}
+                                        >
+                                          <Typography fontSize="10px">
+                                            Accept{" "}
+                                          </Typography>
+                                        </Button>
+                                        <Box width="8px" />
+                                        <Button
+                                          id="reject"
+                                          variant="outlined"
+                                          onClick={() =>
+                                            handleRequestVendorRequest(
+                                              "rejected",
+                                              notification?.attributes
+                                                ?.vendor?.data?.id
+                                            )
+                                          }
+
+                                        // color="white"
+                                        // sx={{ : "white" }}
+                                        >
+                                          <Typography
+                                            fontSize="10px"
+                                            color="#404158"
+                                          >
+                                            Reject
+                                          </Typography>
+                                        </Button>
+                                      </Stack>
+                                    </Stack>
+                                  ) : <Stack>
+                                    <Box
+                                      display="flex"
+                                      alignItems="center"
+                                    // justifyContent="center"
+                                    >
+                                      <Avatar
+                                      // src={`${process.env.NEXT_PUBLIC_STRAPI_BASE_URL}${notification?.attributes?.purchaseRequest?.data?.attributes?.vendorImage.data?.[0].attributes?.url}`}
+                                      />
+                                      <Box width="16px" />
+                                      <Typography>
+                                        {" "}
+                                        Vendor
                                       </Typography>
-                                    </Button>
+                                      <Box width="5px" />
+
+                                      <Typography
+                                        fontSize="14px"
+                                        fontWeight="700"
+                                      >
+                                        {
+                                          notification?.attributes?.vendor
+                                            ?.data?.attributes?.vendorName
+                                        }
+                                      </Typography>
+                                      <Box width="5px" />
+
+                                      <Typography> was {
+                                        notification?.attributes
+                                          ?.vendor?.data?.attributes
+                                          ?.isApproved
+                                      }</Typography>
+                                    </Box>
+
+
+
                                   </Stack>
-                                </>
-                              ) : (
-                                ""
-                              )
-                            ) : notification?.attributes?.type === 'inbound receiving form' ? (
-                              <>
-                                <Typography
-                                  fontSize="14px"
-                                  fontWeight="700"
-                                >
-                                  {notification?.attributes?.inboundreceivingform?.data?.attributes?.itemQuantity} items
-                                </Typography>
-                                <Box width="5px" />
-                                <Typography>of</Typography>
-                                <Box width="5px" />
-
-                                <Typography
-                                  fontSize="14px"
-                                  fontWeight="700"
-                                >
-                                  {notification?.attributes?.inboundreceivingform?.data?.attributes?.itemName}
-                                </Typography>
-                                <Box width="5px" />
-
-                                <Typography>inbound receiving form by</Typography>
-                                <Box width="5px" />
-                                <Typography
-                                  fontSize="14px"
-                                  fontWeight="700"
-                                >
-                                  {notification?.attributes?.inboundreceivingform?.data?.attributes?.employee}
-                                </Typography>
-                              </>
-                            ) : ''}
+                                ) : ''}
+                            </>
+                            {/* </Stack> */}
                           </>
-                        </Stack>
-                      </>
-                    ))}
-                  {(userDepartment === "Finance" ||
+                        ))) : ''}
+                  {/* {(userDepartment === "Finance" ||
                     userDepartment === "Purchaser") &&
-                    {}}
+                    {}} */}
                 </Box>
               </Fade>
             </Modal>
@@ -1717,43 +2252,43 @@ const SideBar = ({
         </Box>
         <Box height="25px" />
       </SideBox>
-    </ThemeProvider>
+    </ThemeProvider >
   );
 };
 
-export async function getServerSideProps({ req, params }) {
-  // const { slug } = params;
-  const jwt =
-    typeof window !== "undefined"
-      ? getTokenFromLocalCookie
-      : getTokenFromServerCookie(req);
-  const newPurchaseRequestResponse = await fetcher(
-    // `https://frankconerp.herokuapp.com/api/purchaserequests`,
-    `${process.env.NEXT_PUBLIC_STRAPI_API_URL}/api/purchaserequests`,
-    jwt
-      ? {
-        headers: {
-          Authorization: `Bearer ${jwt}`,
-        },
-      }
-      : ""
-  );
-  if (newPurchaseRequestResponse.data) {
-    // const plot = await markdownToHtml(filmResponse.data.attributes.plot);
-    return {
-      props: {
-        newPurchaseRequestResponse: newPurchaseRequestResponse.data,
-        // plot,
-        jwt: jwt ? jwt : "",
-      },
-    };
-  } else {
-    return {
-      props: {
-        error: newPurchaseRequestResponse.error.message,
-      },
-    };
-  }
-}
+// export async function getServerSideProps({ req, params }) {
+//   // const { slug } = params;
+//   const jwt =
+//     typeof window !== "undefined"
+//       ? getTokenFromLocalCookie
+//       : getTokenFromServerCookie(req);
+//   const newPurchaseRequestResponse = await fetcher(
+//     // `https://frankconerp.herokuapp.com/api/purchaserequests`,
+//     `${process.env.NEXT_PUBLIC_STRAPI_API_URL}/api/purchaserequests`,
+//     jwt
+//       ? {
+//         headers: {
+//           Authorization: `Bearer ${jwt}`,
+//         },
+//       }
+//       : ""
+//   );
+//   if (newPurchaseRequestResponse.data) {
+//     // const plot = await markdownToHtml(filmResponse.data.attributes.plot);
+//     return {
+//       props: {
+//         newPurchaseRequestResponse: newPurchaseRequestResponse.data,
+//         // plot,
+//         jwt: jwt ? jwt : "",
+//       },
+//     };
+//   } else {
+//     return {
+//       props: {
+//         error: newPurchaseRequestResponse.error.message,
+//       },
+//     };
+//   }
+// }
 
 export default SideBar;

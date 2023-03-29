@@ -50,7 +50,7 @@ const ProjectDetailBox = ({ response }) => {
             </Typography>
             <Box width="5px" />
             <Typography fontWeight="700" fontSize="12px">
-              {response?.data?.attributes?.projectCreatedBy}
+              {response?.data?.attributes?.employee?.data?.attributes?.firstName}
             </Typography>
           </Box>
         </Stack>
@@ -96,10 +96,10 @@ const ProjectDetailBox = ({ response }) => {
                       prioritySelectedIndex === 0
                         ? setProjectPriority("Low")
                         : prioritySelectedIndex === 1
-                        ? setProjectPriority("Medium")
-                        : prioritySelectedIndex === 2
-                        ? setProjectPriority("High")
-                        : "";
+                          ? setProjectPriority("Medium")
+                          : prioritySelectedIndex === 2
+                            ? setProjectPriority("High")
+                            : "";
                     }}
                   >
                     {response?.data?.attributes?.projectPriority}
@@ -133,12 +133,12 @@ const ProjectDetailBox = ({ response }) => {
                       statusSelectedIndex === 0
                         ? setProjectStatus("Ongoing")
                         : prioritySelectedIndex === 1
-                        ? setProjectStatus("Paused")
-                        : prioritySelectedIndex === 2
-                        ? setProjectStatus("Delayed")
-                        : prioritySelectedIndex === 3
-                        ? setProjectStatus("Completed")
-                        : "";
+                          ? setProjectStatus("Paused")
+                          : prioritySelectedIndex === 2
+                            ? setProjectStatus("Delayed")
+                            : prioritySelectedIndex === 3
+                              ? setProjectStatus("Completed")
+                              : "";
                     }}
                   >
                     {statusOption}
@@ -151,9 +151,7 @@ const ProjectDetailBox = ({ response }) => {
             <Typography fontSize="12px" fontWeight="400" color="#0F112E">
               Project Team:
             </Typography>
-            {/* <Typography color="#0F112E" fontSize="14px" fontWeight="700">
-              {response?.data?.attributes?.projectId}
-            </Typography> */}
+            {response?.data?.attributes?.employees?.data?.attributes?.employeeImage?.url}
           </Stack>
         </Stack>
         <Box height="16px" />

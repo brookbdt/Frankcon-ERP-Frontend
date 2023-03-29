@@ -9,16 +9,22 @@ import Payouts from "./Payouts";
 import Payins from "./Payins";
 import Pending from "./Pending";
 import { AttachFile } from "@mui/icons-material";
+import { getTokenFromLocalCookie } from "../../lib/auth";
 
-const Payment = ({ jwt }) => {
+const Payment = () => {
   const { user, loading } = useFetchUser();
   const { userDepartment } = useFetchUserDepartment();
   const buttons = ["All", "Pay outs", "Pay ins", "Pending"];
+  const [jwt, setJwt] = useState(null);
+
 
   const [selectedIndex, setSelectedIndex] = useState(0);
 
   const [response, setResponse] = useState([]);
   useEffect(() => {
+    const jwt = getTokenFromLocalCookie();
+    setJwt(jwt);
+
     const fetchData = async () => {
       const result = await readPaymentsRequests(jwt);
       setResponse(result.data);

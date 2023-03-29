@@ -38,6 +38,7 @@ import React, { useEffect, useState } from "react";
 import EmployeesLayout from "../layout/employees";
 import {
   createNewProject,
+  createNotification,
   getProjectId,
   readEmployee,
   readEmployeeTask,
@@ -62,6 +63,7 @@ const Projects = ({ jwt }) => {
   const [previewImage, setPreviewImage] = useState();
 
   const [projectTitle, setProjectTitle] = useState("");
+  const [projectBudget, setProjectBudget] = useState("");
   // const [projectId, setProjectId] = useState("");
   const [projectPriority, setProjectPriority] = useState("");
   const [projectStatus, setProjectStatus] = useState("");
@@ -71,12 +73,13 @@ const Projects = ({ jwt }) => {
   const [projectTeam, setProjectTeam] = useState();
   const [projectStartDate, setProjectStartDate] = useState(dayjs());
   const [projectEndDate, setProjectEndDate] = useState(dayjs());
-  const [projectCreatedBy, setProjectCreatedBy] = useState("");
+  const [projectCreatedBy, setProjectCreatedBy] = useState([]);
   const [projectTask, setProjectTask] = useState("");
   const [projectDocuments, setProjectDocuments] = useState([]);
   const [projectDescription, setProjectDescription] = useState();
 
   const [currentEmployee, setCurrentEmployee] = useState([]);
+
   const [employees, setEmployees] = useState([]);
   const [employeeChecked, setEmployeeChecked] = React.useState([]);
 
@@ -85,6 +88,9 @@ const Projects = ({ jwt }) => {
       .map((i) => JSON.stringify(i))
       .indexOf(JSON.stringify(value));
     console.log({ currentIndex });
+    setEmployeeChecked(...employeeChecked)
+    // setProjectCreatedBy(...projectCreatedBy, currentEmployee.data?.data[0])
+    console.log({ employeeChecked })
 
     const newChecked = [...employeeChecked];
 
@@ -95,10 +101,11 @@ const Projects = ({ jwt }) => {
     }
 
     setEmployeeChecked(newChecked);
-    console.log({ newChecked });
+    console.log({ employeeChecked });
   };
   const sendProject = async () => {
     const employee = await readTaskEmployee(jwt, user);
+    setChecked((prev) => !prev)
     console.log({ employee });
 
     const formData = new FormData();
@@ -106,10 +113,12 @@ const Projects = ({ jwt }) => {
     for (const doc of projectDocuments) {
       formData.append("files.projectDocument", doc);
     }
+    console.log({ currentEmployee })
     formData.append(
       "data",
       JSON.stringify({
         projectTitle,
+        projectBudget,
         projectId,
         projectPriority,
         projectStatus,
@@ -118,14 +127,31 @@ const Projects = ({ jwt }) => {
         projectLead,
         projectStartDate: projectStartDate?.toISOString(),
         projectEndDate: projectEndDate?.toISOString(),
-        // employees: employee?.data?.data?.[0]?.id,
-        employees: employeeChecked?.map((emp) => emp?.id),
+        // employee: [currentEmployee?.data?.data[0]?.id, ...projectCreatedBy],
+        employee: employee?.data?.data[0]?.id,
+        employees: [currentEmployee?.data?.data[0]?.id, ...employeeChecked?.map((emp) => emp?.id)],
+
         // projectDocument: projectDocuments,
         projectDescription,
       })
     );
 
-    createNewProject(formData, jwt);
+    const projectRequest = await createNewProject(formData, jwt);
+    const newNotification = {
+      data: {
+        date: new Date().toISOString(),
+        type: "Project",
+        project: projectRequest?.data?.data?.id,
+        employees: [currentEmployee?.data?.data[0]?.id, ...employeeChecked?.map((emp) => emp?.id)],
+        employee: [currentEmployee?.data?.data[0]?.id, ...projectCreatedBy],
+
+
+
+      },
+    };
+    // employee: employee.data?.data?.[0]?.id,
+
+    await createNotification(newNotification, jwt);
     console.log("the project is", formData);
   };
 
@@ -133,6 +159,7 @@ const Projects = ({ jwt }) => {
   const { userDepartment } = useFetchUserDepartment();
 
   const [response, setResponse] = useState([]);
+  const [allProjects, setAllProjects] = useState([]);
   const [employeeResponse, setEmployeeResponse] = useState([]);
   const [projectId, setProjectId] = useState("");
 
@@ -151,15 +178,20 @@ const Projects = ({ jwt }) => {
 
       const employee = await readTaskEmployee(jwt, user);
 
+
       setCurrentEmployee(employee);
+
+
       const employeeResult = await readEmployeeTask(jwt, user);
       const employeeList = await readEmployee(jwt, user);
 
       const result = await readProject(jwt, user);
+      const allResults = await readProject(jwt, user);
       setResponse(result.data);
+      setAllProjects(allResults.data);
       setEmployeeResponse(employeeResult.data);
       setEmployees(employeeList.data);
-      console.log("relation is:", response);
+      console.log({ ce: currentEmployee?.data });
     };
     // randomId;
     fetchData();
@@ -414,22 +446,23 @@ const Projects = ({ jwt }) => {
             </Stack>
             <Stack alignItems="center">
               <Typography>Project Team:</Typography>
+
               <AvatarGroup max={20}>
                 <Avatar
                   sx={{ width: "24px", height: "24px" }}
                   alt="Employee Image"
-                  src={
-                    currentEmployee?.data?.data[0]?.attributes?.employeeImage
-                      ?.data?.attributes?.url
-                  }
+                  src={`${process.env.NEXT_PUBLIC_STRAPI_BASE_URL}${currentEmployee?.data?.data[0]?.attributes?.employeeImage
+                    ?.data?.attributes?.url}`}
+
                 />
+
+
                 {employeeChecked.map((employee) => (
                   <Avatar
                     sx={{ width: "24px", height: "24px" }}
                     alt="Employee Image"
-                    src={
-                      employee?.attributes?.employeeImage?.data?.attributes?.url
-                    }
+                    src={`${process.env.NEXT_PUBLIC_STRAPI_BASE_URL}${employee?.attributes?.employeeImage?.data?.attributes?.url
+                      }`}
                   />
                 ))}
                 <Box display="flex" justifyContent="center" alignItems="center">
@@ -469,7 +502,7 @@ const Projects = ({ jwt }) => {
                                       bgcolor: "background.paper",
                                     }}
                                   >
-                                    {employees?.data?.map((employee) => {
+                                    {employees?.data?.filter((employee) => (currentEmployee?.data?.data[0]?.id !== employee?.id)).map((employee) => {
                                       const labelId = `${employee?.id}`;
                                       // console.log({ labelId });
                                       return (
@@ -496,12 +529,13 @@ const Projects = ({ jwt }) => {
                                                   "aria-labelledby": labelId,
                                                 }}
                                               />
+
                                               <Avatar
                                                 sx={{
                                                   width: "24px",
                                                   height: "24px",
                                                 }}
-                                                src={`${employee?.attributes?.employeeImage?.data?.attributes?.url}`}
+                                                src={`${process.env.NEXT_PUBLIC_STRAPI_BASE_URL}${employee?.attributes?.employeeImage?.data?.attributes?.url}`}
                                               />
                                             </ListItemIcon>
                                             <ListItemText
@@ -651,42 +685,50 @@ const Projects = ({ jwt }) => {
             <Divider sx={{ width: "384px", alignSelf: "center" }} />
           </Stack>
           <Box height="20px" />
-          <Button
-            variant="filled"
-            sx={{
-              backgroundColor: "#F6F6F6",
-              padding: 0,
-              width: "248px",
-              height: "46px",
-            }}
-          >
-            <label
-              style={{
-                // backgroundColor: "red",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                padding: "12px",
-                width: "100%",
-                height: "100%",
+          <Box display="flex" justifyContent="space-around">
+            <Button
+              variant="filled"
+              sx={{
+                backgroundColor: "#F6F6F6",
+                padding: 0,
+                width: "248px",
+                height: "46px",
               }}
             >
-              <input
-                id="file"
-                hidden
-                multiple
-                type="file"
-                onChange={(e) => setProjectDocuments(e.target.files)}
-              />
-              <Typography color="#6F7082" fontWeight="600px" fontSize="12px">
-                Attach Project Documents
-              </Typography>
+              <label
+                style={{
+                  // backgroundColor: "red",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  padding: "12px",
+                  width: "100%",
+                  height: "100%",
+                }}
+              >
+                <input
+                  id="file"
+                  hidden
+                  multiple
+                  type="file"
+                  onChange={(e) => setProjectDocuments(e.target.files)}
+                />
+                <Typography color="#6F7082" fontWeight="600px" fontSize="12px">
+                  Attach Project Documents
+                </Typography>
 
-              <NoteAddOutlinedIcon
-                sx={{ width: "16px", height: "16px", color: "#6F7082" }}
-              />
-            </label>
-          </Button>
+                <NoteAddOutlinedIcon
+                  sx={{ width: "16px", height: "16px", color: "#6F7082" }}
+                />
+              </label>
+            </Button>
+            <TextField value={projectBudget} onChange={(e) => setProjectBudget(e.target.value)} sx={{
+              width: "248px", "& .MuiInputBase-root": {
+                height: "48px",
+              },
+            }} placeholder="Project Budget in ETB" />
+          </Box>
+
           <Box height="24px" />
           {/* <Stack direction="row"> */}
           <ButtonGroup>
@@ -869,31 +911,24 @@ const Projects = ({ jwt }) => {
       <Box height="16px" />
       <Stack direction="row">
         <Grid container gap="32px">
-          {response?.data?.map((project, index) => (
+
+          {userDepartment === 'admin' ? allProjects?.data?.map((project, index) => (
             <Grid item>
-              <Card sx={{ paddingX: "24px", paddingY: "19px", width: "345px" }}>
+              <Card sx={{ paddingX: "24px", paddingY: "19px", width: "345px", boxShadow: "0", borderRadius: "10px" }}>
                 <Stack justifyContent="flex-start" alignItems="flex-start">
-                  <Stack direction="row">
+                  <Box display="flex" alignItems="center">
                     <Avatar
                       src={`${project?.attributes?.projectImage.data?.[0].attributes?.url}`}
-                      alt="project image"
-                      sx={{
-                        width: "40px",
-                        height: "40px",
-                      }}
-                    />
+
+                      width="32px" height="32px">
+                    </Avatar>
                     <Box width="8px" />
                     <Stack>
-                      <Typography fontWeight="700" fontSize="16px">
-                        {project.attributes?.projectTitle}
-                      </Typography>
-                      <Typography fontWeight="400" fontSize="12px">
-                        Created by:
-                        {/* <pre>{JSON.stringify(project, null, 2)}</pre> */}
-                      </Typography>
-                      <Box height="12px" />
+                      <Typography sx={{ fontWeight: "700", fontSize: "16px", color: "#0F112E" }}>{project?.attributes?.projectTitle}</Typography>
+                      <Typography sx={{ fontWeight: "400", fontSize: "12px", color: "#3F4158" }}>Created By: {project?.attributes?.employee?.data?.attributes?.firstName}</Typography>
                     </Stack>
-                  </Stack>
+                  </Box>
+
                   <Stack direction="row" justifyContent="space-between">
                     <Stack>
                       {project.attributes?.projectStatus === "Delayed" ? (
@@ -964,7 +999,84 @@ const Projects = ({ jwt }) => {
                 </Stack>
               </Card>
             </Grid>
-          ))}
+          )) : response?.data?.map((project, index) => (
+            <Grid item>
+              <Card sx={{ paddingX: "24px", paddingY: "19px", width: "345px" }}>
+                <Stack justifyContent="flex-start" alignItems="flex-start">
+
+                  <Stack direction="row" justifyContent="space-between">
+                    <Stack>
+                      {project.attributes?.projectStatus === "Delayed" ? (
+                        <Typography
+                          fontWeight="700"
+                          fontSize="16px"
+                          color="#F44336"
+                        >
+                          {project.attributes?.projectStatus}
+                        </Typography>
+                      ) : (
+                        <Typography
+                          fontWeight="700"
+                          fontSize="16px"
+                          color="#24B07D"
+                        >
+                          {project.attributes?.projectStatus}
+                        </Typography>
+                      )}
+                      <Typography fontWeight="400" fontSize="12px">
+                        Status
+                      </Typography>
+                    </Stack>
+                    <Box width="20px" />
+                    <Divider orientation="vertical" flexItem variant="middle" />
+                    <Box width="20px" />
+                    <Stack>
+                      {project.attributes?.projectStatus === "Delayed" ? (
+                        <Typography
+                          fontWeight="700"
+                          fontSize="16px"
+                          color="#F44336"
+                        >
+                          {dayjs(project?.attributes?.projectStartDate).format(
+                            "DD MMM"
+                          )}
+                        </Typography>
+                      ) : (
+                        <Typography
+                          fontWeight="700"
+                          fontSize="16px"
+                          color="#24B07D"
+                        >
+                          {dayjs(project?.attributes?.projectStartDate).format(
+                            "DD MMM"
+                          )}
+                        </Typography>
+                      )}
+                      <Typography fontWeight="400" fontSize="12px">
+                        Date Created
+                      </Typography>
+                    </Stack>
+                  </Stack>
+                  <Box height="10px" />
+                  <Link href="/projects/[id]" as={`/projects/${project.id}`}>
+                    <Button
+                      sx={{
+                        color: "#6F7082",
+                        fontSize: "12px",
+                        fontWeight: "400",
+                        paddingX: 0,
+                        paddingBottom: 0,
+                      }}
+                    >
+                      View Details
+                    </Button>
+                  </Link>
+                </Stack>
+              </Card>
+            </Grid>
+          ))
+          }
+
           <Divider sx={{ width: "100%" }} />
         </Grid>
       </Stack>
