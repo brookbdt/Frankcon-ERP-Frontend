@@ -22,6 +22,8 @@ const Payment = () => {
 
   const [response, setResponse] = useState([]);
   useEffect(() => {
+
+
     const jwt = getTokenFromLocalCookie();
     setJwt(jwt);
 
@@ -100,11 +102,11 @@ const Payment = () => {
           </Button>
         </Stack>
       </Stack>
-      <EmployeesLayout
+      {/* <EmployeesLayout
         metric={`Date: ${monthName}`}
         list="list"
         sortBy="decline"
-      />
+      /> */}
       <Box height="32px" />
       <ButtonGroups
         buttons={buttons}

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useFetchUser } from "../../lib/authContext";
-import { readNotification, readPaymentsRequests } from "../../lib";
+import { readNotification, readPaymentNotification, readPaymentsRequests } from "../../lib";
 import {
   Avatar,
   Box,
@@ -18,7 +18,11 @@ import dayjs from "dayjs";
 
 const ApprovalsTable = ({ jwt }) => {
   const [response, setResponse] = useState([]);
+  const [paymentNotificationResponse, setPaymentNotificationResponse] = useState([]);
+  const [allNotifications, setAllNotifications] = useState([]);
   const { user, loading } = useFetchUser();
+
+
   useEffect(() => {
     const fetchData = async () => {
       // const employeeResult = await readEmployee(jwt);
@@ -26,10 +30,27 @@ const ApprovalsTable = ({ jwt }) => {
       if (!user) {
         return;
       }
-      const result = await readNotification(jwt, user);
-      setResponse(result.data);
+      // const result = await readNotification(jwt, user);
+      // setResponse(result.data.data);
+
+      // readPaymentNotification(jwt, user).then((pr) => {
+      //   console.log("pr is", pr.data?.data);
+      //   setPaymentNotificationResponse(pr.data?.data);
+      // });
+
+      const notifications = [...response, ...paymentNotificationResponse];
+      setAllNotifications(notifications);
+
       // console.log({response})
     };
+    readNotification(jwt, user).then((r) => {
+      console.log("r is", r.data?.data);
+      setResponse(r.data?.data);
+    });
+    readPaymentNotification(jwt, user).then((pr) => {
+      console.log("pr is", pr.data?.data);
+      setPaymentNotificationResponse(pr.data?.data);
+    });
     // console.log("the jwt is", jwt);
     fetchData();
     // console.log("relation is:", response?.attributes?.tasks);
@@ -88,7 +109,10 @@ const ApprovalsTable = ({ jwt }) => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {response?.data?.map((approval, index) => (
+            {/* <pre>{JSON.stringify({ allNotifications }, null, 2)}</pre> */}
+            {/* <pre>{JSON.stringify({ response }, null, 2)}</pre>
+            <pre>{JSON.stringify({ paymentNotificationResponse }, null, 2)}</pre> */}
+            {allNotifications?.map((approval, index) => (
               <TableRow key={approval.data?.id}>
                 <TableCell>
                   <Stack paddingY="24px" direction="row">
@@ -96,16 +120,17 @@ const ApprovalsTable = ({ jwt }) => {
                       <>
                         <Box display="flex" flexDirection="column">
                           <Typography fontSize="14px">
-                            {approval?.attributes?.type === "purchase request"
+                            {approval?.attributes?.type === "purchase request" || approval?.attributes?.type === "edited purchase request"
                               ? approval?.attributes?.purchaseRequest?.data
-                                  ?.attributes?.itemName
+                                ?.attributes?.itemName
                               : approval?.attributes?.type === "leave request"
-                              ? approval?.attributes?.leaveRequest?.data
+                                ? approval?.attributes?.leaveRequest?.data
                                   ?.attributes?.leaveRequestType
-                              : approval?.attributes?.type === "payment request"
-                              ? approval?.attributes?.paymentRequest?.data
-                                  ?.attributes?.projectTitle
-                              : ""}
+                                : approval?.attributes?.type === "payment request"
+                                  ? approval?.attributes?.project?.data?.attributes?.projectTitle
+                                  : approval?.attributes?.type === "vendor request" ?
+                                    approval?.attributes?.vendor?.data?.attributes?.vendorName
+                                    : ""}
                           </Typography>
                           {/* <Typography>task - Updated 1 day ago</Typography> */}
                         </Box>
@@ -115,7 +140,7 @@ const ApprovalsTable = ({ jwt }) => {
                 </TableCell>
                 <TableCell>
                   <Typography fontSize="12px">
-                    {approval?.attributes?.type}
+                    {approval?.attributes?.type === "edited purchase request" ? "purchase request" : approval?.attributes?.type}
                   </Typography>
                 </TableCell>
                 <TableCell>
@@ -127,30 +152,25 @@ const ApprovalsTable = ({ jwt }) => {
                 </TableCell>
                 <TableCell>
                   <Typography fontSize="14px">
-                    {approval?.attributes?.type === "purchase request"
-                      ? approval?.attributes?.purchaseRequest?.data?.attributes
-                          ?.requesterName
-                      : approval?.attributes?.type === "leave request"
-                      ? approval?.attributes?.leaveRequest?.data?.attributes
-                          ?.leaveRequestType
-                      : approval?.attributes?.type === "payment request"
-                      ? approval?.attributes?.paymentRequest?.data?.attributes
-                          ?.paidTo
-                      : ""}
+                    {
+                      approval?.attributes?.employee?.data?.attributes?.firstName
+                    }
                   </Typography>
                 </TableCell>
                 <TableCell>
                   <Typography fontSize="14px">
-                    {approval?.attributes?.type === "purchase request"
+                    {approval?.attributes?.type === "purchase request" || approval?.attributes?.type === "edited purchase request"
                       ? approval?.attributes?.purchaseRequest?.data?.attributes
-                          ?.isApproved
+                        ?.isApproved
                       : approval?.attributes?.type === "leave request"
-                      ? approval?.attributes?.leaveRequest?.data?.attributes
+                        ? approval?.attributes?.leaveRequest?.data?.attributes
                           ?.isApproved
-                      : approval?.attributes?.type === "payment request"
-                      ? approval?.attributes?.paymentRequest?.data?.attributes
-                          ?.isApproved
-                      : ""}
+                        : approval?.attributes?.type === "payment request"
+                          ? approval?.attributes?.paymentrequest?.data?.attributes
+                            ?.isApproved
+                          : approval?.attributes?.type === "vendor request"
+                            ? approval?.attributes?.vendor?.data?.attributes?.isApproved
+                            : ""}
                   </Typography>
                 </TableCell>
               </TableRow>

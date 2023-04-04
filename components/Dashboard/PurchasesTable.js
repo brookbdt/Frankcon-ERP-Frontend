@@ -117,7 +117,7 @@ const PurchasesTable = ({ jwt }) => {
                   </Typography>
                 </TableCell>
                 <TableCell>
-                  <Typography>{purchase.attributes?.vendorName}</Typography>
+                  <Typography>{purchase.attributes?.vendor?.data?.attributes?.vendorName}</Typography>
                 </TableCell>
               </TableRow>
             ))}

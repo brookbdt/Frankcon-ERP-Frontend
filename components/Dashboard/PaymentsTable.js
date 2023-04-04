@@ -94,7 +94,7 @@ const PaymentsTable = ({ jwt }) => {
                       <>
                         <Box display="flex" flexDirection="column">
                           <Typography>
-                            {payment.attributes?.projectTitle}
+                            {payment.attributes?.project?.data?.attributes?.projectTitle}
                           </Typography>
                           {/* <Typography>task - Updated 1 day ago</Typography> */}
                         </Box>
@@ -103,7 +103,12 @@ const PaymentsTable = ({ jwt }) => {
                   </Stack>
                 </TableCell>
                 <TableCell>
-                  <Typography>{payment.attributes?.paidTo}</Typography>
+                  <Typography>{payment?.attributes?.employee?.data?.attributes?.firstName}</Typography>
+                </TableCell>
+                <TableCell>
+                  <Typography>
+                    {payment.attributes?.paidTo}
+                  </Typography>
                 </TableCell>
                 <TableCell>
                   <Typography>
@@ -111,14 +116,9 @@ const PaymentsTable = ({ jwt }) => {
                   </Typography>
                 </TableCell>
                 <TableCell>
-                  <Typography>
-                    {dayjs(payment?.attributes?.requestDate).format(
-                      "DD MMM, YYYY"
-                    )}
-                  </Typography>
-                </TableCell>
-                <TableCell>
-                  {payment?.attributes?.employee?.data?.attributes?.firstName} {payment?.attributes?.employee?.data?.attributes?.lastName}
+                  {dayjs(payment?.attributes?.requestDate).format(
+                    "DD MMM, YYYY"
+                  )}
                 </TableCell>
                 {/* <TableCell>
                   {payment.attributes?.paymentPriorityLevel === "HIGH" ? (

@@ -21,13 +21,15 @@ const DashboardComponent = ({ jwt }) => {
           overflowY: "auto",
           maxHeight: "600px",
           borderRadius: "10px",
+          boxShadow: "0",
+
         }}
       >
         <Box height="20px" />
         <Stack
           direction="row"
-          justifyContent="center"
-          alignItems="center"
+          // justifyContent="center"
+          // alignItems="center"
           paddingLeft="30px"
           gap="36px"
         >

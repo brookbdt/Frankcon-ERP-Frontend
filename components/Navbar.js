@@ -56,6 +56,7 @@ import {
   createNotification,
   createPayin,
   createPaymentRequest,
+  createPaymentRequestNotification,
   createPayout,
   createPurchaseRequest,
   createTagRegistration,
@@ -70,6 +71,7 @@ import {
   readAccountBalanceId,
   readAllProjects,
   readEmployee,
+  readEmployeeByDepartment,
   readEmployeeDetail,
   readInventory,
   readMaterialTransferRequest,
@@ -124,7 +126,7 @@ const Navbar = ({ jwt }) => {
   const [tagRegistrationID, setTagRegistrationID] = useState("");
   const [paymentInformation, setPaymentInformation] = useState("");
   const [paymentRequesterName, setPaymentRequesterName] = useState("");
-  const [paymentProjectTitle, setPaymentProjectTitle] = useState("");
+  const [selectedProjectId, setSelectedProject] = useState([]);
   const [paymentAmount, setPaymentAmount] = useState("");
   const [paymentRequestDate, setPaymentRequestDate] = useState("");
   const [paymentPriorityLevel, setPaymentPriorityLevel] = useState("");
@@ -242,25 +244,23 @@ const Navbar = ({ jwt }) => {
       JSON.stringify({
         itemName,
         additionalDetail,
-        requestDate: requestDate?.toISOString(),
+        requestDate: requestDate?.toString(),
         // requesterName,
         purchaseId,
         approvedBy: user,
         responsibleDepartment: userDepartment,
         itemQuantity,
-        vendorId,
+
         itemType,
         employee: employee.data?.data?.[0]?.id,
 
+        employees: financeNotify?.data?.data.map((finance) => finance.id),
+        employees: purchaserNotify?.data?.data.map((purchaser) => purchaser.id),
+        employees: adminNotify?.data?.data.map((admin) => admin.id),
         // employee_name: user,
         // user,
         // jwt: jwt,
-        vendorName,
-        vendorAddress,
-        vendorEmail,
-        vendorPhone,
-        itemUnitPrice,
-        itemTotalPrice,
+
         isApproved: "pending",
       })
     );
@@ -297,7 +297,10 @@ const Navbar = ({ jwt }) => {
         type: "purchase request",
         purchaseRequest: purchaseRequest.data?.data?.id,
         employee: employee.data?.data?.[0]?.id,
-        employees: employee.data?.data?.[0]?.id,
+        employees: purchaserNotify?.data?.data.map((purchaser) => purchaser.id),
+        employees: adminNotify?.data?.data.map((purchaser) => purchaser.id),
+        employees: financeNotify?.data?.data.map((finance) => finance.id),
+
       },
     };
     // employee: employee.data?.data?.[0]?.id,
@@ -310,9 +313,12 @@ const Navbar = ({ jwt }) => {
 
   const sendPaymentRequest = async () => {
     console.log({ balance })
-    const paymentAmountNumber = parseInt(paymentAmount.replace(/\,/g, '')); // Remove commas and convert payment amount to a number
+    const paymentAmountNumber = parseInt(paymentAmount.replace(/,/g, '')); // Remove commas and convert payment amount to a number
     setCheckedPayment((prev) => !prev)
     const formData = new FormData();
+
+
+
     for (const files of paymentInvoice) {
       formData.append("files.paymentInvoice", files);
     }
@@ -324,7 +330,7 @@ const Navbar = ({ jwt }) => {
       JSON.stringify({
         paymentRequestId: paymentId,
         paidTo: paymentPaidTo,
-        projectTitle: paymentProjectTitle,
+
         paymentType,
         paymentAmount,
         requestDate: dayjs(paymentRequestDate).add(3, "hour"),
@@ -332,14 +338,18 @@ const Navbar = ({ jwt }) => {
         paymentReason,
         paymentInformation,
         employee: employee.data?.data?.[0]?.id,
+        employees: adminNotify?.data?.data.map((admin) => admin.id),
+        employees: financeNotify?.data?.data.map((finance) => finance.id),
         department: userDepartment,
-        requestedBy: user,
+        project: selectedProjectId,
         purchaserequest: selectedPurchaseId,
         // paymentInvoice,
         isApproved: "pending",
       })
     );
     setAlertOpen(true);
+    const paymentRequest = await createPaymentRequest(formData, jwt);
+
     // const getAccountBalanceId = async () => {
     //   const response = await readAccountBalanceId(jwt);
 
@@ -355,23 +365,6 @@ const Navbar = ({ jwt }) => {
 
     // const accountBalanceId = await getAccountBalanceId(jwt);
     // console.log({ accountBalanceId })
-
-    const paymentRequest = await createPaymentRequest(formData, jwt);
-    const newNotification = {
-      data: {
-        date: new Date().toISOString(),
-        type: "payment request",
-        paymentRequest: paymentRequest?.data?.data?.id,
-        employee: employee.data?.data?.[0]?.id,
-        employees: employee.data?.data?.[0]?.id,
-
-      },
-    };
-    // employee: employee.data?.data?.[0]?.id,
-
-    await createNotification(newNotification, jwt);
-
-    // const newBalance = paymentType === "Pay out" ? balance - paymentAmountNumber : balance + paymentAmountNumber
 
     const newPayin = {
       data: {
@@ -391,13 +384,58 @@ const Navbar = ({ jwt }) => {
       }
 
     }
+
+
+    // const newBalance = paymentType === "Pay out" ? balance - paymentAmountNumber : balance + paymentAmountNumber
+
+
     console.log({ accountBalanceAmount })
 
-    paymentType === "Pay in" ?
-      await createPayin(newPayin, jwt) :
-      paymentType === "Pay out" ?
-        await createPayout(newPayout, jwt) : ''
+    if (paymentType === "Pay in") {
 
+      const payIn = await createPayin(newPayin, jwt)
+      const newNotification = {
+        data: {
+          date: new Date().toISOString(),
+          account_balance: accountBalanceId,
+          payin: payIn?.data?.data?.id,
+          purchaserequest: selectedPurchaseId,
+          project: selectedProjectId,
+          paymentrequest: paymentRequest?.data?.data?.id,
+          employee: employee.data?.data?.[0]?.id,
+          employees: adminNotify?.data?.data?.concat(financeNotify?.data?.data).map((r) => (
+            r?.id
+          ))
+
+
+        },
+      };
+      await createPaymentRequestNotification(newNotification, jwt);
+
+    } else if (paymentType === "Pay out") {
+
+      const payOut = await createPayout(newPayout, jwt)
+      const newNotification = {
+        data: {
+          date: new Date().toISOString(),
+          account_balance: accountBalanceId,
+          payout: payOut?.data?.data?.id,
+          purchaserequest: selectedPurchaseId,
+          project: selectedProjectId,
+          paymentrequest: paymentRequest?.data?.data?.id,
+          employees: adminNotify?.data?.data?.concat(financeNotify?.data?.data).map((r) => (
+            r?.id
+          ))
+
+          //   adminNotify?.data?.data?.map((admin) => admin?.id),
+          // employees: financeNotify?.data?.data?.map((finance) => finance?.id),
+
+        },
+      };
+      // employee: employee.data?.data?.[0]?.id,
+
+      await createPaymentRequestNotification(newNotification, jwt);
+    }
 
     // setBalance(newBalance);
     // console.log({ accountBalanceAmount })
@@ -408,6 +446,9 @@ const Navbar = ({ jwt }) => {
     //   }
     // }
     // await editAccountBalance(updatedBalance, accountBalanceId, jwt);
+
+
+
 
   };
   const sendInboundReceivingForm = async () => {
@@ -1168,7 +1209,7 @@ const Navbar = ({ jwt }) => {
               </Select>
             </FormControl>
 
-            <Stack>
+            <Stack>å
               <Typography
                 sx={{
                   color: "#3F4158",
@@ -1377,6 +1418,9 @@ const Navbar = ({ jwt }) => {
 
   const [inventoryTest, setTestInventory] = useState([]);
   const [employeeImage, setEmployeeImage] = useState("");
+  const [adminNotify, setAdminNotify] = useState({});
+  const [financeNotify, setFinanceNotify] = useState({});
+  const [purchaserNotify, setPurchaserNotify] = useState({});
   const [requestingEmployee, setRequestingEmployee] = useState({});
 
 
@@ -1396,7 +1440,15 @@ const Navbar = ({ jwt }) => {
 
     const fetchData = async () => {
       const currentEmployee = await readEmployeeDetail(jwt, user);
+      const notifiedAdminEmployee = await readEmployeeByDepartment(jwt, "admin");
+      const notifiedFinanceEmployee = await readEmployeeByDepartment(jwt, "Finance");
+      const notifiedPurchaserEmployee = await readEmployeeByDepartment(jwt, "Purchaser");
       setEmployeeImage(currentEmployee?.id?.employee?.employeeImage?.url);
+      console.log({ notifiedAdminEmployee })
+      console.log({ notifiedFinanceEmployee })
+      setAdminNotify(notifiedAdminEmployee)
+      setFinanceNotify(notifiedFinanceEmployee)
+      setPurchaserNotify(notifiedPurchaserEmployee)
       setRequestingEmployee(currentEmployee);
       const lastPurchase = await getPurchaseId(jwt);
       const lastTR = await getTagRegistrationId(jwt);
@@ -1432,7 +1484,7 @@ const Navbar = ({ jwt }) => {
       const lastPaymentId = lastPayment?.data?.data?.[0]?.id || 1;
       setVendorId(`#VD${new Date().getFullYear()}-${lastVendorId + 1}`);
       setAccountBalanceId(lastAccountBalanceId);
-      setAccountBalanceAmount(parseInt(lastAccountBalanceAmount.replace(/\,/g, '')));
+      setAccountBalanceAmount(parseInt(lastAccountBalanceAmount.replace(/,/g, "")));
       setPaymentId(`#PR${new Date().getFullYear()}-${lastPaymentId + 1}`);
       setBalance(accountBalanceAmount);
 
@@ -1529,7 +1581,9 @@ const Navbar = ({ jwt }) => {
         type: "vendor request",
         vendor: vendorRequest.data?.data?.id,
         employee: employee.data?.data?.[0]?.id,
-        employees: employee.data?.data?.[0]?.id,
+        employees: financeNotify?.data?.data?.map((finance) => finance.id),
+        employees: adminNotify?.data?.data?.map((admin) => admin.id),
+
       },
     };
     // employee: employee.data?.data?.[0]?.id,
@@ -1874,7 +1928,7 @@ const Navbar = ({ jwt }) => {
                       onChange={(e) => setSelectedPurchaseId(e.target.value)}
                     >
                       {/* <pre>{JSON.stringify({ inventoryResponse }, null, 2)}</pre> */}
-                      {purchaseResponse?.map((i) => (
+                      {purchaseResponse?.filter((pr) => pr?.attributes?.isApproved === 'pending payment').map((i) => (
                         <MenuItem value={i?.id}>
                           {i.attributes?.itemName}
                         </MenuItem>
@@ -2373,6 +2427,7 @@ const Navbar = ({ jwt }) => {
                       color="#6F7082"
                     >
                       Finance Department
+                      {/* <pre>{JSON.stringify({ e: adminNotify?.data?.data?.concat(financeNotify?.data?.data).map((e) => e.id) }, null, 2)}</pre> */}
                     </Typography>
                   </Stack>
                   <Stack justifyContent="center">
@@ -2440,16 +2495,15 @@ const Navbar = ({ jwt }) => {
                     }}
                   >
                     <InputLabel>Project Title</InputLabel>
-
                     <Select
                       labelId="demo-simple-select-filled-label"
                       defaultValue="Select leave request type"
                       id="demo-simple-select-filled"
-                      value={paymentProjectTitle}
-                      onChange={(e) => setPaymentProjectTitle(e.target.value)}
+                      value={selectedProjectId}
+                      onChange={(e) => setSelectedProject(e.target.value)}
                     >
                       {projectsResponse?.map((i) => (
-                        <MenuItem value={i.attributes?.projectTitle}>
+                        <MenuItem value={i?.id}>
                           {i.attributes?.projectTitle}{" "}
                         </MenuItem>
                       ))}
@@ -2620,7 +2674,7 @@ const Navbar = ({ jwt }) => {
                 value={selectedPurchaseId}
                 onChange={(e) => setSelectedPurchaseId(e.target.value)}
               >
-                {purchaseResponse?.filter((pr) => pr?.attributes?.isApproved === 'approved').map((i) => (
+                {purchaseResponse?.filter((pr) => pr?.attributes?.isApproved === 'pending payment').map((i) => (
                   <MenuItem value={i?.id}>
                     {i.attributes?.itemName}
                   </MenuItem>
@@ -2655,6 +2709,8 @@ const Navbar = ({ jwt }) => {
                 }}
               />
               <Box height="16px" />
+              {/* <pre>{JSON.stringify({ an: adminNotify?.data?.data?.map((admin) => admin.id) }, null, 2)}</pre>
+              <pre>{JSON.stringify({ fn: financeNotify?.data?.data.map((finance) => finance.id) }, null, 2)}</pre> */}
 
               <Stack direction="row" justifyContent="space-between">
                 <Button variant="text">Reset</Button>

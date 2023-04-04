@@ -4,9 +4,12 @@ import { useEffect, useState } from "react";
 import DashboardComponent from "../components/Dashboard/DashboardComponent";
 import Layout from "../components/Layout";
 import {
+  readAccountBalance,
+  readAccountBalanceId,
   readEmployeeInprogressTask,
   readInventory,
   readNotification,
+  readPaymentNotification,
   readProject,
 } from "../lib";
 import { fetcher } from "../lib/api";
@@ -19,6 +22,9 @@ export default function Home() {
   const [taskResponse, setTaskResponse] = useState([]);
   const [activeProjects, setActiveProjects] = useState([]);
   const [depletingItems, setDepletingItems] = useState([]);
+  const [accountBalance, setAccountBalance] = useState([]);
+  const [paymentNotification, setPaymentNotification] = useState([]);
+
 
   const [jwt, setJwt] = useState(null);
   const [purchaseRequestResponse, setPurchaseRequestResponse] = useState();
@@ -31,17 +37,19 @@ export default function Home() {
 
     setJwt(jwt);
 
-    const fetchData = async () => {
-      const taskRequestResponse = await readEmployeeInprogressTask(jwt, user);
-      setTaskResponse(taskRequestResponse.data);
 
-      const activeProjectsResponse = await readProject(jwt, user);
-      setActiveProjects(activeProjectsResponse.data?.data);
+    const taskRequestResponse = await readEmployeeInprogressTask(jwt, user);
+    setTaskResponse(taskRequestResponse.data);
 
-      const depletingItemsResponse = await readInventory(jwt);
-      setDepletingItems(depletingItemsResponse.data?.data);
-    };
-    fetchData();
+    const activeProjectsResponse = await readProject(jwt, user);
+    setActiveProjects(activeProjectsResponse.data?.data);
+
+    const depletingItemsResponse = await readInventory(jwt);
+    setDepletingItems(depletingItemsResponse.data?.data);
+    const accountBalanceResponse = await readAccountBalanceId(jwt);
+    setAccountBalance(accountBalanceResponse?.data);
+
+
 
     const purchaseRequestResponse = await fetcher(
       // `https://frankconerp.herokuapp.com/api/purchaseRequests`,
@@ -61,7 +69,15 @@ export default function Home() {
       setPurchaseRequestResponse(purchaseRequestResponse.data);
     }
 
-    readNotification(jwt).then((r) => {
+
+    console.log("index response is", { response });
+  }, []);
+
+  useEffect(() => {
+    if (!jwt || !user) {
+      return;
+    }
+    readNotification(jwt, user).then((r) => {
       console.log("r is", r.data?.data);
       setResponse(r.data?.data);
     });
@@ -71,8 +87,12 @@ export default function Home() {
       // setTaskResponse(r?.data?);
     });
 
-    console.log("index response is", { response });
-  }, []);
+    readPaymentNotification(jwt, user).then((pr) => {
+      setPaymentNotification(pr?.data);
+
+    })
+
+  }, [user, jwt])
   // const { user, userDepartment, loading } = useFetchUser();
 
   console.log("the user is", user);
@@ -100,6 +120,13 @@ export default function Home() {
       res.attributes?.materialtransferrequest?.data?.attributes?.isApproved ===
       "pending"
   );
+  const pendingVendorRequest = response?.filter(
+    (res) =>
+      res.attributes?.vendor &&
+      res.attributes?.vendor?.data?.attributes &&
+      res.attributes?.vendor?.data?.attributes?.isApproved ===
+      "pending"
+  );
   const pendingLeaveRequest = response?.filter(
     (res) =>
       res.attributes?.leaverequest &&
@@ -111,7 +138,9 @@ export default function Home() {
       res.attributes?.purchaseRequest &&
       res.attributes?.purchaseRequest?.data?.attributes &&
       res.attributes?.purchaseRequest?.data?.attributes?.isApproved ===
-      "pending"
+      "pending" ||
+      res.attributes?.purchaseRequest?.data?.attributes?.isApproved ===
+      "pending payment"
   );
   const activePurchaseRequest = response?.filter(
     (res) =>
@@ -120,13 +149,14 @@ export default function Home() {
       res.attributes?.purchaseRequest?.data?.attributes?.isApproved ===
       "approved"
   );
-  const pendingPaymentRequest = response?.filter(
+  const pendingPaymentRequest = paymentNotification?.data?.filter(
     (res) =>
-      res.attributes?.paymentRequest &&
-      res.attributes?.paymentRequest?.data?.attributes &&
-      res.attributes?.paymentRequest?.data?.attributes?.isApproved === "pending"
+      res.attributes?.paymentrequest &&
+      res.attributes?.paymentrequest?.data?.attributes &&
+      res.attributes?.paymentrequest?.data?.attributes?.isApproved === "pending"
   );
   console.log({ activeProjectsAmount });
+  console.log({ pendingPaymentRequest });
 
   if (jwt === null) {
     return <h1>Loading</h1>;
@@ -172,7 +202,7 @@ export default function Home() {
                   Please manage your inventory and upcoming tasks and projects.
                 </Typography>
                 <Box height="32px" />
-                <Stack direction="row" gap="12px">
+                <Stack direction="row" gap="12px" justifyContent="space-between">
                   {userDepartment === "admin" ||
                     userDepartment === "Finance" ||
                     userDepartment === "Architect" ||
@@ -181,12 +211,14 @@ export default function Home() {
                     userDepartment === "Purchaser" ||
                     userDepartment === "Workshop" ? (
                     <>
+
                       <Card
                         sx={{
-                          width: "427px",
+                          // width: "500px",
                           height: "170px",
                           p: 0,
                           borderRadius: "10px",
+                          boxShadow: "0"
                         }}
                       >
                         <CardContent sx={{ px: "24px" }}>
@@ -196,10 +228,11 @@ export default function Home() {
                             color="#F35B05"
                           // sx={{ p: 0 }}
                           >
-                            {pendingMaterialRequest.length +
-                              pendingPaymentRequest.length +
-                              pendingPurchaseRequest.length +
-                              pendingLeaveRequest.length}
+                            {
+                              pendingMaterialRequest?.length +
+                              pendingPurchaseRequest?.length +
+                              pendingVendorRequest?.length +
+                              pendingLeaveRequest?.length}
                           </Typography>
                           {/* </Box> */}
                           {/* <Box height="12px" /> */}
@@ -227,6 +260,8 @@ export default function Home() {
 
                         height: "170px",
                         p: 0,
+                        boxShadow: "0",
+
                         borderRadius: "10px",
                       }}
                     >
@@ -266,13 +301,17 @@ export default function Home() {
                     userDepartment === "Purchaser" ? (
                     <Card
                       sx={{
-                        width: "427px",
+                        width: "500px",
+                        boxShadow: "0",
+
 
                         height: "170px",
                         p: 0,
                         borderRadius: "10px",
                       }}
                     >
+                      {/* <pre>{JSON.stringify({ paymentNotification }, null, 2)}</pre> */}
+                      {/* <pre>{JSON.stringify({ readNotification }, null, 2)}</pre> */}
                       <CardContent>
                         {/* <Box> */}
                         <Typography
@@ -281,7 +320,7 @@ export default function Home() {
                           color="#F35B05"
                         // sx={{ p: 0 }}
                         >
-                          {pendingPaymentRequest.length}
+                          {pendingPaymentRequest?.length}
                         </Typography>
                         {/* </Box> */}
                         {/* <Box height="12px" /> */}
@@ -306,6 +345,7 @@ export default function Home() {
                     <Card
                       sx={{
                         width: "427px",
+                        boxShadow: "0",
 
                         height: "170px",
                         p: 0,
@@ -346,6 +386,7 @@ export default function Home() {
                     <Card
                       sx={{
                         width: "427px",
+                        boxShadow: "0",
 
                         height: "170px",
                         p: 0,
@@ -392,7 +433,9 @@ export default function Home() {
                     <>
                       <Card
                         sx={{
-                          width: "427px",
+                          width: "600px",
+
+                          boxShadow: "0",
 
                           height: "170px",
                           p: 0,
@@ -402,6 +445,7 @@ export default function Home() {
                         {/* <pre>
                         {JSON.stringify({ task }, null, 2)}
                       </pre> */}
+                        {/* <pre>{JSON.stringify({ accountBalance }, null, 2)}</pre> */}
 
                         <CardContent sx={{ px: "24px" }}>
                           {/* <Box> */}
@@ -411,7 +455,8 @@ export default function Home() {
                             color="#F35B05"
                           // sx={{ p: 0 }}
                           >
-                            243k+
+                            {accountBalance?.data?.[0]?.attributes?.accountBalance}
+
                           </Typography>
                           {/* </Box> */}
                           {/* <Box height="12px" /> */}
@@ -436,7 +481,8 @@ export default function Home() {
                     <>
                       <Card
                         sx={{
-                          width: "427px",
+                          width: "600px",
+                          boxShadow: "0",
 
                           height: "170px",
                           p: 0,
@@ -480,6 +526,7 @@ export default function Home() {
                       <Card
                         sx={{
                           width: "427px",
+                          boxShadow: "0",
 
                           height: "170px",
                           p: 0,
@@ -524,6 +571,7 @@ export default function Home() {
                       <Card
                         sx={{
                           width: "427px",
+                          boxShadow: "0",
 
                           height: "170px",
                           p: 0,
@@ -560,6 +608,7 @@ export default function Home() {
                       <Card
                         sx={{
                           width: "427px",
+                          boxShadow: "0",
 
                           height: "170px",
                           p: 0,
