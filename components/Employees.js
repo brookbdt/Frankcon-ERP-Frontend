@@ -52,7 +52,7 @@ const Employees = ({ jwt }) => {
   const [fullName, setFirstname] = useState("");
   const [alertOpen, setAlertOpen] = useState(false);
 
-  const [tinNumber, setLastname] = useState("");
+  const [tinNumber, setTinNumber] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [dateOfBirth, setDateOfBirth] = useState("");
@@ -81,7 +81,7 @@ const Employees = ({ jwt }) => {
       "data",
       JSON.stringify({
         firstName: fullName,
-        lastName: tinNumber,
+        tinNumber,
         employeeId,
         email,
         phone,
@@ -114,7 +114,7 @@ const Employees = ({ jwt }) => {
     setAnchorEl(null);
   };
 
-  const sortByDepartment = async () => {};
+  const sortByDepartment = async () => { };
   const openOptions = Boolean(anchorEl);
   const id = openOptions ? "simple-popover" : undefined;
 
@@ -228,16 +228,16 @@ const Employees = ({ jwt }) => {
                 component="label"
                 width="56px"
                 height="56px"
-                // sx={previewImage ? "" : { backgroundColor: "#E8E7FD" }}
-                // style={{
-                //   // backgroundColor: "red",
-                //   display: "flex",
-                //   justifyContent: "center",
-                //   alignItems: "center",
-                //   // padding: "12px",
-                //   width: "100%",
-                //   height: "100%",
-                // }}
+              // sx={previewImage ? "" : { backgroundColor: "#E8E7FD" }}
+              // style={{
+              //   // backgroundColor: "red",
+              //   display: "flex",
+              //   justifyContent: "center",
+              //   alignItems: "center",
+              //   // padding: "12px",
+              //   width: "100%",
+              //   height: "100%",
+              // }}
               >
                 <input
                   id="file"
@@ -408,7 +408,7 @@ const Employees = ({ jwt }) => {
                   defaultValue="Employee TIN Number"
                   size="small"
                   variant="filled"
-                  onChange={(e) => setLastname(e.target.value)}
+                  onChange={(e) => setTinNumber(e.target.value)}
                 ></TextField>
               </FormControl>
             </Stack>
