@@ -452,15 +452,18 @@ export default function Home() {
 
                         <CardContent sx={{ px: "24px" }}>
                           {/* <Box> */}
-                          {accountBalance ? <Typography
+                          <Typography
                             fontWeight="700px"
                             fontSize="48px"
                             color="#F35B05"
                           // sx={{ p: 0 }}
                           >
-                            {accountBalance?.data?.[0]?.attributes?.accountBalance}
+                            {accountBalance ?
+                              accountBalance?.data?.[0]?.attributes?.accountBalance
 
-                          </Typography> : '0'}
+                              : '0'}
+                          </Typography>
+
 
                           {/* </Box> */}
                           {/* <Box height="12px" /> */}
