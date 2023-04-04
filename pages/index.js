@@ -320,7 +320,10 @@ export default function Home() {
                           color="#F35B05"
                         // sx={{ p: 0 }}
                         >
-                          {pendingPaymentRequest?.length}
+                          {pendingPaymentRequest ?
+
+                            pendingPaymentRequest?.length :
+                            '0'}
                         </Typography>
                         {/* </Box> */}
                         {/* <Box height="12px" /> */}
@@ -449,7 +452,7 @@ export default function Home() {
 
                         <CardContent sx={{ px: "24px" }}>
                           {/* <Box> */}
-                          <Typography
+                          {accountBalance ? <Typography
                             fontWeight="700px"
                             fontSize="48px"
                             color="#F35B05"
@@ -457,7 +460,8 @@ export default function Home() {
                           >
                             {accountBalance?.data?.[0]?.attributes?.accountBalance}
 
-                          </Typography>
+                          </Typography> : '0'}
+
                           {/* </Box> */}
                           {/* <Box height="12px" /> */}
                           <Typography fontWeight="500px" fontSize="20px">
