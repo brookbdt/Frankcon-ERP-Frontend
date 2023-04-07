@@ -186,6 +186,9 @@ const Navbar = ({ jwt }) => {
 
   const buttons = ["Forms", "Requests", "Help Center"];
 
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [balance, setBalance] = useState(0)
+
   const itemTypes = [
     "Construction item",
     "Finishing Item",
@@ -194,9 +197,6 @@ const Navbar = ({ jwt }) => {
     "Office Item",
 
   ];
-
-  const [selectedIndex, setSelectedIndex] = useState(0);
-  const [balance, setBalance] = useState(0)
   const handleClick = () => {
     setOpen(true);
   };
@@ -1236,7 +1236,7 @@ const Navbar = ({ jwt }) => {
               >
                 {itemTypes?.map((itemType) => (
 
-                  <MenuItem value={i?.id}>{itemType} </MenuItem>
+                  <MenuItem value={itemType?.id}>{itemType} </MenuItem>
                 ))}
 
               </Select>
