@@ -193,6 +193,24 @@ const Projects = ({ jwt }) => {
       })
     );
 
+
+    const promises = tasks.map(async (task) => {
+      const taskData = new FormData();
+      taskData.append("data", JSON.stringify({
+        title: task,
+        employee: employee?.data?.data[0]?.id,
+        employees: [currentEmployee?.data?.data[0]?.id, ...employeeChecked?.map((emp) => emp?.id)],
+        status: 'INPROGRESS',
+        priority: "HIGH",
+      }))
+
+      return createTask(taskData, jwt);
+    });
+
+    // execute all createTask API requests at the same time
+    await Promise.all(promises);
+    setCreateTaskStatus("All tasks created successfully.");
+
     // const taskData = new FormData();
     // taskData.append("data", JSON.stringify({
     //   title: tasks,
@@ -597,6 +615,7 @@ const Projects = ({ jwt }) => {
                                             role={undefined}
                                             onClick={handleToggle(employee)}
                                             dense
+                                            sx={{ alignItems: 'center' }}
                                           >
                                             <ListItemIcon>
                                               <Checkbox
@@ -613,13 +632,15 @@ const Projects = ({ jwt }) => {
                                                 }}
                                               />
 
-                                              <Avatar
-                                                sx={{
-                                                  width: "24px",
-                                                  height: "24px",
-                                                }}
-                                                src={`${process.env.NEXT_PUBLIC_STRAPI_BASE_URL}${employee?.attributes?.employeeImage?.data?.attributes?.url}`}
-                                              />
+                                              <Box display="flex" alignItems="center">
+                                                <Avatar
+                                                  sx={{
+                                                    width: "24px",
+                                                    height: "24px",
+                                                  }}
+                                                  src={`${process.env.NEXT_PUBLIC_STRAPI_BASE_URL}${employee?.attributes?.employeeImage?.data?.attributes?.url}`}
+                                                />
+                                              </Box>
                                             </ListItemIcon>
                                             <ListItemText
                                               id={labelId}

@@ -186,6 +186,15 @@ const Navbar = ({ jwt }) => {
 
   const buttons = ["Forms", "Requests", "Help Center"];
 
+  const itemTypes = [
+    "Construction item",
+    "Finishing Item",
+    "Interior design Item",
+    "Workshop Item",
+    "Office Item",
+
+  ];
+
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [balance, setBalance] = useState(0)
   const handleClick = () => {
@@ -1448,14 +1457,7 @@ const Navbar = ({ jwt }) => {
   const [purchaserNotify, setPurchaserNotify] = useState({});
   const [requestingEmployee, setRequestingEmployee] = useState({});
 
-  const itemTypes = [
-    "Construction item",
-    "Finishing Item",
-    "Interior design Item",
-    "Workshop Item",
-    "Office Item",
 
-  ];
 
 
   let res = [];
