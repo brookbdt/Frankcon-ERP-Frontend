@@ -212,10 +212,19 @@ const Navbar = ({ jwt }) => {
     setCheckedIRF(false);
   };
 
+  const handleFileSelect = (event) => {
+    const files = event.target.files;
+
+    setPaymentInvoice(files);
+    console.log({ files });
+    console.log({ paymentInvoice });
+  };
+
   const handleClose = () => {
     setChecked((prev) => !prev);
   };
   const handleClosePayment = () => {
+
     setCheckedPayment((prev) => !prev);
   };
   const handleCloseAMT = () => {
@@ -2638,46 +2647,69 @@ const Navbar = ({ jwt }) => {
               <Box height="16px" />
               <Grid container>
                 <Grid item xs={6}>
-                  <Button
-                    variant="filled"
-                    sx={{
-                      backgroundColor: "#F6F6F6",
-                      padding: 0,
-                      width: "248px",
-                      height: "46px",
-                    }}
-                  >
-                    <label
-                      style={{
-                        // backgroundColor: "red",
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        padding: "12px",
-                        width: "100%",
-                        height: "100%",
+                  <div>
+                    <Button
+                      variant="filled"
+                      sx={{
+                        backgroundColor: "#F6F6F6",
+                        padding: 0,
+                        width: "248px",
+                        height: "46px",
                       }}
+                      component="label"
                     >
-                      <input
-                        id="file"
-                        hidden
-                        multiple
-                        type="file"
-                        onChange={(e) => setPaymentInvoice(e.target.files)}
-                      />
                       <Typography
                         color="#6F7082"
-                        fontWeight="600px"
+                        fontWeight="600"
                         fontSize="12px"
+                        sx={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          p: "12px",
+                          width: "100%",
+                          height: "100%",
+                        }}
                       >
                         Attach Payment Invoice
+                        <input
+                          id="file"
+                          hidden
+                          multiple
+                          type="file"
+                          onChange={handleFileSelect}
+                        />
+                        <NoteAddOutlinedIcon
+                          sx={{ width: "16px", height: "16px", color: "#6F7082" }}
+                        />
                       </Typography>
+                    </Button>
+                    {paymentInvoice.length > 0 ? (
 
-                      <NoteAddOutlinedIcon
-                        sx={{ width: "16px", height: "16px", color: "#6F7082" }}
-                      />
-                    </label>
-                  </Button>
+                      <div sx={{ display: "flex", flexDirection: "column", mt: "16px" }}>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                          Selected Files:
+                        </Typography>
+                        {paymentInvoice.length > 0 ? (
+
+                          <>
+
+                            {paymentInvoice?.map((fileName) => (
+                              <Chip key={fileName} label={fileName} sx={{ margin: "5px", backgroundColor: "#F6F6F6", color: '#6F7081' }} />
+
+                              // <div key={fileName}>{fileName}</div>
+                            ))}
+                          </>
+                        ) : <>
+                          <Typography>No added files</Typography>
+
+                          <Box height="50px" />
+                        </>}
+
+
+                      </div>
+                    ) : ''}
+                  </div>
                 </Grid>
                 <Grid item xs={6}>
                   <FormControl

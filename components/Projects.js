@@ -160,6 +160,7 @@ const Projects = ({ jwt }) => {
     setEmployeeChecked(newChecked);
     console.log({ employeeChecked });
   };
+
   const sendProject = async () => {
     const employee = await readTaskEmployee(jwt, user);
     setChecked((prev) => !prev)
@@ -192,49 +193,48 @@ const Projects = ({ jwt }) => {
         projectDescription,
       })
     );
-
-
-    const promises = tasks.map(async (task) => {
-      const taskData = new FormData();
-      taskData.append("data", JSON.stringify({
-        title: task,
-        employee: employee?.data?.data[0]?.id,
-        employees: [currentEmployee?.data?.data[0]?.id, ...employeeChecked?.map((emp) => emp?.id)],
-        status: 'INPROGRESS',
-        priority: "HIGH",
-      }))
-
-      return createTask(taskData, jwt);
-    });
-
-    // execute all createTask API requests at the same time
-    await Promise.all(promises);
-    setCreateTaskStatus("All tasks created successfully.");
-
-    // const taskData = new FormData();
-    // taskData.append("data", JSON.stringify({
-    //   title: tasks,
-    //   employee: employee?.data?.data[0]?.id,
-    //   employees: [currentEmployee?.data?.data[0]?.id, ...employeeChecked?.map((emp) => emp?.id)],
-    //   status: 'INPROGRESS',
-    //   priority: "HIGH",
-
-    // }))
-
-    // const taskRequest = await createTask(taskData, jwt);
-
-    // const newTaskNotification = {
-    //   data: {
-    //     date: new Date().toISOString(),
-    //     type: "Task",
-    //     task: taskRequest?.data?.data?.id,
-    //     employees: [currentEmployee?.data?.data[0]?.id, ...employeeChecked?.map((emp) => emp?.id)],
-    //     employee: [currentEmployee?.data?.data[0]?.id, ...projectCreatedBy],
-
-    //   },
-    // };
-
     const projectRequest = await createNewProject(formData, jwt);
+
+
+    const handleCreateTasks = async () => {
+      const promises = tasks.map(async (task) => {
+        const taskData = new FormData();
+        taskData.append("data", JSON.stringify({
+          title: task,
+          employee: employee?.data?.data[0]?.id,
+          employee_checkeds: [currentEmployee?.data?.data[0]?.id, ...employeeChecked?.map((emp) => emp?.id)],
+          status: 'INPROGRESS',
+          priority: "HIGH",
+          projects: projectRequest?.data?.data?.id,
+
+        }))
+
+        const createTaskResponse = await createTask(taskData, jwt);
+
+        const newTaskNotification = {
+          data: {
+            date: new Date().toISOString(),
+            type: "Task",
+            task: createTaskResponse?.data?.data?.id,
+            employees: [currentEmployee?.data?.data[0]?.id, ...employeeChecked?.map((emp) => emp?.id)],
+            employee: [currentEmployee?.data?.data[0]?.id],
+          },
+        };
+
+        await createNotification(newTaskNotification, jwt);
+
+        return createTaskResponse;
+      });
+
+      await Promise.all(promises);
+    };
+
+    handleCreateTasks();
+
+
+
+
+
     const newNotification = {
       data: {
         date: new Date().toISOString(),

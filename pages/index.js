@@ -117,6 +117,15 @@ export default function Home() {
       return value?.toFixed(1);
     }
   }
+  function formatAccountBalance(balance) {
+    if (balance >= 1000000) {
+      return (balance / 1000000).toFixed(2) + 'M';
+    } else if (balance >= 1000) {
+      return (balance / 1000).toFixed(1) + 'k';
+    } else {
+      return balance?.toString();
+    }
+  }
 
   const depletingItemsAmount = depletingItems?.filter(
     (res) =>
@@ -478,8 +487,11 @@ export default function Home() {
                             color="#F35B05"
                           // sx={{ p: 0 }}
                           >
+
                             {accountBalance ?
-                              accountBalance?.data?.[0]?.attributes?.accountBalance
+
+
+                              formatAccountBalance(accountBalance?.data?.[0]?.attributes?.accountBalance)
 
                               : '0'}
                           </Typography>

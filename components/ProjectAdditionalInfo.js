@@ -7,6 +7,17 @@ import { AttachFileOutlined } from "@mui/icons-material";
 const ProjectAdditionalInfo = ({ response }) => {
   dayjs.extend(relativeTime);
 
+  function handleDownloadClick() {
+    const fileUrl = response?.data?.attributes?.projectdocument?.data?.[0]?.attributes?.url;
+    const link = document.createElement('a');
+    link.href = fileUrl;
+    link.download = ''; // This will set the default filename to the file's original name
+    link.target = '_blank'; // This will open the link in a new tab
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
   return (
     <Box paddingLeft="52px" paddingRight="15px">
       <Stack direction="row" gap="20px">
@@ -127,6 +138,7 @@ const ProjectAdditionalInfo = ({ response }) => {
               padding: 0,
               boxShadow: "none",
             }}
+            onClick={handleDownloadClick}
           >
             <AttachFileOutlined />
             <Box width="12px" />
