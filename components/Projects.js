@@ -1,6 +1,7 @@
 import { InsertPhotoOutlined } from "@mui/icons-material";
 import AddIcon from "@mui/icons-material/Add";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
+import { styled } from "@mui/material/styles";
 import CloseIcon from "@mui/icons-material/Close";
 import NoteAddOutlinedIcon from "@mui/icons-material/NoteAddOutlined";
 import {
@@ -11,6 +12,7 @@ import {
   ButtonGroup,
   Card,
   Checkbox,
+  Chip,
   Divider,
   Fade,
   Grid,
@@ -39,7 +41,9 @@ import EmployeesLayout from "../layout/employees";
 import {
   createNewProject,
   createNotification,
+  createTask,
   getProjectId,
+  readAllProjects,
   readEmployee,
   readEmployeeTask,
   readProject,
@@ -48,6 +52,8 @@ import {
 import { useFetchUser, useFetchUserDepartment } from "../lib/authContext";
 import Dropdown from "./Projects/dropdown";
 import PopupState, { bindPopper, bindToggle } from "material-ui-popup-state";
+import AddTaskButton from "./AddTaskButton";
+import ButtonGroups from "./ButtonGroups";
 
 const Projects = ({ jwt }) => {
   const handleSlide = () => {
@@ -77,11 +83,62 @@ const Projects = ({ jwt }) => {
   const [projectTask, setProjectTask] = useState("");
   const [projectDocuments, setProjectDocuments] = useState([]);
   const [projectDescription, setProjectDescription] = useState();
-
+  const [fileNames, setFileNames] = useState([]);
   const [currentEmployee, setCurrentEmployee] = useState([]);
 
   const [employees, setEmployees] = useState([]);
   const [employeeChecked, setEmployeeChecked] = React.useState([]);
+
+  const [tasks, setTasks] = useState([]);
+
+  const buttons = ["Description", "Files", "Tasks"];
+  const [selectedIndex, setSelectedIndex] = useState(0);
+
+  const handleFileChange = (e) => {
+    const files = e.target.files;
+    const newProjectDocuments = [];
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      newProjectDocuments.push({
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        preview: URL.createObjectURL(file),
+      });
+    }
+
+    setProjectDocuments(newProjectDocuments);
+  };
+
+  // handle file selection
+  const handleFileSelect = (event) => {
+    const files = event.target.files;
+    setProjectDocuments(files);
+    // get file names and extensions
+    const names = [];
+    for (let i = 0; i < files.length; i++) {
+      names.push(files[i].name);
+    }
+    setFileNames(names);
+  };
+  const FileNamesWrapper = styled("div")({
+    marginTop: "10px",
+    "& div": {
+      marginTop: "5px",
+      fontSize: "14px",
+      fontWeight: "500",
+      backgroundColor: "#F9F9F9",
+      padding: "8px",
+      borderRadius: "4px",
+    },
+  });
+
+  const handleAddTask = (task) => {
+    console.log({ tasks })
+    setTasks([...tasks, task]);
+  };
+
 
   const handleToggle = (value) => () => {
     const currentIndex = employeeChecked
@@ -136,6 +193,29 @@ const Projects = ({ jwt }) => {
       })
     );
 
+    // const taskData = new FormData();
+    // taskData.append("data", JSON.stringify({
+    //   title: tasks,
+    //   employee: employee?.data?.data[0]?.id,
+    //   employees: [currentEmployee?.data?.data[0]?.id, ...employeeChecked?.map((emp) => emp?.id)],
+    //   status: 'INPROGRESS',
+    //   priority: "HIGH",
+
+    // }))
+
+    // const taskRequest = await createTask(taskData, jwt);
+
+    // const newTaskNotification = {
+    //   data: {
+    //     date: new Date().toISOString(),
+    //     type: "Task",
+    //     task: taskRequest?.data?.data?.id,
+    //     employees: [currentEmployee?.data?.data[0]?.id, ...employeeChecked?.map((emp) => emp?.id)],
+    //     employee: [currentEmployee?.data?.data[0]?.id, ...projectCreatedBy],
+
+    //   },
+    // };
+
     const projectRequest = await createNewProject(formData, jwt);
     const newNotification = {
       data: {
@@ -144,14 +224,12 @@ const Projects = ({ jwt }) => {
         project: projectRequest?.data?.data?.id,
         employees: [currentEmployee?.data?.data[0]?.id, ...employeeChecked?.map((emp) => emp?.id)],
         employee: [currentEmployee?.data?.data[0]?.id, ...projectCreatedBy],
-
-
-
       },
     };
     // employee: employee.data?.data?.[0]?.id,
 
     await createNotification(newNotification, jwt);
+    // await createNotification(newTaskNotification, jwt);
     console.log("the project is", formData);
   };
 
@@ -186,7 +264,8 @@ const Projects = ({ jwt }) => {
       const employeeList = await readEmployee(jwt, user);
 
       const result = await readProject(jwt, user);
-      const allResults = await readProject(jwt, user);
+      const employeeResults = await readProject(jwt, user);
+      const allResults = await readAllProjects(jwt, user);
       setResponse(result.data);
       setAllProjects(allResults.data);
       setEmployeeResponse(employeeResult.data);
@@ -248,16 +327,19 @@ const Projects = ({ jwt }) => {
 
   const addProject = (
     <Paper
-      sx={{ m: 1, zIndex: 1, borderColor: "#4339F2", borderRadius: "10px" }}
+      sx={{ m: 1, zIndex: 1, overflow: "auto", borderColor: "#4339F2", borderRadius: "10px" }}
       elevation={4}
       variant="outlined"
+
+
     >
       <Box
         sx={{
           width: "566px",
-          height: "750px",
+          height: "800px",
           paddingX: "22px",
           paddingTop: "16px",
+          // paddingBottom: "16px",
           //   bgcolor: "white",
           borderRadius: "10px",
         }}
@@ -374,10 +456,11 @@ const Projects = ({ jwt }) => {
                 <Dropdown
                   selectedItemText={priorityOptions[prioritySelectedIndex]}
                   //   value={projectDetail.projectPriority}
+                  // style={{ backgroundColor: "#F6F6F6", flexDirection: "column" }}
                   dropDownWidth="112px"
-                  dropDownColor="#6F7082"
+                  dropDownColor="#6F7082 !important"
+                  dropDownBackgroundColor="#F6F6F6 !important"
                   dropDownBorderRadius="10px"
-                  dropDownBackgroundColor="#F6F6F6"
                   dropDownHeight="24px"
                   dropDownFontSize="12px"
                 >
@@ -412,9 +495,9 @@ const Projects = ({ jwt }) => {
                 <Dropdown
                   selectedItemText={statusOptions[statusSelectedIndex]}
                   dropDownWidth="112px"
-                  dropDownColor="#6F7082"
+                  dropDownColor="#6F7082 !important"
+                  dropDownBackgroundColor="#F6F6F6 !important"
                   dropDownBorderRadius="10px"
-                  dropDownBackgroundColor="#F6F6F6"
                   dropDownHeight="24px"
                   dropDownFontSize="12px"
                 >
@@ -576,9 +659,8 @@ const Projects = ({ jwt }) => {
               <Dropdown
                 selectedItemText={departmentOptions[departmentSelectedIndex]}
                 dropDownWidth="248px"
-                dropDownColor="#6F7082"
-                // dropDownBorderRadius="10px"
-                dropDownBackgroundColor="#F6F6F6"
+                dropDownColor="#6F7082 !important"
+                dropDownBackgroundColor="#F6F6F6 !important"
                 dropDownHeight="46px"
                 dropDownFontSize="12px"
                 buttonTitle="Responsible Department"
@@ -617,9 +699,8 @@ const Projects = ({ jwt }) => {
               <Dropdown
                 selectedItemText={projectLeadOptions[projectLeadSelectedIndex]}
                 dropDownWidth="248px"
-                dropDownColor="#6F7082"
-                // dropDownBorderRadius="10px"
-                dropDownBackgroundColor="#F6F6F6"
+                dropDownColor="#6F7082 !important"
+                dropDownBackgroundColor="#F6F6F6 !important"
                 dropDownHeight="46px"
                 dropDownFontSize="12px"
                 buttonTitle="Project Lead"
@@ -686,6 +767,7 @@ const Projects = ({ jwt }) => {
           </Stack>
           <Box height="20px" />
           <Box display="flex" justifyContent="space-around">
+
             <Button
               variant="filled"
               sx={{
@@ -697,7 +779,6 @@ const Projects = ({ jwt }) => {
             >
               <label
                 style={{
-                  // backgroundColor: "red",
                   display: "flex",
                   justifyContent: "space-between",
                   alignItems: "center",
@@ -711,7 +792,7 @@ const Projects = ({ jwt }) => {
                   hidden
                   multiple
                   type="file"
-                  onChange={(e) => setProjectDocuments(e.target.files)}
+                  onChange={handleFileSelect}
                 />
                 <Typography color="#6F7082" fontWeight="600px" fontSize="12px">
                   Attach Project Documents
@@ -722,79 +803,91 @@ const Projects = ({ jwt }) => {
                 />
               </label>
             </Button>
+
             <TextField value={projectBudget} onChange={(e) => setProjectBudget(e.target.value)} sx={{
               width: "248px", "& .MuiInputBase-root": {
                 height: "48px",
               },
             }} placeholder="Project Budget in ETB" />
           </Box>
+          {/* <Box display="flex" flexWrap="wrap" justifyContent="flex-start"> */}
+          <Box height='8px' />
+          <AddTaskButton onAdd={handleAddTask} />
+
+          {/* </Box> */}
+
 
           <Box height="24px" />
-          {/* <Stack direction="row"> */}
-          <ButtonGroup>
-            <Button
-              id="description"
-              sx={{ width: "150px", height: "38px", p: 0 }}
-              variant="text"
-              onClick={isButtonClicked}
-            >
-              <Stack>
-                <Box
-                  sx={{
-                    // width: "79px",
-                    height: "38px",
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                  }}
-                >
-                  <Typography fontSize="14px" color="#0F112E">
-                    Description
-                  </Typography>
-                </Box>
-                {descriptionButtonClicked && (
-                  <Divider width="150px" color="#4339F2" />
-                )}
-              </Stack>
-            </Button>
-            {/* <Button
-              id="files"
-              sx={{ width: "150px", height: "38px", p: 0 }}
-              variant="text"
-              onClick={isButtonClicked}
-            >
-              <Stack>
-                <Box
-                  sx={{
-                    // width: "79px",
-                    height: "38px",
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                  }}
-                >
-                  <Typography fontSize="14px" color="#0F112E">
-                    Files (0)
-                  </Typography>
-                </Box>
-                {filesButtonClicked && (
-                  <Divider width="150px" color="#4339F2" />
-                )}
-              </Stack>
-            </Button> */}
-          </ButtonGroup>
+          <>
+            <Stack>
+              <ButtonGroups
+                buttons={buttons}
+                selectedIndex={selectedIndex}
+                clickedButtonColor="#4339F1 !important"
+                unClickedButtonColor="#9FA0AB !important"
+                onClick={(i) => {
+                  setSelectedIndex(i);
+                }}
+              />
+              {selectedIndex === 0 ? (
+                <>
+                  <Box height="12px" />
+                  <TextField
+                    value={projectDescription}
+                    onChange={(e) => setProjectDescription(e.target.value)}
+                    sx={{
+                      width: "520px",
+                      "& .MuiInputBase-root": {
+                        height: "48px",
+                      },
+                    }}
+                  ></TextField>
+                </>
+              ) : selectedIndex === 1 ? (
+                <Paper elevation={0} sx={{ overflow: "auto", maxHeight: "80px", padding: "8px" }}>
+                  {fileNames.length > 0 ? (
+
+                    <FileNamesWrapper>
+
+                      {fileNames.map((fileName) => (
+                        <div key={fileName}>{fileName}</div>
+                      ))}
+                    </FileNamesWrapper>
+                  ) : <>
+                    <Typography>No added files</Typography>
+
+                    <Box height="50px" />
+                  </>}
+                </Paper>
+              ) : selectedIndex === 2 ? (
+                <>{
+                  tasks?.length > 0 ? (
+                    <Paper elevation={0} sx={{ overflow: "auto", maxHeight: "80px", padding: "8px" }}>
+                      <Box display="flex">
+                        {tasks.map((task) => (
+                          <Box key={task} display="flex">
+
+                            <Chip key={task} label={task} sx={{ margin: "5px", backgroundColor: "#F6F6F6", color: '#6F7081' }} />
+                            <Box width="5px" />
+                          </Box>
+                        ))}
+                      </Box>
+                    </Paper>
+                  ) : <>
+                    <Typography>No added tasks</Typography>
+
+                    <Box height="50px" />
+                  </>
+                }
+
+                </>
+              ) : ''}
+            </Stack>
+
+          </>
         </Stack>
-        <Box height="12px" />
-        <TextField
-          value={projectDescription}
-          onChange={(e) => setProjectDescription(e.target.value)}
-          sx={{
-            width: "520px",
-            "& .MuiInputBase-root": {
-              height: "48px",
-            },
-          }}
-        ></TextField>
+
+
         <Box height="24px" />
         <Stack direction="row" justifyContent="space-between">
           <Button variant="text">Reset</Button>
@@ -802,7 +895,7 @@ const Projects = ({ jwt }) => {
             variant="contained"
             onClick={sendProject}
             sx={{
-              bgcolor: "#4339F2",
+              bgcolor: "#4339F2 !important",
               width: "190px",
               height: "48px",
               borderRadius: "10px",
@@ -816,12 +909,14 @@ const Projects = ({ jwt }) => {
               alignItems="center"
             >
               <Typography fontSize="12px">Create New Project</Typography>
-              <AddIcon />
+              <AddIcon sx={{ width: "16px", height: "16px" }} />
             </Stack>
           </Button>
+
         </Stack>
         {/* </Stack> */}
       </Box>
+      <Box height="16px" />
     </Paper>
   );
   return (
@@ -910,6 +1005,7 @@ const Projects = ({ jwt }) => {
       </Stack>
       <Box height="16px" />
       <Stack direction="row">
+
         <Grid container gap="32px">
 
           {userDepartment === 'admin' ? allProjects?.data?.map((project, index) => (
@@ -918,8 +1014,8 @@ const Projects = ({ jwt }) => {
                 <Stack justifyContent="flex-start" alignItems="flex-start">
                   <Box display="flex" alignItems="center">
                     <Avatar
-                      src={`${project?.attributes?.projectImage.data?.[0].attributes?.url}`}
-
+                      src={`${project?.attributes?.projectImage?.data?.[0]?.attributes?.url}`}
+                      alt="Project Image"
                       width="32px" height="32px">
                     </Avatar>
                     <Box width="8px" />
@@ -1000,80 +1096,96 @@ const Projects = ({ jwt }) => {
               </Card>
             </Grid>
           )) : response?.data?.map((project, index) => (
-            <Grid item>
-              <Card sx={{ paddingX: "24px", paddingY: "19px", width: "345px" }}>
-                <Stack justifyContent="flex-start" alignItems="flex-start">
+            <>
 
-                  <Stack direction="row" justifyContent="space-between">
-                    <Stack>
-                      {project.attributes?.projectStatus === "Delayed" ? (
-                        <Typography
-                          fontWeight="700"
-                          fontSize="16px"
-                          color="#F44336"
-                        >
-                          {project.attributes?.projectStatus}
+              <Grid item>
+                <Card sx={{ paddingX: "24px", boxShadow: 0, paddingY: "19px", width: "345px" }}>
+                  <Stack justifyContent="flex-start" alignItems="flex-start">
+                    <Box display="flex" alignItems="center">
+                      <Avatar
+                        src={`${project?.attributes?.projectImage?.data?.[0]?.attributes?.url}`}
+                        alt="Project Image"
+                        width="32px" height="32px">
+                      </Avatar>
+                      <Box width="8px" />
+                      <Stack>
+                        <Typography sx={{ fontWeight: "700", fontSize: "16px", color: "#0F112E" }}>{project?.attributes?.projectTitle}</Typography>
+                        <Typography sx={{ fontWeight: "400", fontSize: "12px", color: "#3F4158" }}>Created By: {project?.attributes?.employee?.data?.attributes?.firstName}</Typography>
+                      </Stack>
+                    </Box>
+
+                    <Stack direction="row" justifyContent="space-between">
+
+                      <Stack>
+                        {project.attributes?.projectStatus === "Delayed" ? (
+                          <Typography
+                            fontWeight="700"
+                            fontSize="16px"
+                            color="#F44336"
+                          >
+                            {project.attributes?.projectStatus}
+                          </Typography>
+                        ) : (
+                          <Typography
+                            fontWeight="700"
+                            fontSize="16px"
+                            color="#24B07D"
+                          >
+                            {project.attributes?.projectStatus}
+                          </Typography>
+                        )}
+                        <Typography fontWeight="400" fontSize="12px">
+                          Status
                         </Typography>
-                      ) : (
-                        <Typography
-                          fontWeight="700"
-                          fontSize="16px"
-                          color="#24B07D"
-                        >
-                          {project.attributes?.projectStatus}
+                      </Stack>
+                      <Box width="20px" />
+                      <Divider orientation="vertical" flexItem variant="middle" />
+                      <Box width="20px" />
+                      <Stack>
+                        {project.attributes?.projectStatus === "Delayed" ? (
+                          <Typography
+                            fontWeight="700"
+                            fontSize="16px"
+                            color="#F44336"
+                          >
+                            {dayjs(project?.attributes?.projectStartDate).format(
+                              "DD MMM"
+                            )}
+                          </Typography>
+                        ) : (
+                          <Typography
+                            fontWeight="700"
+                            fontSize="16px"
+                            color="#24B07D"
+                          >
+                            {dayjs(project?.attributes?.projectStartDate).format(
+                              "DD MMM"
+                            )}
+                          </Typography>
+                        )}
+                        <Typography fontWeight="400" fontSize="12px">
+                          Date Created
                         </Typography>
-                      )}
-                      <Typography fontWeight="400" fontSize="12px">
-                        Status
-                      </Typography>
+                      </Stack>
                     </Stack>
-                    <Box width="20px" />
-                    <Divider orientation="vertical" flexItem variant="middle" />
-                    <Box width="20px" />
-                    <Stack>
-                      {project.attributes?.projectStatus === "Delayed" ? (
-                        <Typography
-                          fontWeight="700"
-                          fontSize="16px"
-                          color="#F44336"
-                        >
-                          {dayjs(project?.attributes?.projectStartDate).format(
-                            "DD MMM"
-                          )}
-                        </Typography>
-                      ) : (
-                        <Typography
-                          fontWeight="700"
-                          fontSize="16px"
-                          color="#24B07D"
-                        >
-                          {dayjs(project?.attributes?.projectStartDate).format(
-                            "DD MMM"
-                          )}
-                        </Typography>
-                      )}
-                      <Typography fontWeight="400" fontSize="12px">
-                        Date Created
-                      </Typography>
-                    </Stack>
+                    <Box height="10px" />
+                    <Link href="/projects/[id]" as={`/projects/${project.id}`}>
+                      <Button
+                        sx={{
+                          color: "#6F7082",
+                          fontSize: "12px",
+                          fontWeight: "400",
+                          paddingX: 0,
+                          paddingBottom: 0,
+                        }}
+                      >
+                        View Details
+                      </Button>
+                    </Link>
                   </Stack>
-                  <Box height="10px" />
-                  <Link href="/projects/[id]" as={`/projects/${project.id}`}>
-                    <Button
-                      sx={{
-                        color: "#6F7082",
-                        fontSize: "12px",
-                        fontWeight: "400",
-                        paddingX: 0,
-                        paddingBottom: 0,
-                      }}
-                    >
-                      View Details
-                    </Button>
-                  </Link>
-                </Stack>
-              </Card>
-            </Grid>
+                </Card>
+              </Grid>
+            </>
           ))
           }
 

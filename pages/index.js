@@ -8,6 +8,7 @@ import {
   readAccountBalanceId,
   readEmployeeInprogressTask,
   readInventory,
+  readMonthlyExpense,
   readNotification,
   readPaymentNotification,
   readProject,
@@ -23,7 +24,11 @@ export default function Home() {
   const [activeProjects, setActiveProjects] = useState([]);
   const [depletingItems, setDepletingItems] = useState([]);
   const [accountBalance, setAccountBalance] = useState([]);
+  const [monthlyExpense, setMonthlyExpense] = useState([]);
+  const [monthlyExpenseSum, setMonthlyExpenseSum] = useState("");
   const [paymentNotification, setPaymentNotification] = useState([]);
+  const moment = require('moment-timezone');
+
 
 
   const [jwt, setJwt] = useState(null);
@@ -36,7 +41,11 @@ export default function Home() {
     const jwt = getTokenFromLocalCookie();
 
     setJwt(jwt);
+    const now = moment();
+    const startDate = now.startOf('month').toISOString();
 
+    // Get the start of the next month
+    const endDate = moment(startDate).add(1, 'month').toISOString();
 
     const taskRequestResponse = await readEmployeeInprogressTask(jwt, user);
     setTaskResponse(taskRequestResponse.data);
@@ -48,7 +57,8 @@ export default function Home() {
     setDepletingItems(depletingItemsResponse.data?.data);
     const accountBalanceResponse = await readAccountBalanceId(jwt);
     setAccountBalance(accountBalanceResponse?.data);
-
+    const monthlyExpenseResponse = await readMonthlyExpense(jwt, startDate, endDate);
+    setMonthlyExpense(monthlyExpenseResponse?.data);
 
 
     const purchaseRequestResponse = await fetcher(
@@ -97,6 +107,16 @@ export default function Home() {
 
   console.log("the user is", user);
   console.log("the user department is", userDepartment);
+
+  function formatExpenseValue(value) {
+    if (value >= 1000000) {
+      return (value / 1000000).toFixed(1) + "M";
+    } else if (value >= 1000) {
+      return (value / 1000).toFixed(1) + "k";
+    } else {
+      return value?.toFixed(1);
+    }
+  }
 
   const depletingItemsAmount = depletingItems?.filter(
     (res) =>
@@ -592,7 +612,7 @@ export default function Home() {
                             color="#F35B05"
                           // sx={{ p: 0 }}
                           >
-                            {activePurchaseRequest.length}
+                            {pendingPurchaseRequest.length}
                           </Typography>
 
                           <Typography fontWeight="500px" fontSize="20px">
@@ -612,6 +632,20 @@ export default function Home() {
                     </>
                   ) : userDepartment === "Purchaser" ? (
                     <>
+                      {/* <Typography fontWeight="700" fontSize="24px">
+                        {new Intl.NumberFormat("en", {
+                          style: "currency",
+                          currency: "ETB",
+                        }).format(
+                          monthlyExpense?.data
+                            ?.map((expense) =>
+                              Number(expense.attributes?.expenseAmount?.replace(/,/g, ""))
+                            )
+                            .reduce((acc, curr) => acc + curr, 0)
+                        )}
+                      </Typography> */}
+                      {/* <pre>{JSON.stringify({ monthlyExpense }, null, 2)}</pre> */}
+
                       <Card
                         sx={{
                           width: "427px",
@@ -634,7 +668,23 @@ export default function Home() {
                             color="#F35B05"
                           // sx={{ p: 0 }}
                           >
-                            123k
+                            {/* {new Intl.NumberFormat("en", {
+                              style: "currency",
+                              currency: "ETB",
+                            }).format(
+                              monthlyExpense?.data
+                                ?.map((expense) =>
+                                  Number(expense.attributes?.expenseAmount?.replace(/,/g, ""))
+                                )
+                                .reduce((acc, curr) => acc + curr, 0)
+                            )} */}
+                            {formatExpenseValue(
+                              monthlyExpense?.data
+                                ?.map((expense) =>
+                                  Number(expense.attributes?.expenseAmount?.replace(/,/g, ""))
+                                )
+                                .reduce((acc, curr) => acc + curr, 0)
+                            )}
                           </Typography>
 
                           <Typography fontWeight="500px" fontSize="20px">

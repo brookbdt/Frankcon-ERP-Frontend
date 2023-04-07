@@ -63,7 +63,7 @@ const EmploymentInformation = ({ response }) => {
             TIN NUMBER
           </Typography>
           <Typography fontWeight="500" fontSize="14px">
-            TODO
+            {response?.data?.attributes?.tinNumber}
           </Typography>
           <Box height="16px" />
           <Typography fontWeight="400" fontSize="14px" color="#6F7082">

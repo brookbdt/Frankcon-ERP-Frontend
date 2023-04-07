@@ -60,6 +60,7 @@ const DashboardComponent = ({ jwt }) => {
           <Stack justifyContent="center">
             <ActiveProjects jwt={jwt} />
             <Box height="32px" />
+
             <ProjectExpense jwt={jwt} />
           </Stack>
         </Stack>

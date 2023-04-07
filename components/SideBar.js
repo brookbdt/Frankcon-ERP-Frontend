@@ -46,6 +46,7 @@ import { fetcher } from "../lib/api";
 import { getTokenFromLocalCookie, getTokenFromServerCookie, getUserFromLocalCookie } from "../lib/auth";
 import { useFetchUser, useFetchUserDepartment } from "../lib/authContext";
 import {
+  createMonthlyExpense,
   createNotification,
   createPayin,
   createPayout,
@@ -372,6 +373,12 @@ const SideBar = ({
     // );
     // setAdminResponse()
     console.log('this balance', { balance })
+    // const newExpense = {
+    //   data: {
+    //     expenseAmount
+    //   }
+    // }
+
 
     const projectExpense = paymentNotificationResponse?.map((r) => {
       if ((r.id === paymentRequestNotificationId) && isApproved === "approved" && r?.attributes?.paymentrequest?.data?.attributes?.paymentType === "Pay out") {
@@ -415,17 +422,56 @@ const SideBar = ({
 
     })
 
-    allNotifications?.map((r) => {
+    allNotifications?.map(async (r) => {
       if ((r.id === paymentRequestNotificationId
       ) && isApproved === "approved") {
 
-        editPurchaseRequest(
+        await editPurchaseRequest(
           { data: { isApproved: 'purchased', user } },
           purchaseRequestId,
           jwt
         );
       }
     })
+
+    // const newExpense = allNotifications?.map((r) => {
+    //   if ((r.id === paymentRequestNotificationId) && (r?.attributes?.purchaserequest?.data?.attributes?.isApproved === "purchased") && r?.attributes?.paymentrequest?.data?.attributes?.paymentType === "Pay out") {
+    //     // const previousProjectExpense = parseInt(r?.attributes?.paymentrequest?.data?.attributes?.project?.data?.attributes?.projectExpense.replace(/,/g, ''));
+    //     const paymentAmountNumber = parseInt(r?.attributes?.paymentrequest?.data?.attributes?.paymentAmount.replace(/,/g, '')); // Remove commas and convert payment amount to a number
+
+    //     console.log({ expense: paymentAmountNumber })
+
+    //     return paymentAmountNumber
+    //   }
+    // })
+
+    allNotifications?.map(async (r) => {
+
+      if ((r.id === paymentRequestNotificationId) && (r?.attributes?.purchaserequest?.data?.attributes?.isApproved === "purchased") && r?.attributes?.paymentrequest?.data?.attributes?.paymentType === "Pay out") {
+
+        const newExpense = {
+          data: {
+            expenseAmount:
+              allNotifications?.map((r) => {
+                (parseInt(r?.attributes?.paymentrequest?.data?.attributes?.paymentAmount.replace(/,/g, ''))).toString(); // Remove commas and convert payment amount to a number
+              }),
+            paymentrequest: r?.attributes?.paymentrequest?.data?.id,
+            purchaserequest: r?.attributes?.purchaserequest?.data?.id,
+            payout: r?.attributes?.payout?.data?.id,
+          }
+        }
+
+        // const updatedExpense = {
+        //   data: {
+        //     expenseAmount: newExpense.toString(),
+        //   }
+        // }
+        await createMonthlyExpense(newExpense, jwt)
+      }
+    })
+
+
+
     // response.map((r) => {
     //   if (r.id === vendorRequestId && isApproved == 'approved') {
 
@@ -458,6 +504,7 @@ const SideBar = ({
         accountBalance: newBalance.toString(),
       }
     }
+
 
     await editAccountBalance(updatedBalance, accountBalanceId, jwt)
 

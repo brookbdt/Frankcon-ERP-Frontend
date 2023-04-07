@@ -68,6 +68,7 @@ const Payment = () => {
               Total Payments
             </Typography>
             <Typography fontWeight="700" fontSize="24px">
+
               {new Intl.NumberFormat("en", {
                 style: "currency",
                 currency: "ETB",

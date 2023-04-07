@@ -247,16 +247,19 @@ const Navbar = ({ jwt }) => {
         requestDate: requestDate?.toString(),
         // requesterName,
         purchaseId,
-        approvedBy: user,
+        approvedBy: adminNotify?.data?.data.map((admin) => admin.id),
         responsibleDepartment: userDepartment,
         itemQuantity,
-
         itemType,
         employee: employee.data?.data?.[0]?.id,
-
-        employees: financeNotify?.data?.data.map((finance) => finance.id),
-        employees: purchaserNotify?.data?.data.map((purchaser) => purchaser.id),
-        employees: adminNotify?.data?.data.map((admin) => admin.id),
+        employees: [
+          ...purchaserNotify?.data?.data.map((purchaser) => purchaser.id),
+          ...adminNotify?.data?.data.map((purchaser) => purchaser.id),
+          ...financeNotify?.data?.data.map((finance) => finance.id),
+        ],
+        // employees: financeNotify?.data?.data.map((finance) => finance.id),
+        // employees: purchaserNotify?.data?.data.map((purchaser) => purchaser.id),
+        // employees: adminNotify?.data?.data.map((admin) => admin.id),
         // employee_name: user,
         // user,
         // jwt: jwt,
@@ -297,9 +300,14 @@ const Navbar = ({ jwt }) => {
         type: "purchase request",
         purchaseRequest: purchaseRequest.data?.data?.id,
         employee: employee.data?.data?.[0]?.id,
-        employees: purchaserNotify?.data?.data.map((purchaser) => purchaser.id),
-        employees: adminNotify?.data?.data.map((purchaser) => purchaser.id),
-        employees: financeNotify?.data?.data.map((finance) => finance.id),
+        admin_notify: adminNotify?.data?.data.map((purchaser) => purchaser.id),
+        purchaser_notify: purchaserNotify?.data?.data.map((purchaser) => purchaser.id),
+        finance_notify: financeNotify?.data?.data.map((finance) => finance.id),
+        // employees: [
+        //   ...purchaserNotify?.data?.data.map((purchaser) => purchaser.id),
+        //   ...adminNotify?.data?.data.map((purchaser) => purchaser.id),
+        //   ...financeNotify?.data?.data.map((finance) => finance.id),
+        // ],
 
       },
     };
@@ -338,8 +346,11 @@ const Navbar = ({ jwt }) => {
         paymentReason,
         paymentInformation,
         employee: employee.data?.data?.[0]?.id,
-        employees: adminNotify?.data?.data.map((admin) => admin.id),
-        employees: financeNotify?.data?.data.map((finance) => finance.id),
+        employees: [
+          ...purchaserNotify?.data?.data.map((purchaser) => purchaser.id),
+          ...adminNotify?.data?.data.map((purchaser) => purchaser.id),
+          ...financeNotify?.data?.data.map((finance) => finance.id),
+        ],
         department: userDepartment,
         project: selectedProjectId,
         purchaserequest: selectedPurchaseId,
@@ -469,7 +480,11 @@ const Navbar = ({ jwt }) => {
         receivingFormId: inboundReceivingFormId,
         department: userDepartment,
         employee: employee.data?.data?.[0]?.id,
-
+        employees: [
+          ...purchaserNotify?.data?.data.map((purchaser) => purchaser.id),
+          ...adminNotify?.data?.data.map((purchaser) => purchaser.id),
+          ...financeNotify?.data?.data.map((finance) => finance.id),
+        ],
 
         // vendorinboundItemTypeId,
       })
@@ -517,7 +532,11 @@ const Navbar = ({ jwt }) => {
         itemStorageLocation: storageLocation,
         itemAmount,
         itemInformation,
-        employee: employee.data?.data?.[0]?.id,
+        employees: [
+          ...purchaserNotify?.data?.data.map((purchaser) => purchaser.id),
+          ...adminNotify?.data?.data.map((purchaser) => purchaser.id),
+          ...engineerNotify?.data?.data.map((engineer) => engineer.id),
+        ],
 
 
         // vendorinboundItemTypeId,
@@ -566,8 +585,12 @@ const Navbar = ({ jwt }) => {
             isApproved: "pending",
             tag_registration: selectedInventoryId,
             department: userDepartment,
-            requesterName: requestingEmployee
-
+            requesterName: requestingEmployee,
+            employees: [
+              ...purchaserNotify?.data?.data.map((purchaser) => purchaser.id),
+              ...adminNotify?.data?.data.map((purchaser) => purchaser.id),
+              ...financeNotify?.data?.data.map((finance) => finance.id),
+            ],
             // vendorinboundItemTypeId,
           })
         ))
@@ -822,6 +845,7 @@ const Navbar = ({ jwt }) => {
           <TextField
             width="100%"
             value={additionalDetail}
+
             onChange={(e) => setAdditionalDetail(e.target.value)}
             sx={{
               "& .MuiInputBase-input": {
@@ -1197,19 +1221,19 @@ const Navbar = ({ jwt }) => {
               <Select
                 labelId="demo-simple-select-filled-label"
                 // defaultValue="Select leave request type"
-                id="demo-simple-select-filled"
+                id="select"
                 value={itemType}
                 onChange={(e) => setItemType(e.target.value)}
               >
-                <MenuItem value={"Construction item"}>Construction item </MenuItem>
-                <MenuItem value={"Finishing Item"}>Finishing Item </MenuItem>
-                <MenuItem value={"Interior design Item"}>Interior design Item </MenuItem>
-                <MenuItem value={"Workshop Item"}>Workshop Item </MenuItem>
-                <MenuItem value={"Office Item"}>Office Item </MenuItem>
+                {itemTypes?.map((itemType) => (
+
+                  <MenuItem value={i?.id}>{itemType} </MenuItem>
+                ))}
+
               </Select>
             </FormControl>
 
-            <Stack>å
+            <Stack>
               <Typography
                 sx={{
                   color: "#3F4158",
@@ -1402,7 +1426,7 @@ const Navbar = ({ jwt }) => {
           <Box height="17px" />
         </Stack>
       </Box>
-    </Paper>
+    </Paper >
 
   );
   // const AddMaterialTransfer = () => (
@@ -1420,8 +1444,18 @@ const Navbar = ({ jwt }) => {
   const [employeeImage, setEmployeeImage] = useState("");
   const [adminNotify, setAdminNotify] = useState({});
   const [financeNotify, setFinanceNotify] = useState({});
+  const [engineerNotify, setEngineerNotify] = useState({});
   const [purchaserNotify, setPurchaserNotify] = useState({});
   const [requestingEmployee, setRequestingEmployee] = useState({});
+
+  const itemTypes = [
+    "Construction item",
+    "Finishing Item",
+    "Interior design Item",
+    "Workshop Item",
+    "Office Item",
+
+  ];
 
 
   let res = [];
@@ -1443,11 +1477,13 @@ const Navbar = ({ jwt }) => {
       const notifiedAdminEmployee = await readEmployeeByDepartment(jwt, "admin");
       const notifiedFinanceEmployee = await readEmployeeByDepartment(jwt, "Finance");
       const notifiedPurchaserEmployee = await readEmployeeByDepartment(jwt, "Purchaser");
+      const notifiedEngineerEmployee = await readEmployeeByDepartment(jwt, "Engineer");
       setEmployeeImage(currentEmployee?.id?.employee?.employeeImage?.url);
       console.log({ notifiedAdminEmployee })
       console.log({ notifiedFinanceEmployee })
       setAdminNotify(notifiedAdminEmployee)
       setFinanceNotify(notifiedFinanceEmployee)
+      setEngineerNotify(notifiedEngineerEmployee)
       setPurchaserNotify(notifiedPurchaserEmployee)
       setRequestingEmployee(currentEmployee);
       const lastPurchase = await getPurchaseId(jwt);
