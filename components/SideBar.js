@@ -286,7 +286,7 @@ const SideBar = ({
 
     fetchData();
     console.log("notif is", { user });
-  }, [user, balance, accountBalanceAmount, buttonClicked,]);
+  }, [user, balance, accountBalanceAmount, buttonClicked, response, paymentNotificationResponse]);
 
   const handleRequest = async (
     isApproved,
