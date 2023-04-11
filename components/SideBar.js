@@ -431,24 +431,39 @@ const SideBar = ({
           purchaseRequestId,
           jwt
         );
+
+
       }
     })
 
-    // const newExpense = allNotifications?.map((r) => {
-    //   if ((r.id === paymentRequestNotificationId) && (r?.attributes?.purchaserequest?.data?.attributes?.isApproved === "purchased") && r?.attributes?.paymentrequest?.data?.attributes?.paymentType === "Pay out") {
-    //     // const previousProjectExpense = parseInt(r?.attributes?.paymentrequest?.data?.attributes?.project?.data?.attributes?.projectExpense.replace(/,/g, ''));
-    //     const paymentAmountNumber = parseInt(r?.attributes?.paymentrequest?.data?.attributes?.paymentAmount.replace(/,/g, '')); // Remove commas and convert payment amount to a number
-
-    //     console.log({ expense: paymentAmountNumber })
-
-    //     return paymentAmountNumber
-    //   }
-    // })
+    const updatedNotifications = allNotifications.map((notification) => {
+      if (notification?.attributes?.purchaserequest?.data?.id === purchaseRequestId) {
+        return {
+          ...notification,
+          attributes: {
+            ...notification.attributes,
+            purchaserequest: {
+              ...notification.attributes.purchaserequest,
+              data: {
+                ...notification.attributes.purchaserequest.data,
+                attributes: {
+                  ...notification.attributes.purchaserequest.data.attributes,
+                  isApproved: 'purchased',
+                },
+              },
+            },
+          },
+        };
+      } else {
+        return notification;
+      }
+    });
+    setAllNotifications(updatedNotifications);
 
     allNotifications?.map(async (r) => {
-
+      console.log({ r })
       if ((r.id === paymentRequestNotificationId) && (r?.attributes?.purchaserequest?.data?.attributes?.isApproved === "purchased") && r?.attributes?.paymentrequest?.data?.attributes?.paymentType === "Pay out") {
-
+        console.log('in if', { r });
         const newExpense = {
           data: {
             expenseAmount:
@@ -461,12 +476,13 @@ const SideBar = ({
           }
         }
 
-        // const updatedExpense = {
-        //   data: {
-        //     expenseAmount: newExpense.toString(),
-        //   }
-        // }
+        console.log({ newExpense })
+
+
         await createMonthlyExpense(newExpense, jwt)
+      }
+      else {
+        console.log('not if', { r, paymentRequestNotificationId, isApproved: r?.attributes?.purchaserequest?.data?.attributes?.isApproved, paymenttype: r?.attributes?.paymentrequest?.data?.attributes?.paymentType === "Pay out" })
       }
     })
 
