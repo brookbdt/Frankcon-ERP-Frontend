@@ -247,7 +247,7 @@ const SideBar = ({
       console.log({ notifications })
 
       // Set the state of mappedArrayState as the new mapped array
-      setAllNotifications(notifications);
+      setAllNotifications([...notifications]);
 
 
       const lastAccountBalance = await readAccountBalanceId(jwt);
