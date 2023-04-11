@@ -211,19 +211,16 @@ const SideBar = ({
 
 
 
-    readNotification(jwt, user).then((r) => {
-      console.log("r is", r.data?.data);
-      setResponse(r.data?.data);
-    });
-    readPaymentNotification(jwt, user).then((pr) => {
-      console.log("pr is", pr.data?.data);
-      setPaymentNotificationResponse(pr.data?.data);
-    });
 
 
 
 
     const fetchData = async () => {
+
+      const response = (await readNotification(jwt, user))?.data?.data
+
+      const paymentNotificationResponse = (await readPaymentNotification(jwt, user))?.data?.data
+
       const currentEmployee = await readEmployeeDetail(jwt, user);
 
       const notifiedAdminEmployee = await readEmployeeByDepartment(jwt, "admin");
