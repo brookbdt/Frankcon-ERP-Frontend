@@ -10,17 +10,27 @@ import All from "./All";
 import Depleted from "./Depleted";
 import Instock from "./Instock";
 import OutofStock from "./OutofStock";
+import { getTokenFromLocalCookie } from "../../lib/auth";
 
-const Inventory = ({ jwt }) => {
+const Inventory = () => {
   const { user, loading } = useFetchUser();
   const { userDepartment } = useFetchUserDepartment();
   const buttons = ["All", "Instock", "Depleted ", "Out-of-stock"];
+  const [jwt, setJwt] = useState(null);
 
   const [selectedIndex, setSelectedIndex] = useState(0);
 
   const [response, setResponse] = useState([]);
   useEffect(() => {
+    const jwt = getTokenFromLocalCookie();
+
+    console.log(2, "end", { jwt });
+
+    setJwt(jwt);
     const fetchData = async () => {
+      if (!user) {
+        return;
+      }
       const result = await readInventory(jwt);
       setResponse(result.data);
     };

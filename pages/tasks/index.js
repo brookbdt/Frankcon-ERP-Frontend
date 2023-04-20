@@ -45,6 +45,7 @@ import {
   createComment,
   createNotification,
   createTask,
+  readAllProjects,
   readEmployee,
   readEmployeeTask,
   readNotification,
@@ -204,7 +205,7 @@ const Tasks = () => {
       setCurrentEmployee(employee);
       const result = await readEmployeeTask(jwt, user);
       const employeeList = await readEmployee(jwt, user);
-      const projectList = await readProject(jwt, user);
+      const projectList = await readAllProjects(jwt, user);
       setResponse(result.data);
       setEmployees(employeeList.data);
       setProject(projectList.data.data);

@@ -32,7 +32,7 @@ const PaymentList = () => {
     <Layout jwt={jwt} user={user} userDepartment={userDepartment}>
       <Stack paddingX="48px">
         <Box height="28px" />
-        <Payment selectedIndex="0" jwt={jwt} />
+        <Payment selectedIndex="0" />
       </Stack>
     </Layout>
   );

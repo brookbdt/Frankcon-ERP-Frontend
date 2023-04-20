@@ -28,6 +28,9 @@ const Payment = () => {
     setJwt(jwt);
 
     const fetchData = async () => {
+      if (!user) {
+        return;
+      }
       const result = await readPaymentsRequests(jwt);
       setResponse(result.data);
     };

@@ -18,7 +18,7 @@ const TasksTable = ({ jwt }) => {
     {
       field: "title",
       headerName: "Task Details",
-      width: 300,
+      width: 50,
       renderCell: (cellValues) => {
         console.log({ cellValues });
         return (
@@ -44,7 +44,7 @@ const TasksTable = ({ jwt }) => {
     {
       field: "status",
       headerName: "Task Status",
-      width: 200,
+      width: 150,
       renderCell: (cellValues) => {
         return (
           <Stack justifyContent="center">
@@ -61,7 +61,7 @@ const TasksTable = ({ jwt }) => {
     {
       field: "date",
       headerName: "Date",
-      width: 300,
+      width: 150,
       renderCell: (cellValues) => {
         console.log({ cellValues });
         return (

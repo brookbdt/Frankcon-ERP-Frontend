@@ -44,7 +44,7 @@ import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import { fetcher } from "../lib/api";
 import { getTokenFromLocalCookie, getTokenFromServerCookie, getUserFromLocalCookie } from "../lib/auth";
-import { useFetchUser, useFetchUserDepartment } from "../lib/authContext";
+import { useFetchUser, useFetchUserDepartment, useFetchUserEmployee } from "../lib/authContext";
 import {
   createMonthlyExpense,
   createNotification,
@@ -56,6 +56,7 @@ import {
   editMaterialTransfer,
   editNotification,
   editPaymentRequest,
+  editProject,
   editPurchaseRequest,
   editVendorRequest,
   getInventoryQuantity,
@@ -102,6 +103,7 @@ const SideBar = ({
   // const { user, userDepartment, loading } = useFetchUser();
 
   const { user, loading } = useFetchUser();
+  const { userEmployee } = useFetchUserEmployee();
   const { userDepartment } = useFetchUserDepartment();
 
   const [open, setOpen] = React.useState(false);
@@ -213,7 +215,7 @@ const SideBar = ({
 
 
 
-
+    console.log({ userEmployee })
 
     const fetchData = async () => {
 
@@ -334,7 +336,7 @@ const SideBar = ({
     paymentRequestNotificationId,
     paymentRequestId,
     purchaseRequestId,
-    itemName
+    projectId
   ) => {
     // optimistic update
     setButtonClickedPaymentRequest(true);
@@ -375,22 +377,55 @@ const SideBar = ({
     //     expenseAmount
     //   }
     // }
-
-
-    const projectExpense = paymentNotificationResponse?.map((r) => {
+    allNotifications?.map(async (r) => {
       if ((r.id === paymentRequestNotificationId) && isApproved === "approved" && r?.attributes?.paymentrequest?.data?.attributes?.paymentType === "Pay out") {
-        const previousProjectExpense = parseInt(r?.attributes?.paymentrequest?.data?.attributes?.project?.data?.attributes?.projectExpense.replace(/,/g, ''));
+        console.log('condition true for projectExpense')
+
+        const previousProjectExpense = parseInt(r?.attributes?.project?.data?.attributes?.projectExpense.replace(/,/g, ''));
         const paymentAmountNumber = parseInt(r?.attributes?.paymentrequest?.data?.attributes?.paymentAmount.replace(/,/g, '')); // Remove commas and convert payment amount to a number
 
+        console.log({ ppe: r?.attributes?.project?.data?.attributes?.projectExpense });
+        console.log({ previousProjectExpense });
+        console.log({ paymentAmountNumber });
         console.log({ expense: previousProjectExpense + paymentAmountNumber })
 
-        return previousProjectExpense + paymentAmountNumber
+        const projectExpense = (previousProjectExpense + paymentAmountNumber).toString();
+
+
+        const updatedProject = {
+          data: {
+            projectExpense
+          }
+        }
+
+        console.log({ updatedProject });
+        await editProject(updatedProject, projectId, jwt)
+
+      }
+      else {
+        console.log({ id: r.id, paymentRequestNotificationId, isApproved })
       }
     })
 
+    // const projectExpense = paymentNotificationResponse?.map((r) => {
+    //   console.log('not projectExpense', { paymentRequestNotificationId, isApproved, r })
+    //   if ((r.id === paymentRequestNotificationId) && isApproved === "approved" && r?.attributes?.paymentrequest?.data?.attributes?.paymentType === "Pay out") {
+    //     console.log('condition true for projectExpense')
+    //     const previousProjectExpense = parseInt(r?.attributes?.paymentrequest?.data?.attributes?.project?.data?.attributes?.projectExpense.replace(/,/g, ''));
+    //     const paymentAmountNumber = parseInt(r?.attributes?.paymentrequest?.data?.attributes?.paymentAmount.replace(/,/g, '')); // Remove commas and convert payment amount to a number
+
+    //     console.log({ expense: previousProjectExpense + paymentAmountNumber })
+
+    //     return previousProjectExpense + paymentAmountNumber
+    //   }
+    //   else {
+    //     console.log({ id: r.id, paymentRequestNotificationId, isApproved })
+    //   }
+    // })
+    // console.log({ projectExpense })
 
 
-    const newBalance = paymentNotificationResponse?.map((r) => {
+    allNotifications?.map(async (r) => {
       if ((r.id === paymentRequestNotificationId
       ) && isApproved === "approved" && r?.attributes?.paymentrequest?.data?.attributes?.paymentType === "Pay out") {
         const paymentAmountNumber = parseInt(r?.attributes?.paymentrequest?.data?.attributes?.paymentAmount.replace(/,/g, '')); // Remove commas and convert payment amount to a number
@@ -398,10 +433,19 @@ const SideBar = ({
         console.log({
           paymentAmountNumber
         })
+        console.log({
+          balance
+        })
 
+        const newBalance = (balance - paymentAmountNumber).toString();
 
-        return balance - paymentAmountNumber
-
+        console.log({ newBalance })
+        const updatedBalance = {
+          data: {
+            accountBalance: newBalance.toString(),
+          }
+        }
+        await editAccountBalance(updatedBalance, accountBalanceId, jwt)
 
       } else if ((r.id === paymentRequestNotificationId
       ) && isApproved === "approved" && r?.attributes?.paymentrequest?.data?.attributes?.paymentType === "Pay in") {
@@ -411,13 +455,50 @@ const SideBar = ({
         console.log({
           paymentAmountNumber
         })
-        return balance + paymentAmountNumber
-      }
-      else {
-        return '666'
+        console.log({
+          balance
+        })
+        const newBalance = (balance + paymentAmountNumber).toString();
+        console.log({ newBalance })
+        const updatedBalance = {
+          data: {
+            accountBalance: newBalance.toString(),
+          }
+        }
+        await editAccountBalance(updatedBalance, accountBalanceId, jwt)
+
       }
 
     })
+
+    // const newBalance = paymentNotificationResponse?.map((r) => {
+    //   if ((r.id === paymentRequestNotificationId
+    //   ) && isApproved === "approved" && r?.attributes?.paymentrequest?.data?.attributes?.paymentType === "Pay out") {
+    //     const paymentAmountNumber = parseInt(r?.attributes?.paymentrequest?.data?.attributes?.paymentAmount.replace(/,/g, '')); // Remove commas and convert payment amount to a number
+
+    //     console.log({
+    //       paymentAmountNumber
+    //     })
+
+
+    //     return balance - paymentAmountNumber
+
+
+    //   } else if ((r.id === paymentRequestNotificationId
+    //   ) && isApproved === "approved" && r?.attributes?.paymentrequest?.data?.attributes?.paymentType === "Pay in") {
+    //     const paymentAmountNumber = parseInt(r?.attributes?.paymentrequest?.data?.attributes?.paymentAmount.replace(/,/g, '')); // Remove commas and convert payment amount to a number
+
+
+    //     console.log({
+    //       paymentAmountNumber
+    //     })
+    //     return balance + paymentAmountNumber
+    //   }
+    //   else {
+    //     return '666'
+    //   }
+
+    // })
 
     allNotifications?.map(async (r) => {
       if ((r.id === paymentRequestNotificationId
@@ -458,29 +539,28 @@ const SideBar = ({
     setAllNotifications(updatedNotifications);
 
     allNotifications?.map(async (r) => {
-      console.log({ r })
-      if ((r.id === paymentRequestNotificationId) && (r?.attributes?.purchaserequest?.data?.attributes?.isApproved === "purchased") && r?.attributes?.paymentrequest?.data?.attributes?.paymentType === "Pay out") {
-        console.log('in if', { r });
+
+      if ((r.id === paymentRequestNotificationId) && isApproved === "approved" && r?.attributes?.paymentrequest?.data?.attributes?.paymentType === "Pay out") {
+
         const newExpense = {
           data: {
             expenseAmount:
-              allNotifications?.map((r) => {
-                (parseInt(r?.attributes?.paymentrequest?.data?.attributes?.paymentAmount.replace(/,/g, ''))).toString(); // Remove commas and convert payment amount to a number
-              }),
+
+              (parseInt(r?.attributes?.paymentrequest?.data?.attributes?.paymentAmount.replace(/,/g, ''))).toString(),// Remove commas and convert payment amount to a number
+
             paymentrequest: r?.attributes?.paymentrequest?.data?.id,
             purchaserequest: r?.attributes?.purchaserequest?.data?.id,
             payout: r?.attributes?.payout?.data?.id,
           }
         }
 
+
         console.log({ newExpense })
 
 
         await createMonthlyExpense(newExpense, jwt)
       }
-      else {
-        console.log('not if', { r, paymentRequestNotificationId, isApproved: r?.attributes?.purchaserequest?.data?.attributes?.isApproved, paymenttype: r?.attributes?.paymentrequest?.data?.attributes?.paymentType === "Pay out" })
-      }
+
     })
 
 
@@ -497,33 +577,20 @@ const SideBar = ({
 
     // })
 
-    console.log({ newBalance })
 
 
     console.log({ accountBalanceAmount })
 
 
 
-    setBalance(newBalance);
+    // setBalance(newBalance);
     console.log({ accountBalanceAmount })
+
     await editPaymentRequest(
-      { data: { isApproved, user, projectExpense } },
+      { data: { isApproved, user } },
       paymentRequestId,
       jwt
     );
-
-    const updatedBalance = {
-      data: {
-        accountBalance: newBalance.toString(),
-      }
-    }
-
-
-    await editAccountBalance(updatedBalance, accountBalanceId, jwt)
-
-
-
-
   };
 
   const handleRequestVendorRequest = async (
@@ -1153,7 +1220,9 @@ const SideBar = ({
                                                       "approved",
                                                       notification?.id,
                                                       notification?.attributes?.paymentrequest?.data?.id,
-                                                      notification?.attributes?.purchaserequest?.data?.id
+                                                      notification?.attributes?.purchaserequest?.data?.id,
+                                                      notification?.attributes?.project?.data?.id,
+
                                                     )
                                                   }
                                                   sx={{
@@ -1175,7 +1244,9 @@ const SideBar = ({
                                                       "rejected",
                                                       notification?.id,
                                                       notification?.attributes?.paymentrequest?.data?.id,
-                                                      notification?.attributes?.purchaserequest?.data?.id
+                                                      notification?.attributes?.purchaserequest?.data?.id,
+                                                      notification?.attributes?.project?.data?.id,
+
                                                     )
                                                   }
 
@@ -2472,52 +2543,46 @@ const SideBar = ({
         </List>
         {/* username and online status */}
 
-        <Box height="56px">
-          <Card height="56px">
-            <CardHeader
-              sx={{ paddingLeft: "8px" }}
-              avatar={
-                <Avatar
-                  alt="UserImage"
-                  src="/static/Avatar.png"
-                  sx={{ paddingLeft: "0px" }}
-                />
-              }
-              title={
-                <Typography fontWeight="400" fontSize="14px">
-                  {" "}
-                  {user}
-                </Typography>
-              }
-              titleTypographyProps={{ variant: "h6", component: "span" }}
-              subheader={
-                <Box display="flex">
-                  <Box
-                    display="flex"
-                    justifyContent="center"
-                    alignItems="center"
-                    paddingRight="8px"
-                  >
-                    <Image
-                      src="/static/online.png"
-                      alt="online badge"
-                      width={8}
-                      height={8}
-                    />
-                  </Box>
-                  <Typography fontSize="12px">Online</Typography>
+        <Box height="160px" />
+        <Card height="46px" sx={{ borderRadius: "8px" }}>
+          <CardHeader
+            sx={{ paddingLeft: "8px", paddingY: "6px" }}
+            avatar={
+              <Avatar
+                alt="Employee Image"
+                // src="/static/Avatar.png"
+                src={`${process.env.NEXT_PUBLIC_STRAPI_BASE_URL}${userEmployee?.employee?.employeeImage?.url}`}
+                sx={{ paddingLeft: "0px" }}
+              />
+            }
+            title={
+              <Typography fontWeight="400" fontSize="14px">
+                {" "}
+                {userEmployee?.employee?.firstName}
+              </Typography>
+            }
+            titleTypographyProps={{ variant: "h6", component: "span" }}
+            subheader={
+              <Box display="flex">
+                <Box
+                  display="flex"
+                  justifyContent="center"
+                  alignItems="center"
+                  paddingRight="8px"
+                >
+                  <Image
+                    src="/static/online.png"
+                    alt="online badge"
+                    width={8}
+                    height={8}
+                  />
                 </Box>
-              }
-            // action={
-            //   <Box>
-            //     <IconButton aria-label="settings">
-            //       <UnfoldMore onClick={(event) => handleClick()} />
-            //     </IconButton>
-            //   </Box>
-            // }
-            />
-          </Card>
-        </Box>
+                <Typography fontSize="12px">Online</Typography>
+              </Box>
+            }
+          />
+        </Card>
+
         <Box height="25px" />
       </SideBox >
     </ThemeProvider >

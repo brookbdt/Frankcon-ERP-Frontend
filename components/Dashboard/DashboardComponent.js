@@ -48,7 +48,7 @@ const DashboardComponent = ({ jwt }) => {
             <Divider width="692px" />
             <Box height="12px" />
             <Paper
-              elevation={0} sx={{ maxHeight: "600px", overflow: "auto" }}
+              elevation={0} sx={{ maxHeight: "600px", overflow: "auto", backgroundColor: "white" }}
             >
 
               {selectedIndex === 0 ? <TasksTable jwt={jwt} /> : ""}

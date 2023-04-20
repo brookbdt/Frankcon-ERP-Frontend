@@ -12,14 +12,145 @@ import {
   Typography,
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
-import { useFetchUser } from "../../lib/authContext";
-import { readEmployeeTask } from "../../lib";
+
+import { readEmployee, readEmployeeTask } from "../../lib";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+
+import DataTable from "../DataTable";
+import { useFetchUser, useFetchUserDepartment } from "../../lib/authContext";
+
 
 const TasksTable = ({ jwt }) => {
-  const [response, setResponse] = useState([]);
+  dayjs.extend(relativeTime);
+  let today = new Date();
+
+  let thisMonth = today.toLocaleString("default", { month: "long" });
+
+  const columns = [
+    // { field: "id", headerName: "ID", width: 90 },
+    {
+      field: "title",
+      headerName: "Task Details",
+      width: 250,
+      renderCell: (cellValues) => {
+        console.log({ cellValues });
+        return (
+          <Box display="flex" sx={{ paddingY: "20px" }}>
+            <Avatar
+              src={cellValues.row.employeeImage}
+              width="44px"
+              height="44px"
+            />
+            <Box width="12px" />
+
+            <Stack justifyContent="center">
+              <Typography fontWeight="500">{cellValues.row.title}</Typography>
+
+              <Typography fontSize="12px" color="#3F4158">
+                {cellValues.row.department} - Updated 1 day ago
+              </Typography>
+            </Stack>
+          </Box>
+        );
+      },
+    },
+    {
+      field: "status",
+      headerName: "Task Status",
+      width: 150,
+      renderCell: (cellValues) => {
+        return (
+          <Stack justifyContent="center">
+            <Typography fontWeight="500">{cellValues.row.status}</Typography>
+
+            {/* <Typography fontSize="12px" color="#3F4158">
+              Joined on{" "}
+              {dayjs(cellValues.row.employmentDate).format("DD MMM YYYY")}
+            </Typography> */}
+          </Stack>
+        );
+      },
+    },
+    {
+      field: "date",
+      headerName: "Date",
+      width: 150,
+      renderCell: (cellValues) => {
+        console.log({ cellValues });
+        return (
+          <Stack justifyContent="center">
+            <Typography fontWeight="500">
+              {" "}
+              {dayjs(cellValues.row?.date).format("MMMM, DD, YYYY")}
+              {/* {cellValues.attributes?.date} */}
+            </Typography>
+          </Stack>
+        );
+      },
+    },
+    {
+      field: "priority",
+      headerName: "Priority",
+      width: 130,
+      renderCell: (cellValues) => {
+        // console.log({ cellValues });
+        return (
+          <>
+            {cellValues.row?.priority === "HIGH" ? (
+              <Button
+                sx={{
+                  backgroundColor: "#F44336",
+                  borderRadius: "20px",
+                  color: "#F6F6F6",
+                }}
+              >
+                HIGH
+              </Button>
+            ) : cellValues.row?.priority === "MEDIUM" ? (
+              <Button
+                sx={{
+                  backgroundColor: "#24B07D",
+                  borderRadius: "20px",
+                  color: "#F6F6F6",
+                }}
+              >
+                MEDIUM
+              </Button>
+            ) : cellValues.row?.priority === "LOW" ? (
+              <Button
+                sx={{
+                  backgroundColor: "#FFBA2E",
+                  borderRadius: "20px",
+                  color: "#F6F6F6",
+                }}
+              >
+                LOW
+              </Button>
+            ) : (
+              ""
+            )}
+          </>
+        );
+      },
+    },
+  ];
+
+  const taskTableStyles = {
+    height: "950px",
+    border: 0,
+    width: "100%",
+    backgroundColor: "white",
+  };
   const { user, loading } = useFetchUser();
+  const { userDepartment } = useFetchUserDepartment();
+
+  const [response, setResponse] = useState([]);
+  const [priority, setPriority] = useState("HIGH");
+  const [status, setStatus] = useState("INPROGRESS");
+  const [employees, setEmployees] = useState([]);
+
   useEffect(() => {
     const fetchData = async () => {
       // const employeeResult = await readEmployee(jwt);
@@ -28,7 +159,9 @@ const TasksTable = ({ jwt }) => {
         return;
       }
       const result = await readEmployeeTask(jwt, user);
+      const employeeList = await readEmployee(jwt, user);
       setResponse(result.data);
+      setEmployees(employeeList.data);
     };
     // console.log("the jwt is", jwt);
     fetchData();
@@ -36,110 +169,59 @@ const TasksTable = ({ jwt }) => {
     console.log("relation is:", response);
   }, [user]);
 
-  const columns = [
-    { id: "Task Name", label: "Task Name" },
-    {
-      id: "task status",
-      label: "Task Status",
-      // minWidth: 170,
-      // align: "right",
-      format: (value) => value.toLocaleString("en-US"),
-    },
-    {
-      id: "Task Due Date",
-      label: "Task Due Date",
-      // minWidth: 170,
-      // align: "right",
-      format: (value) => value.toLocaleString("en-US"),
-    },
-    {
-      id: "Task Priority",
-      label: "Task Priority",
-      // minWidth: 170,
-      // align: "right",
-      format: (value) => value.toFixed(2),
-    },
-    {
-      id: "Task Detail",
-      label: "Task Detail",
-      // minWidth: 170,
-      // align: "right",
-      format: (value) => value.toFixed(2),
-    },
+  var months = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
   ];
+
+  var currDate = new Date();
+  var currMonth = currDate.getMonth();
+  var monthName = months[currMonth];
+
   return (
     <>
-      <TableContainer>
-        <Table>
-          <TableHead>
-            <TableRow>
-              {columns.map((column) => (
-                <TableCell
-                  key={column.id}
-                  align={column.align}
-                  style={{ minWidth: column.minWidth }}
-                >
-                  <Typography fontSize="14px" fontWeight="500" color="#0F112E">
-                    {column.label}
-                  </Typography>
-                </TableCell>
-              ))}
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {response?.data?.map((employee, index) => (
-              <TableRow key={employee.data?.id}>
-                <TableCell>
-                  <Stack paddingY="24px" direction="row">
-                    <Stack direction="row">
-                      <>
-                        <Box display="flex" flexDirection="column">
-                          <Typography>{employee.attributes?.title}</Typography>
-                          {/* <Typography>task - Updated 1 day ago</Typography> */}
-                        </Box>
-                      </>
-                    </Stack>
-                  </Stack>
-                </TableCell>
-                <TableCell>
-                  <Typography>{employee.attributes?.status}</Typography>
-                </TableCell>
-                <TableCell>
-                  <Typography>
-                    {dayjs(employee?.attributes?.date).format("DD MMM, YYYY")}
-                  </Typography>
-                </TableCell>
-                <TableCell>
-                  {employee.attributes?.priority === "HIGH" ? (
-                    <Typography color="#F44336">HIGH</Typography>
-                  ) : (
-                    ""
-                  )}
-                  {employee.attributes?.priority === "MEDIUM" ? (
-                    <Typography color="#FFBA2E">MEDIUM</Typography>
-                  ) : (
-                    ""
-                  )}
-                  {employee.attributes?.priority === "LOW" ? (
-                    <Typography color="#24B07D">LOW</Typography>
-                  ) : (
-                    ""
-                  )}
-                </TableCell>
-                <TableCell>
-                  <Button sx={{ color: "#6F7081", fontSize: "10px" }}>
-                    View Details <Box width="10px" />{" "}
-                    <ArrowForwardIcon fontSize="10px" />
-                  </Button>
-                  {/* <Typography></Typography> */}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+
+      {/* <pre>{JSON.stringify({ response }, null, 2)}</pre> */}
+
+      <>
+        <DataTable
+          rows={
+            response?.data?.map((e) => {
+              return {
+                id: e?.id,
+                title: e?.attributes?.title,
+                status: e.attributes?.status,
+                date: e?.attributes?.date,
+                //   date: dayjs(e?.attributes?.date).format("DD MMM YYYY"),
+                priority: e.attributes?.priority,
+                employeeImage: `${e?.attributes?.employee?.data[0]?.attributes?.employeeImage?.data?.attributes?.url}`,
+
+                department:
+                  e?.attributes?.employee?.data[0]?.attributes?.department,
+              };
+            }) ?? []
+          }
+          columns={columns}
+          // className={classes.root}
+          loading={!response?.data?.length}
+          sx={taskTableStyles}
+          checkboxSelection
+        />
+      </>
+
     </>
   );
 };
+
 
 export default TasksTable;

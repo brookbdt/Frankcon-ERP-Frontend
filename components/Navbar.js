@@ -395,10 +395,15 @@ const Navbar = ({ jwt }) => {
     // const accountBalanceId = await getAccountBalanceId(jwt);
     // console.log({ accountBalanceId })
 
+
+
     const newPayin = {
       data: {
         payInDate: new Date().toISOString(),
         paymentrequest: paymentRequest?.data?.data?.id,
+        purchaserequest: selectedPurchaseId,
+        project: selectedProjectId,
+        employee: employee.data?.data?.[0]?.id,
         amount: paymentAmount,
         isApproved: "pending",
       }
@@ -408,6 +413,9 @@ const Navbar = ({ jwt }) => {
       data: {
         payOutDate: new Date().toISOString(),
         paymentrequest: paymentRequest?.data?.data?.id,
+        purchaserequest: selectedPurchaseId,
+        employee: employee.data?.data?.[0]?.id,
+        project: selectedProjectId,
         amount: paymentAmount,
         isApproved: "pending",
       }

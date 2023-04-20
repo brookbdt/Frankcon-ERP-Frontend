@@ -15,6 +15,7 @@ import {
   Typography,
 } from "@mui/material";
 import dayjs from "dayjs";
+import DataTable from "../DataTable";
 
 const ApprovalsTable = ({ jwt }) => {
   const [response, setResponse] = useState([]);
@@ -58,126 +59,138 @@ const ApprovalsTable = ({ jwt }) => {
   }, [user]);
 
   const columns = [
+    // { field: "id", headerName: "ID", width: 90 },
     {
-      id: "Title",
-      label: "Title",
-      // minWidth: 170,
-      // align: "right",
-      format: (value) => value.toLocaleString("en-US"),
-    },
-    { id: "Approval Type", label: "Approval Type" },
+      field: "approvalType",
+      headerName: "Approval Type",
+      width: 150,
+      renderCell: (cellValues) => {
+        return (
 
-    {
-      id: "request Date",
-      label: "Request Date",
-      // minWidth: 170,
-      // align: "right",
-      format: (value) => value.toFixed(2),
+          <>
+            {cellValues.row?.approvalType === "purchase request" || cellValues?.row?.approvalType === "edited purchase request"
+              ? cellValues?.purchaseRequest?.data
+                ?.attributes?.itemName
+              : cellValues?.type === "leave request"
+                ? cellValues?.leaveRequest?.data
+                  ?.attributes?.leaveRequestType
+                : cellValues?.type === "payment request"
+                  ? cellValues?.project?.data?.attributes?.projectTitle
+                  : cellValues?.type === "vendor request" ?
+                    cellValues?.vendor?.data?.attributes?.vendorName
+                    : ""
+            }
+          </>
+
+        );
+      },
     },
     {
-      id: "Requester Name",
-      label: "Requester Name",
-      // minWidth: 170,
-      // align: "right",
-      format: (value) => value.toFixed(2),
+      field: "requestDate",
+      headerName: "Request Date",
+      width: 150,
+      renderCell: (cellValues) => {
+        console.log({ cellValues });
+        return (
+
+          <Typography fontWeight="500">
+            {" "}
+            {dayjs(cellValues.row?.requestDate).format("MMMM, DD, YYYY")}
+
+          </Typography>
+
+        );
+      },
     },
     {
-      id: "Status",
-      label: "Status",
-      // minWidth: 170,
-      // align: "right",
-      format: (value) => value.toFixed(2),
+      field: "requesterName",
+      headerName: "Requester Name",
+      width: 400,
+      renderCell: (cellValues) => {
+        // console.log({ cellValues });
+        return (
+          <>
+            {cellValues.row?.requesterName === "HIGH" ? (
+              <Button
+                sx={{
+                  backgroundColor: "#F44336",
+                  borderRadius: "20px",
+                  color: "#F6F6F6",
+                }}
+              >
+                HIGH
+              </Button>
+            ) : cellValues.row?.requesterName === "MEDIUM" ? (
+              <Button
+                sx={{
+                  backgroundColor: "#24B07D",
+                  borderRadius: "20px",
+                  color: "#F6F6F6",
+                }}
+              >
+                MEDIUM
+              </Button>
+            ) : cellValues.row?.requesterName === "LOW" ? (
+              <Button
+                sx={{
+                  backgroundColor: "#FFBA2E",
+                  borderRadius: "20px",
+                  color: "#F6F6F6",
+                }}
+              >
+                LOW
+              </Button>
+            ) : (
+              ""
+            )}
+          </>
+        );
+      },
+    },
+    {
+      field: "status",
+      headerName: "Status",
+      width: 150,
+      renderCell: (cellValues) => {
+        console.log({ cellValues });
+        return (
+          <Stack justifyContent="center">
+            <Typography fontWeight="500">
+              {" "}
+              {dayjs(cellValues.row?.status).format("MMMM, DD, YYYY")}
+              {/* {cellValues.attributes?.date} */}
+            </Typography>
+          </Stack>
+        );
+      },
     },
   ];
+
   return (
     <>
-      <TableContainer>
-        <Table>
-          <TableHead>
-            <TableRow>
-              {columns.map((column) => (
-                <TableCell
-                  key={column.id}
-                  align={column.align}
-                  style={{ minWidth: column.minWidth }}
-                >
-                  <Typography fontSize="14px" fontWeight="500" color="#0F112E">
-                    {column.label}
-                  </Typography>
-                </TableCell>
-              ))}
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {/* <pre>{JSON.stringify({ allNotifications }, null, 2)}</pre> */}
-            {/* <pre>{JSON.stringify({ response }, null, 2)}</pre>
-            <pre>{JSON.stringify({ paymentNotificationResponse }, null, 2)}</pre> */}
-            {allNotifications?.map((approval, index) => (
-              <TableRow key={approval.data?.id}>
-                <TableCell>
-                  <Stack paddingY="24px" direction="row">
-                    <Stack direction="row">
-                      <>
-                        <Box display="flex" flexDirection="column">
-                          <Typography fontSize="14px">
-                            {approval?.attributes?.type === "purchase request" || approval?.attributes?.type === "edited purchase request"
-                              ? approval?.attributes?.purchaseRequest?.data
-                                ?.attributes?.itemName
-                              : approval?.attributes?.type === "leave request"
-                                ? approval?.attributes?.leaveRequest?.data
-                                  ?.attributes?.leaveRequestType
-                                : approval?.attributes?.type === "payment request"
-                                  ? approval?.attributes?.project?.data?.attributes?.projectTitle
-                                  : approval?.attributes?.type === "vendor request" ?
-                                    approval?.attributes?.vendor?.data?.attributes?.vendorName
-                                    : ""}
-                          </Typography>
-                          {/* <Typography>task - Updated 1 day ago</Typography> */}
-                        </Box>
-                      </>
-                    </Stack>
-                  </Stack>
-                </TableCell>
-                <TableCell>
-                  <Typography fontSize="12px">
-                    {approval?.attributes?.type === "edited purchase request" ? "purchase request" : approval?.attributes?.type}
-                  </Typography>
-                </TableCell>
-                <TableCell>
-                  <Typography>
-                    <Typography fontSize="12px">
-                      {dayjs(approval?.attributes?.date).format("DD MMM, YYYY")}
-                    </Typography>
-                  </Typography>
-                </TableCell>
-                <TableCell>
-                  <Typography fontSize="14px">
-                    {
-                      approval?.attributes?.employee?.data?.attributes?.firstName
-                    }
-                  </Typography>
-                </TableCell>
-                <TableCell>
-                  <Typography fontSize="14px">
-                    {approval?.attributes?.type === "purchase request" || approval?.attributes?.type === "edited purchase request"
-                      ? approval?.attributes?.purchaseRequest?.data?.attributes
-                        ?.isApproved
-                      : approval?.attributes?.type === "leave request"
-                        ? approval?.attributes?.leaveRequest?.data?.attributes
-                          ?.isApproved
-                        : approval?.attributes?.type === "payment request"
-                          ? approval?.attributes?.paymentrequest?.data?.attributes
-                            ?.isApproved
-                          : approval?.attributes?.type === "vendor request"
-                            ? approval?.attributes?.vendor?.data?.attributes?.isApproved
-                            : ""}
-                  </Typography>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+      <DataTable
+        rows={
+          response?.data?.map((approval) => {
+            return {
+              id: approval?.data?.id,
+
+              approvalType: approval?.attributes?.type,
+              // date: approval?.attributes?.date,
+              requesterName: approval?.attributes?.requesterName,
+              status: approval.attributes?.status,
+              date: dayjs(approval?.attributes?.date).format("DD MMM YYYY"),
+              priority: approval.attributes?.priority,
+
+
+            };
+          }) ?? []
+        }
+        columns={columns}
+        // className={classes.root}
+        loading={!response?.data?.length}
+        sx={taskTableStyles}
+        checkboxSelection
+      />
     </>
   );
 };
